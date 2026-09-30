@@ -1,0 +1,13 @@
+phpm
+Copyright (c) 2026 Sanjeev Sharma
+
+This product includes files from Composer (https://getcomposer.org),
+copied verbatim from Composer 2.10.3:
+
+  crates/phpm-lock/composer/InstalledVersions.php
+
+Composer is Copyright (c) Nils Adermann, Jordi Boggiano and is licensed under
+the MIT licence; see crates/phpm-lock/composer/LICENSE.
+
+phpm also reproduces the behaviour of Composer and composer/semver (MIT) in
+Rust. Source files that do so point to the Composer file they follow.

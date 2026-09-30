@@ -11,10 +11,15 @@ cache key and the autoloader suffix were verified by hand.
 
 `Installer::run()` → `Installer::doInstall()` (src/Composer/Installer.php).
 
-1. **Root package.** composer.json loaded. Root version from `VersionGuesser`:
+1. **Root package.** composer.json loaded. Root version: `version` in
+   composer.json, else `COMPOSER_ROOT_VERSION`, else `VersionGuesser`:
    `git branch -a -v`, `git describe --exact-match --tags`,
-   `git rev-list -n1 HEAD`, then hg/fossil/svn. No VCS →
-   `1.0.0+no-version-set` / `1.0.0.0`, reference null. **[EXACT]**, it lands in
+   `git rev-list -n1 HEAD`, then hg/fossil/svn, all run in the working
+   directory, so a project inside another git checkout gets that checkout's
+   branch. Feature branches take the nearest non-feature branch by
+   `git rev-list candidate..branch` length. Numeric branches print as
+   `2.1.x-dev`. No VCS → `1.0.0+no-version-set` / `1.0.0.0`, reference null.
+   The commit becomes the root's reference. **[EXACT]**, it lands in
    `installed.php['root']`.
 2. `pre-install-cmd` (scripts only). `COMPOSER_DEV_MODE=1/0` exported.
 3. **Lock freshness.** `Locker::isFresh()` compares content-hash; mismatch is a
@@ -54,13 +59,26 @@ cache key and the autoloader suffix were verified by hand.
     `{packages:[ArrayDumper + installation-source + install-path], dev, dev-package-names:[sorted]}`,
     packages sorted by strcmp(name), `JSON_PRETTY_PRINT|UNESCAPED_SLASHES|UNESCAPED_UNICODE`,
     4-space indent, trailing newline. `install-path` relative to
-    `vendor/composer`. **[EXACT]**
+    `vendor/composer`. Each entry is the lock entry passed through
+    `ArrayLoader` then `ArrayDumper`, which normalises: `version_normalized`
+    added, link targets lowercased and ksorted, `bin`/`license` strings become
+    lists, `type` lowercased, `time` reformatted as RFC 3339, empty arrays
+    dropped, keywords sorted. Metapackages are never downloaded, so they have
+    no `installation-source` and `install-path` is `null`.
+    `installation-source` follows `preferred-install` (default `dist`).
+    Alias packages are not written here. **[EXACT]**
 12. **installed.php** via `dumpToPhpCode`: `<?php return array(...);`, 4-space
     indent, `var_export`'d scalars, `install_path` as `__DIR__ . '/...'`; root,
     `versions[*]` (pretty_version, version, reference, type, install_path,
     aliases, dev_requirement), replaced/provided entries. ksort on versions,
     SORT_NATURAL on alias/replaced/provided lists. `InstalledVersions.php`
-    copied verbatim. **[EXACT]**
+    copied verbatim. Aliases come from `extra.branch-alias`, from
+    `default-branch: true` (`9999999-dev`) and from the lock's `aliases`; an
+    alias's `self.version` replace/provide adds both the alias and the
+    branch version. Platform targets (`php`, `ext-*`, ...) are skipped. The
+    order packages are visited only shows when one target is both replaced
+    and provided by different packages; Composer visits them in operation
+    order. **[EXACT]**
 13. Autoload dump, `ensureBinariesPresence`, funding message,
     `post-install-cmd`, audit (network, default on; exit code under
     `--audit`/policy), `notify-batch` POST to `https://packagist.org/downloads/`,
@@ -218,7 +236,7 @@ LEARNED), `Solver` (CDCL port of libsolv, 2-literal watches), `DefaultPolicy`
 (highest; prefer-stable; prefer-lowest; repo priority; replacer vs original),
 `LockTransaction`.
 
-Constraints (composer/semver): `^ ~ * .x`, ranges, `||`, AND by comma/space,
+Constraints (composer/semver; Composer 2.10.3 bundles semver 3.4.4): `^ ~ * .x`, ranges, `||`, AND by comma/space,
 stability suffixes, `minimum-stability`, `prefer-stable`, `dev-*`,
 `9999999-dev` default-branch alias, `extra.branch-alias`, inline `as`
 aliases, `replace/provide/conflict`, `self.version`, platform packages

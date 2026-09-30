@@ -10,11 +10,15 @@ license.workspace = true
 publish = false
 
 [dependencies]
+indexmap = { workspace = true }
+phpm-php = { path = "../phpm-php" }
 regex = { workspace = true }
 serde_json = { workspace = true }
 
 [dev-dependencies]
+phpm-testkit = { path = "../phpm-testkit" }
 proptest = { workspace = true }
+tempfile = { workspace = true }
 
 [lints]
 workspace = true

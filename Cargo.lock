@@ -162,9 +162,13 @@ version = "0.0.0"
 name = "phpm-lock"
 version = "0.0.0"
 dependencies = [
+  "indexmap",
+  "phpm-php",
+  "phpm-testkit",
   "proptest",
   "regex",
   "serde_json",
+  "tempfile",
 ]
 
 [[package]]

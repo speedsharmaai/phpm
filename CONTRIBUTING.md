@@ -20,6 +20,11 @@ That runs everything CI runs: format, clippy, rustdoc, tests, cargo-deny,
 cargo-shear, the MSRV check, typos, markdownlint, workflow linting and the
 coverage floor. The pre-push hook runs clippy and the tests.
 
+`just golden` installs every fixture with real Composer (it needs `composer`,
+`php` and the network) and checks phpm's `installed.json`, `installed.php` and
+`InstalledVersions.php` against it byte for byte. `just golden-bless` also
+refreshes the golden files committed under `crates/phpm-lock/tests/golden/`.
+
 ## Commits and pull requests
 
 - One-line conventional commits: `feat: clone package dirs from the store`.
