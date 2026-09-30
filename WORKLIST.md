@@ -3,14 +3,13 @@
 Nothing is built. Research is written, a baseline is measured, the repo is
 public, and Phases 00 and 01 are tasked.
 
-Current state: **docs written, Phase 00 (foundation) next.**
+Current state: **Phase 00 done (PR #1), Phase 01 spike next.**
 
 ## Next three things
 
-1. **Phase 00.** Empty workspace under every quality gate: clippy, rustfmt,
-   prek hooks, committed, CI on three OSes, coverage floor, cargo-deny,
-   Sonar, CodeQL, Scorecard, ruleset on `main`. See
-   [phase 00](phases/phase-00-foundation/tasks.md).
+1. **Owner actions from Phase 00.** `SONAR_TOKEN` (free on sonarcloud.io),
+   OpenSSF Best Practices registration, a signing key. See
+   [phase 00 progress](phases/phase-00-foundation/progress.md).
 2. **Trademark search for `phpm`.** The repo is public now, so a rename gets
    more expensive every week.
 3. **Read riff and vivace properly** (Phase 01's first task). Binaries are
@@ -29,16 +28,16 @@ Current state: **docs written, Phase 00 (foundation) next.**
 
 ## Phase 00 · Foundation
 
-- [ ] Owner: SonarQube Cloud org + `SONAR_TOKEN`; signing key; merge settings
-- [ ] Workspace, toolchain, lints, rustfmt, clippy config
-- [ ] prek hooks, committed, typos, tombi, markdownlint
-- [ ] nextest, insta, proptest, criterion, coverage floor
-- [ ] cargo-deny, cargo-shear, cargo-hack, Dependabot, SECURITY.md
-- [ ] justfile
-- [ ] CI, PR title, Sonar, CodeQL, Scorecard, release-plz, dist workflows
-- [ ] Ruleset on `main`, security settings
-- [ ] Licences, CONTRIBUTING, CODEOWNERS, templates, badges
-- [ ] Proof branch: every gate fails where it should
+- [ ] Owner: SonarQube Cloud org + `SONAR_TOKEN`; Best Practices badge; signing key
+- [x] Workspace, toolchain, lints, rustfmt, clippy config
+- [x] prek hooks, committed, typos, tombi, markdownlint
+- [x] nextest, testkit, coverage floor (insta, proptest, criterion arrive with Phase 01 code)
+- [x] cargo-deny, cargo-shear, cargo-hack, Dependabot, SECURITY.md
+- [x] justfile
+- [x] CI, PR title, Sonar, CodeQL, Scorecard, release-plz workflows (dist moved to Phase 05)
+- [x] Ruleset on `main`, security settings
+- [x] Licences, CONTRIBUTING, CODEOWNERS, templates, badges
+- [x] Proof: every gate fails where it should
 
 ## Phase 01 · Spike
 
