@@ -3,3 +3,7 @@
 .DS_Store
 /bench/tmp
 /fixtures/*/vendor
+/lcov.info
+/clippy.json
+/junit.xml
+/.sonar

@@ -20,7 +20,7 @@ with hyperfine; these numbers only establish that the gap exists.
 
 `--profile` of a warm install:
 
-```
+```text
 0.10 s  start
 0.64 s  platform verified, "Dependency resolution completed in 0.000 seconds"
 0.75 s  extraction starts (async unzip)

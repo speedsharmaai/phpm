@@ -1,0 +1,6 @@
+[files]
+extend-exclude = ["fixtures/", "**/snapshots/", "*.snap", "Cargo.lock"]
+
+[default.extend-words]
+psr = "psr"
+IST = "IST"

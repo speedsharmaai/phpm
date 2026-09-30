@@ -1,0 +1,15 @@
+name: Feature
+description: Something phpm should do
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What do you need
+      description: The problem, not the solution. What are you doing when you hit it?
+    validations:
+      required: true
+  - type: textarea
+    id: composer
+    attributes:
+      label: How does Composer handle it

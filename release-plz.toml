@@ -1,0 +1,11 @@
+[workspace]
+changelog_config = "cliff.toml"
+git_release_enable = true
+git_tag_enable = true
+publish = false
+semver_check = false
+pr_labels = ["release"]
+
+[[package]]
+name = "phpm-testkit"
+release = false

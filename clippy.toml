@@ -1,0 +1,7 @@
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-print-in-tests = true
+disallowed-methods = [
+  { path = "std::env::set_var", reason = "not thread-safe; pass config explicitly" },
+  { path = "std::process::exit", reason = "return ExitCode from main" },
+]

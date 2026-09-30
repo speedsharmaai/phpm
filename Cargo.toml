@@ -1,0 +1,51 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.0.0"
+authors = ["Sanjeev Sharma <speedsharma.ai@gmail.com>"]
+edition = "2024"
+rust-version = "1.96"
+repository = "https://github.com/speedsharmaai/phpm"
+license = "MIT OR Apache-2.0"
+
+[workspace.lints.clippy]
+allow_attributes_without_reason = "warn"
+dbg_macro = "warn"
+exit = "warn"
+get_unwrap = "warn"
+iter_over_hash_type = "warn"
+large_enum_variant = "warn"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+pedantic = { level = "warn", priority = -1 }
+print_stderr = "warn"
+print_stdout = "warn"
+redundant_clone = "warn"
+similar_names = "allow"
+todo = "warn"
+too_many_lines = "allow"
+unwrap_used = "warn"
+
+[workspace.lints.rust]
+missing_debug_implementations = "warn"
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(fuzzing)"] }
+unreachable_pub = "warn"
+unsafe_code = "deny"
+unused_qualifications = "warn"
+
+[workspace.lints.rustdoc]
+bare_urls = "warn"
+broken_intra_doc_links = "deny"
+private_intra_doc_links = "warn"
+
+[profile.release]
+strip = true
+lto = "fat"
+codegen-units = 1
+
+[profile.dist]
+inherits = "release"

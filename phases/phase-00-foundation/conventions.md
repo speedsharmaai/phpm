@@ -8,7 +8,7 @@ One line. Conventional commit. Lowercase, imperative, no full stop, 72
 characters at most. No body unless a revert needs the reason. No co-author
 lines, no generated-by footers.
 
-```
+```text
 feat: clone package dirs from the store
 fix: keep exec bits when extracting zips
 perf: cache class scans per file
@@ -48,6 +48,23 @@ Enforced by `committed` in the commit-msg hook and in CI.
   `BTreeMap`, `IndexMap`, or sort first. Clippy's `iter_over_hash_type` is on.
 - Comments only where the code cannot say it. Composer behaviour being
   matched gets a one-line pointer to the Composer source file, nothing more.
+
+## Tests
+
+Tests are written with the code, from the first commit. Not after, not in a
+"testing phase".
+
+- Every new function or module lands with unit tests in the same PR, in a
+  `#[cfg(test)] mod tests` next to the code. A PR that adds logic without a
+  test is not mergeable.
+- Every bug fix starts with a failing test that reproduces it.
+- CLI behaviour gets an integration test in `crates/*/tests/` that runs the
+  real binary.
+- Parsers and anything taking user input get a proptest alongside the
+  example-based tests.
+- Coverage floor is 80% lines, enforced in CI, and only ever goes up.
+- Test names say the behaviour: `keeps_exec_bits_when_extracting`, not
+  `test_extract_2`.
 
 ## Byte-exact files
 

@@ -1,0 +1,92 @@
+#:schema https://www.schemastore.org/prek.json
+
+minimum_prek_version = "0.5.4"
+default_install_hook_types = ["pre-commit", "commit-msg", "pre-push"]
+default_stages = ["pre-commit"]
+exclude = "^(fixtures/|.*/snapshots/|.*\\.snap$)"
+
+[[repos]]
+repo = "builtin"
+hooks = [
+  { id = "check-merge-conflict" },
+  { id = "end-of-file-fixer" },
+  { id = "trailing-whitespace" },
+  { id = "mixed-line-ending", args = ["--fix=lf"] },
+  { id = "detect-private-key" },
+  { id = "check-yaml" },
+  { id = "check-toml" },
+  { id = "check-case-conflict" },
+  { id = "check-illegal-windows-names" },
+  { id = "check-added-large-files", args = ["--maxkb=500"] },
+  { id = "no-commit-to-branch", args = ["--branch", "main"] },
+]
+
+[[repos]]
+repo = "local"
+
+[[repos.hooks]]
+id = "committed"
+name = "conventional commit message"
+language = "system"
+entry = "committed --commit-file"
+stages = ["commit-msg"]
+
+[[repos.hooks]]
+id = "cargo-fmt"
+name = "rustfmt"
+language = "system"
+entry = "cargo fmt --all --"
+types = ["rust"]
+
+[[repos.hooks]]
+id = "tombi"
+name = "tombi format"
+language = "system"
+entry = "tombi format"
+types = ["toml"]
+
+[[repos.hooks]]
+id = "typos"
+name = "typos"
+language = "system"
+entry = "typos --force-exclude"
+types = ["text"]
+
+[[repos.hooks]]
+id = "markdownlint"
+name = "markdownlint"
+language = "system"
+entry = "markdownlint-cli2"
+types = ["markdown"]
+
+[[repos.hooks]]
+id = "zizmor"
+name = "zizmor"
+language = "system"
+entry = "zizmor --offline"
+files = "^\\.github/workflows/"
+
+[[repos.hooks]]
+id = "actionlint"
+name = "actionlint"
+language = "system"
+entry = "actionlint"
+files = "^\\.github/workflows/"
+
+[[repos.hooks]]
+id = "clippy"
+name = "clippy"
+language = "system"
+entry = "cargo clippy --workspace --all-targets --locked -- -D warnings"
+pass_filenames = false
+types = ["rust"]
+stages = ["pre-push"]
+
+[[repos.hooks]]
+id = "nextest"
+name = "tests"
+language = "system"
+entry = "cargo nextest run --workspace --locked"
+pass_filenames = false
+types = ["rust"]
+stages = ["pre-push"]

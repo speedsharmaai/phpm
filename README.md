@@ -1,5 +1,11 @@
 # phpm
 
+[![ci](https://github.com/speedsharmaai/phpm/actions/workflows/ci.yml/badge.svg)](https://github.com/speedsharmaai/phpm/actions/workflows/ci.yml)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=speedsharmaai_phpm&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=speedsharmaai_phpm)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=speedsharmaai_phpm&metric=coverage)](https://sonarcloud.io/summary/new_code?id=speedsharmaai_phpm)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/speedsharmaai/phpm/badge)](https://scorecard.dev/viewer/?uri=github.com/speedsharmaai/phpm)
+[![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)](#licence)
+
 A Composer-compatible PHP installer in Rust. Reads your `composer.json` and
 `composer.lock` unchanged, writes the same `vendor/`, and does it in a fraction
 of the time on every install that is not bound by the network.
@@ -145,3 +151,8 @@ content marketing with wrong facts in them.
 | Resolver (Phase 06) | `pubgrub` | uv's resolver; better conflict messages than a SAT port |
 | Distribution | cargo-dist: GitHub Releases, curl installer, Homebrew, npm wrapper; plus a Packagist wrapper for setup-php | every channel PHP developers already use |
 | Benchmarks | hyperfine, JSON output committed | reproducible or it did not happen |
+
+## Licence
+
+Licensed under either of [Apache-2.0](LICENSE-APACHE) or [MIT](LICENSE-MIT),
+at your option.
