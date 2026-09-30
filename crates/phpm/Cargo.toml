@@ -1,0 +1,13 @@
+[package]
+name = "phpm"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description = "An extremely fast, Composer-compatible PHP installer"
+repository.workspace = true
+license.workspace = true
+publish = false
+
+[lints]
+workspace = true

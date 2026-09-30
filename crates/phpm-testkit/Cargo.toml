@@ -1,0 +1,13 @@
+[package]
+name = "phpm-testkit"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description = "Test helpers for byte-exact comparisons against Composer output"
+repository.workspace = true
+license.workspace = true
+publish = false
+
+[lints]
+workspace = true

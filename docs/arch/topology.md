@@ -6,7 +6,7 @@ only so the module boundary is in the right place from the start.
 
 ## The install path
 
-```
+```text
   composer.json + composer.lock
              │
   ┌──────────▼──────────────┐
@@ -80,7 +80,7 @@ only so the module boundary is in the right place from the start.
 
 Phase 06 adds a resolver that sits before step 1 and writes a lockfile:
 
-```
+```text
   composer.json ──▶ METADATA (p2, minified expand, If-Modified-Since)
                 ──▶ RESOLVE (pubgrub, Composer DefaultPolicy tie-breaks)
                 ──▶ composer.lock (byte-exact) ──▶ install path above
@@ -88,7 +88,7 @@ Phase 06 adds a resolver that sits before step 1 and writes a lockfile:
 
 ## Crate layout
 
-```
+```text
 crates/
   phpm            the binary: CLI, output, --explain
   phpm-lock       composer.json / composer.lock types, content-hash
@@ -107,7 +107,7 @@ fixtures/         pinned lockfiles, never updated during a phase
 
 ## The compatibility sweep (Phase 03)
 
-```
+```text
   top-N Packagist projects + real app lockfiles
           │
           ├──▶ composer install --no-scripts ──▶ vendor-a/

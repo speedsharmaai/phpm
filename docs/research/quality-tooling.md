@@ -53,6 +53,7 @@ that day. [U] = not fully verified.
 ## Configs
 
 ### rust-toolchain.toml
+
 ```toml
 [toolchain]
 channel = "1.98.1"
@@ -61,6 +62,7 @@ profile = "minimal"
 ```
 
 ### Cargo.toml (workspace)
+
 ```toml
 [workspace]
 resolver = "3"
@@ -104,6 +106,7 @@ get_unwrap = "warn"
 redundant_clone = "warn"
 large_enum_variant = "warn"
 ```
+
 Members: `[lints] workspace = true`, `publish = false` unless published.
 
 Note: `unsafe_code = "forbid"` cannot be overridden by `#[allow]`. The clonefile
@@ -111,6 +114,7 @@ FFI module needs `deny` at workspace level plus a local `allow` with a reason,
 or the FFI lives in a small crate that sets its own level. Decide in Phase 01.
 
 ### clippy.toml
+
 ```toml
 allow-unwrap-in-tests = true
 allow-expect-in-tests = true
@@ -122,6 +126,7 @@ disallowed-methods = [
 ```
 
 ### rustfmt.toml
+
 ```toml
 style_edition = "2024"
 newline_style = "Unix"
@@ -130,6 +135,7 @@ use_try_shorthand = true
 ```
 
 ### deny.toml
+
 ```toml
 [graph]
 all-features = true
@@ -155,10 +161,12 @@ unknown-registry = "deny"
 unknown-git = "deny"
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
 ```
+
 MPL-2.0 is allowed because `pubgrub` uses it. EUPL-1.2 (the cresset-tools
 `composer-*` crates) is not on the list on purpose; adding it is a decision.
 
 ### prek.toml
+
 ```toml
 default_install_hook_types = ["pre-commit", "commit-msg", "pre-push"]   # [U] verify
 exclude = "^(fixtures/|.*/snapshots/|.*\\.snap$)"
@@ -208,6 +216,7 @@ stages = ["pre-push"]
 ```
 
 ### committed.toml
+
 ```toml
 style = "conventional"
 subject_length = 72
@@ -216,17 +225,20 @@ imperative_subject = true
 allowed_types = ["feat","fix","perf","refactor","docs","test","build","ci","chore","revert","style"]
 merge_commit = false
 ```
+
 Trap: committed's default types omit build, ci and revert, and
 `subject_capitalized` defaults to true. Both overridden above.
 
 ### .gitattributes
-```
+
+```text
 * text=auto eol=lf
 fixtures/** -text
 **/snapshots/** -text
 ```
 
 ### CI outline
+
 `permissions: {}` at top, per-job grants; every action pinned by SHA with a
 version comment; `persist-credentials: false`; concurrency cancel-in-progress.
 
@@ -244,6 +256,7 @@ Separate: `pr-title.yml` (`on: pull_request`, never `pull_request_target`),
 `codeql.yml`, `scorecard.yml`.
 
 ### Release chain
+
 release-plz opens a release PR (version bump, git-cliff changelog) → merge →
 release-plz tags and creates the GitHub release → the dist workflow builds
 binaries on that tag and runs `actions/attest` v4.2.2. The tag is the only

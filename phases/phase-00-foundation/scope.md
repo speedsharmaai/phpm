@@ -20,7 +20,8 @@ so it is written to be copied.
 An empty Cargo workspace (one `phpm` binary crate printing its version) that
 passes every check below, locally and in CI.
 
-**Code quality**
+### Code quality
+
 - `rust-toolchain.toml` pinned; edition 2024; `rust-version` N-2.
 - rustfmt (stable options), clippy via `[workspace.lints]` with `pedantic`,
   `unsafe_code = "forbid"`, `iter_over_hash_type`, `print_stdout`, `unwrap_used`.
@@ -28,20 +29,23 @@ passes every check below, locally and in CI.
 - rustdoc lints, `RUSTDOCFLAGS=-D warnings`.
 - typos, tombi (TOML), markdownlint.
 
-**Git hooks and commits** (the Husky + commitlint equivalent)
+### Git hooks and commits (the Husky + commitlint equivalent)
+
 - prek: pre-commit (fmt, typos, tombi, whitespace, private-key check),
   commit-msg (committed, conventional commits), pre-push (clippy, tests).
 - One-line conventional commit subjects. No body required, no co-author lines.
   See [conventions](conventions.md).
 - PR title check; squash merge only, so the PR title is the commit on `main`.
 
-**Tests and coverage**
+### Tests and coverage
+
 - cargo-nextest, insta for readable snapshots, byte-level golden comparisons
   for anything that must match Composer, proptest for parsers.
 - cargo-llvm-cov with a line-coverage floor, starting at 80%.
 - criterion for micro-benchmarks; hyperfine stays the end-to-end tool.
 
-**Supply chain and security**
+### Supply chain and security
+
 - cargo-deny: licences, bans, sources, RustSec advisories.
 - cargo-shear: unused dependencies.
 - cargo-hack: MSRV check.
@@ -50,12 +54,14 @@ passes every check below, locally and in CI.
   `permissions: {}` by default.
 - SECURITY.md.
 
-**Sonar**
+### Sonar
+
 - SonarQube Cloud (free for public repos), fed with clippy JSON and LCOV
   coverage. Its quality gate is a required check. See
   [decision 0008](../../docs/decisions/0008-quality-gates-before-code.md).
 
-**Public-repo security** (free because the repo is public, decision 0009)
+### Public-repo security (free because the repo is public, decision 0009)
+
 - CodeQL for Rust and for GitHub Actions.
 - OpenSSF Scorecard, with its badge in the README.
 - A ruleset on `main`: PR required, `ci-ok`, PR title and Sonar required,
@@ -64,12 +70,14 @@ passes every check below, locally and in CI.
   Dependabot alerts.
 - Build provenance attestations wired into the release workflow.
 
-**Release plumbing** (configured, not used until Phase 05)
+### Release plumbing (configured, not used until Phase 05)
+
 - release-plz for version PRs and a git-cliff changelog from conventional
   commits.
-- cargo-dist config for binaries and installers, triggered by release tags.
+- cargo-dist is set up in Phase 05, when there is something to release.
 
-**Repo hygiene**
+### Repo hygiene
+
 - `LICENSE-MIT`, `LICENSE-APACHE`, CONTRIBUTING.md, CODEOWNERS,
   `.editorconfig`, `.gitattributes`, issue forms, PR template.
 - justfile: `just fmt`, `just lint`, `just test`, `just cov`, `just deny`,

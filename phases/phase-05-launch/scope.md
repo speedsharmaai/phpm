@@ -12,7 +12,7 @@ done deliberately.
 
 ## What ships
 
-- **Release.** cargo-dist: GitHub Releases for x86_64/aarch64 Linux (musl),
+- **Release.** `dist init`, then SHA-pin and zizmor-clean the generated workflow, with `actions/attest` for provenance. cargo-dist: GitHub Releases for x86_64/aarch64 Linux (musl),
   macOS, Windows; `curl | sh` and PowerShell installers; Homebrew tap; npm
   wrapper; checksums. Public repo on the brand account.
 - **Where installs happen.**

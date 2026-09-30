@@ -1,0 +1,28 @@
+name: Bug
+description: phpm did something Composer would not
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Command run, what you expected, what you got.
+    validations:
+      required: true
+  - type: textarea
+    id: diff
+    attributes:
+      label: Difference from Composer
+      description: If vendor/ differs, the first differing file and a few lines of it.
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Output of `phpm --version`, `composer --version`, `php --version`, and your OS.
+    validations:
+      required: true
+  - type: textarea
+    id: lock
+    attributes:
+      label: composer.json / composer.lock
+      description: A link or the relevant parts. Remove anything private.

@@ -7,7 +7,7 @@ Date: 2026-10-01
 
 The plan was a private repo until the Phase 05 launch, so a failed Phase 01
 gate would not leave a half-built tool on the brand's GitHub, and so the
-launch would not be pre-empted.
+launch would not be preempted.
 
 The owner decided otherwise: build in the open. On a free account, a public
 repo also switches on what a private one cannot have: CodeQL, rulesets,
