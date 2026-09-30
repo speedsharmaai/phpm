@@ -1,6 +1,6 @@
-# Phase 01: Parity core
+# Phase 02: Parity core
 
-Outline. Tasked only after the Phase 00 gate passes.
+Outline. Tasked only after the Phase 01 gate passes.
 
 ## Why
 
@@ -36,7 +36,7 @@ gap for everything that does not need a PHP plugin to run.
 
 ## Exit criteria
 
-- Every Phase 00 fixture plus the plugin fixtures (Symfony, Drupal, Bedrock,
+- Every Phase 01 fixture plus the plugin fixtures (Symfony, Drupal, Bedrock,
   Monica) installs correctly: identical `vendor/` on plugin-free ones,
   working app after fallback on the rest.
 - The Laravel skeleton with scripts and `-o` is still at least 5x faster warm
@@ -45,4 +45,4 @@ gap for everything that does not need a PHP plugin to run.
 
 ## Out of scope
 
-Native plugin adapters (Phase 03). Windows (Phase 02). Resolver (Phase 05).
+Native plugin adapters (Phase 04). Windows (Phase 03). Resolver (Phase 06).

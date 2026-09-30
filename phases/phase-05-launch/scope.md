@@ -1,6 +1,6 @@
-# Phase 04: Launch
+# Phase 05: Launch
 
-Outline. Tasked only after Phase 02's gate.
+Outline. Tasked only after Phase 03's gate.
 
 ## Why
 

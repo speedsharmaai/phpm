@@ -1,10 +1,10 @@
-# Phase 00 tasks
+# Phase 01 tasks
 
 ## Before any code
 - [ ] Clone shyim/riff and svandragt/vivace. Run both on the Laravel skeleton and symfony/demo. Write `competitors.md` in this folder: what each does, speed, where `vendor/` differs from Composer's.
 - [ ] If either already meets gate criteria 1-3, stop here and write `gate.md` saying so (decision 0007).
 - [ ] Trademark search for `phpm` (USPTO, EUIPO, IP India class 9/42).
-- [ ] Private repo on the speedsharma brand account, SSH key `~/.ssh/speedsharma`. Public only at Phase 04.
+- [x] Public repo `speedsharmaai/phpm` on the brand account, SSH key `~/.ssh/speedsharma` (decision 0009).
 
 ## Setup
 - [ ] Cargo workspace per [topology](../../docs/arch/topology.md): `phpm`, `phpm-lock`, `phpm-php`, `phpm-store`, `phpm-fetch`, `phpm-autoload`.
@@ -41,5 +41,5 @@
 ## Gate
 - [ ] Fill the five numbers from [phases/README.md](../README.md#the-gate).
 - [ ] Write `gate.md`: table, what was surprising, the call.
-- [ ] If it passes: ask r/PHP, r/laravel and ten developers directly whether install time is a top-three pain. Record answers in `gate.md` before scoping Phase 01 tasks.
+- [ ] If it passes: ask r/PHP, r/laravel and ten developers directly whether install time is a top-three pain. Record answers in `gate.md` before scoping Phase 02 tasks.
 - [ ] If it fails: say so in `gate.md`, stop, and either contribute to the leader or go back to the shortlist in `devtools/_research/infra-landscape-2026-10.md`.

@@ -1,6 +1,6 @@
-# Phase 03: Plugin adapters
+# Phase 04: Plugin adapters
 
-Outline. Tasked only after Phase 02's gate.
+Outline. Tasked only after Phase 03's gate.
 
 ## Why
 

@@ -1,6 +1,6 @@
-# Phase 02: Compatibility sweep
+# Phase 03: Compatibility sweep
 
-Outline. Tasked only after Phase 01 ships.
+Outline. Tasked only after Phase 02 ships.
 
 ## Why
 
@@ -22,13 +22,13 @@ new binary on my install path".
   fallback count as identical only if the app's own `vendor/` is identical.
 - Linux and Windows builds in the sweep. Windows: hardlinks, `.bat` proxies,
   junctions for path repos.
-- Linux performance work if the Phase 00 gate showed less than 3x there.
+- Linux performance work if the Phase 01 gate showed less than 3x there.
 
 ## Gate
 
 At least **95% identical** across the corpus, with every remaining difference
 understood and ticketed. Below that, the launch post has no headline and
-Phase 04 waits.
+Phase 05 waits.
 
 ## Out of scope
 

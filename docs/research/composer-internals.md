@@ -208,7 +208,7 @@ Laravel skeleton: zero plugins, but `post-autoload-dump` is
 `Illuminate\Foundation\ComposerScripts::postAutoloadDump` (PHP callable) then
 `@php artisan package:discover --ansi`, which reads installed.json.
 
-## 7. Resolver (for Phase 05)
+## 7. Resolver (for Phase 06)
 
 src/Composer/DependencyResolver/: `PoolBuilder` (lazy loading per
 name+constraint, unlock via update allow-list, advisory and filter-list pool

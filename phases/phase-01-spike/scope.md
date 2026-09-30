@@ -1,4 +1,4 @@
-# Phase 00: Spike
+# Phase 01: Spike
 
 ## Why
 
@@ -54,7 +54,7 @@ The spike measures them on the same fixtures.
 | one large plugin-free library (e.g. a Laravel package's dev lock) | many files, deep trees |
 | monicahq/monica with `--no-plugins` | 241 packages, a big real app |
 
-Plugins are disabled on fixtures that have them, on both tools. Phase 00
+Plugins are disabled on fixtures that have them, on both tools. Phase 01
 tests the plugin-free path only.
 
 ## Exit criteria
@@ -64,7 +64,7 @@ tests the plugin-free path only.
 - hyperfine results committed for Composer, riff, vivace and phpm, three
   scenarios each, macOS APFS and one Linux container.
 - The no-op path is under 50 ms.
-- Nothing is published: no crate, no npm, no repo made public.
+- Nothing is released: no crate, no npm package, no binary release.
 - `gate.md` written with the numbers and the decision.
 
 ## Out of scope

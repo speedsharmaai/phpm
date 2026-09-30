@@ -4,13 +4,16 @@ A Composer-compatible PHP installer in Rust. Reads your `composer.json` and
 `composer.lock` unchanged, writes the same `vendor/`, and does it in a fraction
 of the time on every install that is not bound by the network.
 
-**Nothing is built and nothing should be until Phase 00 answers one question:**
+**Nothing beyond the spike is built until Phase 01 answers one question:**
 can a lockfile install produce a `vendor/` that is byte-identical to Composer's,
 at least 10x faster warm, on real projects, and is that a big enough difference
-to beat eight other people who had the same idea this year? Phase 00 is a
-spike with a gate that can kill the project in two weeks.
+to beat eight other people who had the same idea this year? Phase 01 is a
+spike with a gate that can kill the project in two weeks. Before it, Phase 00
+sets up the quality tooling on an empty workspace, so the spike is written
+under the same lints, hooks and CI as everything after it.
 
-Start here: [phase 00](phases/phase-00-spike/scope.md) ·
+Start here: [phase 00](phases/phase-00-foundation/scope.md) ·
+[phase 01](phases/phase-01-spike/scope.md) ·
 [phases](phases/README.md) ·
 [decisions](docs/decisions/README.md) ·
 [topology](docs/arch/topology.md) ·
@@ -80,7 +83,7 @@ builds. See [market](docs/research/market-and-competitors.md).
 
 ## Rules
 
-**1. Phase 00 is a spike and it can kill the project.**
+**1. Phase 01 is a spike and it can kill the project.**
 Warm install at least 10x faster than Composer on the Laravel skeleton and five
 real apps, with a byte-identical `vendor/`, measured head to head against riff
 and vivace. If it is not clearly ahead, the project stops, or becomes a
@@ -94,8 +97,8 @@ line. It never guesses.
 
 **3. Install before update.**
 `install` from a lockfile needs no resolver and no registry metadata. That is
-where the speed is and where Phase 00 lives. `update` and `require` need a
-resolver whose choices must match Composer's, and that is Phase 05 at the
+where the speed is and where Phase 01 lives. `update` and `require` need a
+resolver whose choices must match Composer's, and that is Phase 06 at the
 earliest. See [decision 0002](docs/decisions/0002-lockfile-install-first.md).
 
 **4. A good Packagist citizen.**
@@ -115,7 +118,7 @@ content marketing with wrong facts in them.
 
 ## Non-negotiables
 
-- **No resolver in Phase 00-04.** A resolver that picks different versions
+- **No resolver in Phase 01-05.** A resolver that picks different versions
   than Composer silently changes what runs in production.
 - **No symlinks into the store by default.** Tools that expect real files in
   `vendor/` break, and clearing the cache would break installs. Clone on macOS
@@ -139,6 +142,6 @@ content marketing with wrong facts in them.
 | PHP output | a `var_export`-compatible writer | autoload_static.php and installed.php |
 | Class scanning | `mago-syntax` lexer, results cached per file in the store | files in the store never change, so warm installs skip scanning |
 | Platform | run `php` once, cache the answer | versions, extensions, lib versions |
-| Resolver (Phase 05) | `pubgrub` | uv's resolver; better conflict messages than a SAT port |
+| Resolver (Phase 06) | `pubgrub` | uv's resolver; better conflict messages than a SAT port |
 | Distribution | cargo-dist: GitHub Releases, curl installer, Homebrew, npm wrapper; plus a Packagist wrapper for setup-php | every channel PHP developers already use |
 | Benchmarks | hyperfine, JSON output committed | reproducible or it did not happen |

@@ -30,7 +30,7 @@ phpm competes on three things only: never breaking a project (0004), a
 published compatibility number across hundreds of lockfiles, and
 distribution into the places installs happen (setup-php, Docker, Laravel).
 
-At the Phase 00 gate, phpm is benchmarked head to head against riff and
+At the Phase 01 gate, phpm is benchmarked head to head against riff and
 vivace on the same fixtures. If one of them is already at or ahead of phpm
 on both speed and byte-identity, phpm stops and the effort goes into
 contributing to that project instead: the compatibility sweep, adapters, or

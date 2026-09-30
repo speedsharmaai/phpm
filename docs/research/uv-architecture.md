@@ -51,7 +51,7 @@ the same with a conditional GET (decision 0006); a 304 costs milliseconds.
   profiling says so.
 - Strip GitHub's `owner-repo-sha/` top directory.
 
-## 4. Resolver (Phase 05)
+## 4. Resolver (Phase 06)
 
 `pubgrub` (MPL-2.0, uv's resolver): CDCL-style learning, far better conflict
 messages than a SAT port. Encode `replace`, `provide`, `conflict`, stability,
