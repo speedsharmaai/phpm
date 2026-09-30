@@ -67,11 +67,11 @@ PR #1   17 checks                      all pass, commit-message skipped (push-on
 | Code-Review, Contributors | 0 | one maintainer | time, contributors |
 | CII-Best-Practices | 0 | not registered | owner: register at bestpractices.dev (free) |
 | Fuzzing | 0 | no fuzz targets | cargo-fuzz on the lock parser and class scanner, Phase 02 |
-| Packaging, Signed-Releases | n/a | no releases | Phase 05, with dist and attestations |
+| Packaging, Signed-Releases | n/a | no releases | Phase 06, with dist and attestations |
 
 ## Deliberately not done here
 
 - insta, proptest and criterion arrive with the first Phase 01 code that
   uses them; adding them now fails cargo-shear.
-- cargo-dist and the release workflow move to Phase 05.
+- cargo-dist and the release workflow move to Phase 06.
 - `NOTICE` for Composer arrives with the first vendored Composer file.

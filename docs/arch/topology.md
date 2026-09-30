@@ -1,7 +1,7 @@
 # Topology
 
 One binary, one command in Phase 01: `phpm install`. The diagram is the
-install path from a lockfile. The resolver (Phase 06) is drawn at the bottom
+install path from a lockfile. The resolver (Phase 07) is drawn at the bottom
 only so the module boundary is in the right place from the start.
 
 ## The install path
@@ -78,7 +78,7 @@ only so the module boundary is in the right place from the start.
   └─────────────────────────┘
 ```
 
-Phase 06 adds a resolver that sits before step 1 and writes a lockfile:
+Phase 07 adds a resolver that sits before step 1 and writes a lockfile:
 
 ```text
   composer.json ──▶ METADATA (p2, minified expand, If-Modified-Since)
@@ -98,7 +98,7 @@ crates/
   phpm-autoload   PackageSorter, autoload family, class scanning
   phpm-platform   php probing and platform verification
   phpm-compat     fallback decisions, plugin adapters (Phase 04)
-  phpm-resolve    pubgrub resolver (Phase 06)
+  phpm-resolve    pubgrub resolver (Phase 07)
 tools/
   diffvendor      phpm vs Composer vendor/ diff, used by the sweep
   bench           hyperfine wrapper, writes JSON

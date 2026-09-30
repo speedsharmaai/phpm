@@ -60,8 +60,8 @@ pinning; bump the doc if any moved.
   - [x] ci-ok aggregate (re-actions/alls-green)
 - [x] `pr-title.yml`: `on: pull_request` (not `pull_request_target`), amannn/action-semantic-pull-request pinned by SHA.
 - [x] `sonar.yml`: after coverage, `cargo clippy --message-format=json > clippy.json`, SonarSource/sonarqube-scan-action with `sonar.rust.lcov.reportPaths` and `sonar.rust.clippyReport.reportPaths`; the quality gate is a required check.
-- [x] `release-plz.yml` and `release-plz.toml`: release PRs from conventional commits; `cliff.toml` for the changelog. Dry-run only until Phase 05.
-- [ ] ~~`dist-workspace.toml` via `dist init`~~ moved to Phase 05: the generated release workflow is not SHA-pinned and needs hand edits, and nothing is released before then.
+- [x] `release-plz.yml` and `release-plz.toml`: release PRs from conventional commits; `cliff.toml` for the changelog. Dry-run only until Phase 06.
+- [ ] ~~`dist-workspace.toml` via `dist init`~~ moved to Phase 06: the generated release workflow is not SHA-pinned and needs hand edits, and nothing is released before then.
 - [x] Every `uses:` pinned by full SHA with a version comment; zizmor clean.
 
 ## Repo hygiene
@@ -79,7 +79,7 @@ pinning; bump the doc if any moved.
 - [x] `scorecard.yml`: ossf/scorecard-action, publish results, SARIF upload.
 - [x] Settings: private vulnerability reporting, secret scanning, push protection, Dependabot alerts and security updates.
 - [x] Ruleset on `main` via `gh api`: PR required, required checks `ci-ok`, PR title (Sonar added once the token exists); linear history; block force push and deletion; signed commits; owner bypass. Applied after the first green CI run so the check names exist.
-- [ ] `release.yml` (dist) with `actions/attest`: Phase 05, with dist.
+- [ ] `release.yml` (dist) with `actions/attest`: Phase 06, with dist.
 
 ## Proof
 
