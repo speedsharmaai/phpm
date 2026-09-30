@@ -33,6 +33,8 @@ gap for everything that does not need a PHP plugin to run.
   repo type → phpm does its part, then runs `composer dump-autoload` and the
   script events through real Composer. `--explain` prints each decision.
 - **Notifications.** `notify-batch` to Packagist.
+- **Fuzzing.** cargo-fuzz targets for the lockfile parser and the class
+  scanner, run in CI on a schedule. Both read untrusted input.
 
 ## Exit criteria
 

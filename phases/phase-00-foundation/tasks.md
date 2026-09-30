@@ -7,6 +7,7 @@ pinning; bump the doc if any moved.
 ## Owner actions
 
 - [ ] SonarQube Cloud: sign in with the speedsharmaai GitHub account, create the organisation (free, public project), import `phpm`, add `SONAR_TOKEN` as a repo secret.
+- [ ] Register at bestpractices.dev for the OpenSSF Best Practices badge (free).
 - [ ] Decide the Git signing key (SSH signing with `~/.ssh/speedsharma` is the easy path) and add it to GitHub as a signing key.
 - [x] Repo settings: squash merge only, auto-delete head branches, Dependabot alerts on.
 
@@ -77,7 +78,7 @@ pinning; bump the doc if any moved.
 - [x] `codeql.yml`: languages rust and actions, on push, PR and weekly.
 - [x] `scorecard.yml`: ossf/scorecard-action, publish results, SARIF upload.
 - [x] Settings: private vulnerability reporting, secret scanning, push protection, Dependabot alerts and security updates.
-- [ ] Ruleset on `main` via `gh api`: PR required, required checks `ci-ok`, PR title, Sonar; linear history; block force push and deletion; signed commits; owner bypass. Applied after the first green CI run so the check names exist.
+- [x] Ruleset on `main` via `gh api`: PR required, required checks `ci-ok`, PR title (Sonar added once the token exists); linear history; block force push and deletion; signed commits; owner bypass. Applied after the first green CI run so the check names exist.
 - [ ] `release.yml` (dist) with `actions/attest`: Phase 05, with dist.
 
 ## Proof

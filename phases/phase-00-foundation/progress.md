@@ -1,7 +1,7 @@
 # Phase 00: Progress
 
-**Status:** done except two owner actions (Sonar token, signing key) and the
-`main` ruleset, which is applied right after PR #1 merges.
+**Status:** done, 2026-10-01. Waiting only on owner actions: `SONAR_TOKEN`,
+a signing key, and the OpenSSF Best Practices registration.
 
 ## Definition of done
 
@@ -17,8 +17,9 @@
 - [x] Squash merge only, PR title as the commit, blank body, branches
       deleted on merge
 - [ ] Sonar dashboard populated (needs `SONAR_TOKEN`)
-- [ ] Ruleset on `main` (after PR #1 merges, so the check names exist)
-- [ ] Scorecard first run (runs on the first push to `main`)
+- [x] Ruleset on `main`: direct push rejected (GH013: changes must be made
+      through a pull request; commits must have verified signatures)
+- [x] Scorecard first run: 6.5 / 10
 
 ## Verification
 
@@ -55,6 +56,17 @@ PR #1   17 checks                      all pass, commit-message skipped (push-on
   gate fails as it should.
 - **`unsafe_code` is `deny`, not `forbid`.** `forbid` cannot be overridden,
   and the `clonefile` call in Phase 01 needs one audited `allow`.
+
+## Scorecard, first run (6.5)
+
+| Check | Score | Why | Action |
+|---|---|---|---|
+| Branch-Protection | 0 | ran before the ruleset existed | rises on the next run |
+| Maintained | 0 | repo under 90 days old | time |
+| Code-Review, Contributors | 0 | one maintainer | time, contributors |
+| CII-Best-Practices | 0 | not registered | owner: register at bestpractices.dev (free) |
+| Fuzzing | 0 | no fuzz targets | cargo-fuzz on the lock parser and class scanner, Phase 02 |
+| Packaging, Signed-Releases | n/a | no releases | Phase 05, with dist and attestations |
 
 ## Deliberately not done here
 
