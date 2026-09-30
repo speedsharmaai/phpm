@@ -10,6 +10,11 @@ rust-version = "1.96"
 repository = "https://github.com/speedsharmaai/phpm"
 license = "MIT OR Apache-2.0"
 
+[workspace.dependencies]
+indexmap = "2.14"
+proptest = "1.11"
+serde_json = { version = "1.0.149", features = ["preserve_order"] }
+
 [workspace.lints.clippy]
 allow_attributes_without_reason = "warn"
 dbg_macro = "warn"
