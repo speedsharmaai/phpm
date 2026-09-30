@@ -76,6 +76,8 @@ jobs:
       - run: cargo nextest run --workspace --locked --profile ci
         env:
           INSTA_UPDATE: "no"
+      - if: runner.os == 'Linux'
+        run: cargo nextest run --workspace --locked --profile ci --run-ignored only -E 'test(/^matches_php/)'
       - run: cargo test --doc --workspace --locked
 
   coverage:
