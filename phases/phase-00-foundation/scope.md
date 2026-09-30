@@ -70,11 +70,11 @@ passes every check below, locally and in CI.
   Dependabot alerts.
 - Build provenance attestations wired into the release workflow.
 
-### Release plumbing (configured, not used until Phase 05)
+### Release plumbing (configured, not used until Phase 06)
 
 - release-plz for version PRs and a git-cliff changelog from conventional
   commits.
-- cargo-dist is set up in Phase 05, when there is something to release.
+- cargo-dist is set up in Phase 06, when there is something to release.
 
 ### Repo hygiene
 
@@ -102,4 +102,4 @@ passes every check below, locally and in CI.
 ## Out of scope
 
 Any phpm feature. Fixtures, benchmarks against Composer, the store, the
-autoloader: all Phase 01. Publishing a crate or a release; that is Phase 05.
+autoloader: all Phase 01. Publishing a crate or a release; that is Phase 06.

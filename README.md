@@ -104,7 +104,7 @@ line. It never guesses.
 **3. Install before update.**
 `install` from a lockfile needs no resolver and no registry metadata. That is
 where the speed is and where Phase 01 lives. `update` and `require` need a
-resolver whose choices must match Composer's, and that is Phase 06 at the
+resolver whose choices must match Composer's, and that is Phase 07 at the
 earliest. See [decision 0002](docs/decisions/0002-lockfile-install-first.md).
 
 **4. A good Packagist citizen.**
@@ -124,7 +124,7 @@ content marketing with wrong facts in them.
 
 ## Non-negotiables
 
-- **No resolver in Phase 01-05.** A resolver that picks different versions
+- **No resolver in Phase 01-06.** A resolver that picks different versions
   than Composer silently changes what runs in production.
 - **No symlinks into the store by default.** Tools that expect real files in
   `vendor/` break, and clearing the cache would break installs. Clone on macOS
@@ -148,7 +148,7 @@ content marketing with wrong facts in them.
 | PHP output | a `var_export`-compatible writer | autoload_static.php and installed.php |
 | Class scanning | `mago-syntax` lexer, results cached per file in the store | files in the store never change, so warm installs skip scanning |
 | Platform | run `php` once, cache the answer | versions, extensions, lib versions |
-| Resolver (Phase 06) | `pubgrub` | uv's resolver; better conflict messages than a SAT port |
+| Resolver (Phase 07) | `pubgrub` | uv's resolver; better conflict messages than a SAT port |
 | Distribution | cargo-dist: GitHub Releases, curl installer, Homebrew, npm wrapper; plus a Packagist wrapper for setup-php | every channel PHP developers already use |
 | Benchmarks | hyperfine, JSON output committed | reproducible or it did not happen |
 

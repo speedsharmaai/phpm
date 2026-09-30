@@ -3,7 +3,7 @@
 Nothing is built. Research is written, a baseline is measured, the repo is
 public, and Phases 00 and 01 are tasked.
 
-Current state: **Phase 00 done (PR #1), Phase 01 spike next.**
+Current state: **Phase 00 done; Phase 01 spike in progress (fixtures, bench, diffvendor merged).**
 
 ## Next three things
 
@@ -34,7 +34,7 @@ Current state: **Phase 00 done (PR #1), Phase 01 spike next.**
 - [x] nextest, testkit, coverage floor (insta, proptest, criterion arrive with Phase 01 code)
 - [x] cargo-deny, cargo-shear, cargo-hack, Dependabot, SECURITY.md
 - [x] justfile
-- [x] CI, PR title, Sonar, CodeQL, Scorecard, release-plz workflows (dist moved to Phase 05)
+- [x] CI, PR title, Sonar, CodeQL, Scorecard, release-plz workflows (dist moved to Phase 06)
 - [x] Ruleset on `main`, security settings
 - [x] Licences, CONTRIBUTING, CODEOWNERS, templates, badges
 - [x] Proof: every gate fails where it should

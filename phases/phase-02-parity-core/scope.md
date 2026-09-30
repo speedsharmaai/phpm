@@ -47,4 +47,4 @@ gap for everything that does not need a PHP plugin to run.
 
 ## Out of scope
 
-Native plugin adapters (Phase 04). Windows (Phase 03). Resolver (Phase 06).
+Native plugin adapters (Phase 04). Windows (Phase 03). Resolver (Phase 07).

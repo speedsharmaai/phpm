@@ -28,7 +28,7 @@ new binary on my install path".
 
 At least **95% identical** across the corpus, with every remaining difference
 understood and ticketed. Below that, the launch post has no headline and
-Phase 05 waits.
+Phase 06 waits.
 
 ## Out of scope
 

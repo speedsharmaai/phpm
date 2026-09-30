@@ -1,6 +1,6 @@
-# Phase 06: Resolver
+# Phase 07: Resolver
 
-Outline. Starts only if Phase 05's gate passes.
+Outline. Starts only if Phase 06's gate passes.
 
 ## Why
 

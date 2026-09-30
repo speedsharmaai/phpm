@@ -1,6 +1,6 @@
 # Phases
 
-Phase 00 and Phase 01 are written in full. Phases 02-06 are outlined with a
+Phase 00 and Phase 01 are written in full. Phases 02-07 are outlined with a
 scope each, not tasked.
 
 Phase 00 comes first because quality tooling is cheapest on an empty repo.
@@ -20,10 +20,11 @@ hit.
 | 02 | [Parity core](phase-02-parity-core/scope.md) | `-o` class scanning, platform checks, auth, path repos, malware filter, scripts, Composer fallback | 3 | no |
 | 03 | [Compatibility sweep](phase-03-compat-sweep/scope.md) | nightly `vendor/` diff across hundreds of lockfiles, a public number, Linux and Windows | 2 | yes: ≥ 95% identical |
 | 04 | [Plugin adapters](phase-04-plugin-adapters/scope.md) | native composer/installers, symfony/runtime, phpstan/extension-installer, php-http/discovery; flex stays on fallback | 3 | no |
-| 05 | [Launch](phase-05-launch/scope.md) | cargo-dist release, Homebrew, setup-php wrapper, Docker image, GitHub Action, benchmark page, launch post | 2 | yes: 30-day adoption |
-| 06 | [Resolver](phase-06-resolver/scope.md) | `update` and `require` with pubgrub, lockfile byte-identical to Composer's | 4+ | only if 05 passes |
+| 05 | [Real-world benchmarks](phase-05-real-world-benchmarks/scope.md) | Composer vs phpm on the biggest open-source PHP apps: cold, warm, no-op, disk, identity; a public results page and charts | 2 | no, results are published whatever they say |
+| 06 | [Launch](phase-06-launch/scope.md) | cargo-dist release, Homebrew, setup-php wrapper, Docker image, GitHub Action, benchmark page, launch post | 2 | yes: 30-day adoption |
+| 07 | [Resolver](phase-07-resolver/scope.md) | `update` and `require` with pubgrub, lockfile byte-identical to Composer's | 4+ | only if 06 passes |
 
-About 13 weeks to a launch if every gate passes. The field is re-checked at
+About 15 weeks to a launch if every gate passes. The field is re-checked at
 each phase boundary (decision 0007).
 
 ## The gate
@@ -54,7 +55,7 @@ Then the call:
 Separately, before Phase 02 starts: ask in r/PHP and r/laravel, and to at
 least ten developers directly, whether install time is a top-three CI or
 local pain. Docker-on-Mac teams first. Fewer than ten yes answers means
-Phase 05's launch has no audience, and that is worth knowing at week 2
+Phase 06's launch has no audience, and that is worth knowing at week 2
 instead of week 12.
 
 Writing the decision down is part of the gate.

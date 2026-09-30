@@ -27,7 +27,7 @@ Phase 00 sets up, on an empty workspace:
 | SonarQube | SonarQube Cloud, free for public repos, clippy JSON + LCOV | hard, quality gate |
 | (implied) | cargo-deny, cargo-shear, cargo-hack MSRV, typos, zizmor | hard |
 | (implied) | nextest, cargo-llvm-cov floor 80% | hard |
-| (implied) | release-plz + git-cliff, cargo-dist | configured, used from Phase 05 |
+| (implied) | release-plz + git-cliff, cargo-dist | configured, used from Phase 06 |
 
 Sonar repeats many of clippy's findings. It stays because its complexity,
 duplication and new-code coverage gates catch what clippy does not, and on a

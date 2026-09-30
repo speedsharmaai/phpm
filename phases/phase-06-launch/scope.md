@@ -1,4 +1,4 @@
-# Phase 05: Launch
+# Phase 06: Launch
 
 Outline. Tasked only after Phase 03's gate.
 
@@ -22,9 +22,8 @@ done deliberately.
   - A Docker image and a documented multi-stage pattern for PHP-free build
     stages.
   - A worktree recipe: many agent worktrees, one store, near-zero disk.
-- **Benchmark page.** hyperfine charts in Astral's style, cold / warm / no-op,
-  Composer, riff, vivace, phpm, macOS and Linux, filesystem stated, raw JSON
-  linked. The sweep number next to it.
+- **Benchmark page.** The Phase 05 results page, plus the head-to-head with
+  riff, viv and vivacity on the fixtures. The sweep number next to it.
 - **Launch post.** "phpm: Composer-compatible installs, N x faster warm,
   identical vendor/ on X of Y projects." Technical deep-dive on the store,
   clonefile and byte-exact autoloading. Not a feature list.
