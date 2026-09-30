@@ -8,7 +8,7 @@ pinning; bump the doc if any moved.
 
 - [ ] SonarQube Cloud: sign in with the speedsharmaai GitHub account, create the organisation (free, public project), import `phpm`, add `SONAR_TOKEN` as a repo secret.
 - [ ] Register at bestpractices.dev for the OpenSSF Best Practices badge (free).
-- [ ] Decide the Git signing key (SSH signing with `~/.ssh/speedsharma` is the easy path) and add it to GitHub as a signing key.
+- [x] Decide the Git signing key (SSH signing with `~/.ssh/speedsharma` is the easy path) and add it to GitHub as a signing key.
 - [x] Repo settings: squash merge only, auto-delete head branches, Dependabot alerts on.
 
 ## Workspace
