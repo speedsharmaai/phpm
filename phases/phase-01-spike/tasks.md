@@ -2,8 +2,8 @@
 
 ## Before any code
 
-- [ ] Clone shyim/riff and svandragt/vivace. Run both on the Laravel skeleton and symfony/demo. Write `competitors.md` in this folder: what each does, speed, where `vendor/` differs from Composer's.
-- [ ] If either already meets gate criteria 1-3, stop here and write `gate.md` saying so (decision 0007).
+- [x] Clone shyim/riff and svandragt/vivace. Run both on the Laravel skeleton and symfony/demo. Write `competitors.md` in this folder: what each does, speed, where `vendor/` differs from Composer's. Done, with vivacity 0.19.1 added: it is the strongest.
+- [x] If either already meets gate criteria 1-3, stop here and write `gate.md` saying so (decision 0007). None does; see competitors.md.
 - [ ] Trademark search for `phpm` (USPTO, EUIPO, IP India class 9/42).
 - [x] Public repo `speedsharmaai/phpm` on the brand account, SSH key `~/.ssh/speedsharma` (decision 0009).
 
@@ -15,8 +15,8 @@
 
 ## Fixtures
 
-- [ ] `fixtures/<name>/composer.json` + `composer.lock` for each fixture in [scope](scope.md). Copies, never symlinks to the live apps.
-- [ ] `fixtures/README.md`: source, date, package count, plugin list, flags used.
+- [x] `fixtures/<name>/composer.json` + `composer.lock` for each fixture in [scope](scope.md). Copies, never symlinks to the live apps.
+- [x] `fixtures/README.md`: source, date, package count, plugin list, flags used.
 
 ## PHP-format writers (`phpm-php`)
 
@@ -39,8 +39,8 @@
 
 ## Measurement
 
-- [ ] `tools/diffvendor`: Composer `--no-scripts --no-plugins` vs phpm into sibling dirs; compare bytes and mode of every file; exit non-zero on any difference.
-- [ ] `tools/bench`: hyperfine, cold / warm / no-op, `--prepare` deletes `vendor/` (and caches for cold), run order alternated, raw JSON kept with tool versions, OS, filesystem.
+- [x] `tools/diffvendor`: Composer `--no-scripts --no-plugins` vs phpm into sibling dirs; compare bytes and mode of every file; exit non-zero on any difference.
+- [x] `tools/bench`: hyperfine, cold / warm / no-op, `--prepare` deletes `vendor/` (and caches for cold), run order alternated, raw JSON kept with tool versions, OS, filesystem.
 - [ ] Run on macOS APFS and in a Linux Docker container (no bind mount; vendor inside the container).
 - [ ] Profile phpm's warm path and write where the remaining time goes.
 
