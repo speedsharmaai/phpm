@@ -1,7 +1,8 @@
 # Phase 00: Progress
 
-**Status:** done, 2026-10-01. Waiting only on owner actions: `SONAR_TOKEN`,
-a signing key, and the OpenSSF Best Practices registration.
+**Status:** done, 2026-10-01. Waiting only on owner actions: `SONAR_TOKEN`
+and the OpenSSF Best Practices registration. Commits are SSH-signed with the
+brand key and `main` requires verified signatures.
 
 ## Definition of done
 
