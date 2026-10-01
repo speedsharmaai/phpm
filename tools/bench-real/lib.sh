@@ -55,13 +55,13 @@ scenario_timing() {
   local clear_caches="rm -rf $work/cache"
   (
     cd "$dir" || exit 1
-    HOME="$work/home" hyperfine -N --runs 3 --warmup 0 \
+    HOME="$work/home" hyperfine -N --shell bash --runs 3 --warmup 0 \
       --prepare "bash -c 'rm -rf $dir/vendor; $clear_caches'" \
       -n "cold" "$cmd" --export-json "$work/$name-cold.json" >/dev/null
-    HOME="$work/home" hyperfine -N --runs 5 --warmup 1 \
+    HOME="$work/home" hyperfine -N --shell bash --runs 5 --warmup 1 \
       --prepare "rm -rf $dir/vendor" \
       -n "warm" "$cmd" --export-json "$work/$name-warm.json" >/dev/null
-    HOME="$work/home" hyperfine -N --runs 10 --warmup 1 \
+    HOME="$work/home" hyperfine -N --shell bash --runs 10 --warmup 1 \
       -n "noop" "$cmd" --export-json "$work/$name-noop.json" >/dev/null
   )
 }
