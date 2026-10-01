@@ -292,6 +292,13 @@ impl Cleaner<'_> {
     }
 }
 
+/// What the class map scan records for one file: [`find_classes`] as
+/// Composer running on PHP 8.1+ sees it. Callers caching scan results use
+/// this so they agree with the scan.
+pub fn file_classes(source: &[u8]) -> Vec<String> {
+    find_classes(source, true)
+}
+
 const TYPES: [&[u8]; 4] = [b"class", b"interface", b"trait", b"enum"];
 
 /// The classes, interfaces, traits and enums a PHP file declares, from its

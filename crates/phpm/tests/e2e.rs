@@ -53,29 +53,31 @@ fn e2e(fixture: &str, flags: &[&str]) {
             .env_remove("COMPOSER_ROOT_VERSION"),
         "composer install",
     );
-    run(
-        Command::new(env!("CARGO_BIN_EXE_phpm"))
-            .args(["install", "--no-scripts", "--no-plugins", "-q"])
-            .args(flags)
-            .current_dir(&phpm_dir)
-            .env_remove("COMPOSER_ROOT_VERSION"),
-        "phpm install",
-    );
-
     assert!(composer_dir.join("vendor/autoload.php").is_file());
-    let diffs = compare(
-        &composer_dir.join("vendor"),
-        &phpm_dir.join("vendor"),
-        &Ignore::default(),
-    )
-    .unwrap();
-    let shown: Vec<String> = diffs.iter().take(20).map(ToString::to_string).collect();
-    assert!(
-        diffs.is_empty(),
-        "{fixture} {flags:?}: {} differences\n{}",
-        diffs.len(),
-        shown.join("\n")
-    );
+    for pass in ["first install", "again from the store"] {
+        let _ = std::fs::remove_dir_all(phpm_dir.join("vendor"));
+        run(
+            Command::new(env!("CARGO_BIN_EXE_phpm"))
+                .args(["install", "--no-scripts", "--no-plugins", "-q"])
+                .args(flags)
+                .current_dir(&phpm_dir)
+                .env_remove("COMPOSER_ROOT_VERSION"),
+            "phpm install",
+        );
+        let diffs = compare(
+            &composer_dir.join("vendor"),
+            &phpm_dir.join("vendor"),
+            &Ignore::default(),
+        )
+        .unwrap();
+        let shown: Vec<String> = diffs.iter().take(20).map(ToString::to_string).collect();
+        assert!(
+            diffs.is_empty(),
+            "{fixture} {flags:?} ({pass}): {} differences\n{}",
+            diffs.len(),
+            shown.join("\n")
+        );
+    }
 }
 
 macro_rules! e2e_tests {

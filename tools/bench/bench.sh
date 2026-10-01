@@ -22,10 +22,21 @@ mkdir -p "$work"
 plugin_free=true
 if grep -q '"type": "composer-plugin"' "$src/composer.lock"; then plugin_free=false; fi
 
+# The runs happen inside the work dir, so relative binary paths are resolved first.
+absolute() {
+  case "$1" in
+    */*) echo "$(cd "$(dirname "$1")" && pwd)/$(basename "$1")" ;;
+    *) echo "$1" ;;
+  esac
+}
+for var in PHPM_BIN RIFF_BIN VIV_BIN VIVACITY_BIN; do
+  [ -n "${!var:-}" ] && export "$var=$(absolute "${!var}")"
+done
+
 cmd_for() {
   case "$1" in
     composer) echo "composer install --no-scripts --no-plugins --no-interaction --no-progress -q" ;;
-    phpm) echo "${PHPM_BIN:-phpm} install" ;;
+    phpm) echo "${PHPM_BIN:-phpm} install --no-scripts --no-plugins" ;;
     riff) echo "${RIFF_BIN:-riff} install --no-scripts --no-plugins" ;;
     viv) echo "${VIV_BIN:-viv} install --no-scripts --no-plugins --cache-dir $work/cache/viv" ;;
     vivacity) echo "${VIVACITY_BIN:-vivacity} install --no-progress" ;;
