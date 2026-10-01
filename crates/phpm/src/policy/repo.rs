@@ -14,7 +14,8 @@ use phpm_store::{Fetcher, sanitize};
 use serde_json::{Value, json};
 
 pub(crate) const PACKAGIST: &str = "https://repo.packagist.org";
-const ROOT_MAX_AGE: u64 = 600;
+pub(crate) const ROOT_MAX_AGE: u64 = 600;
+const VERIFIED: &str = "filter-verified.json";
 
 /// A `composer` repository and the `filter` option its config gives it.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -163,6 +164,10 @@ fn write(path: &Path, cached: &Cached) {
         "max-age": cached.max_age,
         "data": cached.data,
     });
+    save(path, &record);
+}
+
+fn save(path: &Path, record: &Value) {
     if let Some(dir) = path.parent()
         && fs::create_dir_all(dir).is_ok()
     {
@@ -230,6 +235,39 @@ impl Client<'_> {
             write(path, &fresh);
         }
         Ok(Some(fresh))
+    }
+
+    /// When `packages` (as `name version`) were all found clean on `lists`
+    /// by a check that is still fresh: the time that check goes stale.
+    pub(crate) fn verified(
+        &self,
+        repo: &Repo,
+        lists: &[String],
+        packages: &[String],
+    ) -> Option<u64> {
+        let path = repo.cache_dir(self.cache.as_ref()?).join(VERIFIED);
+        let record: Value = serde_json::from_slice(&fs::read(path).ok()?).ok()?;
+        let until = record.get("until")?.as_u64()?;
+        let same_lists = record.get("lists")? == &json!(lists);
+        let clean: Vec<&str> = record
+            .get("clean")?
+            .as_array()?
+            .iter()
+            .filter_map(Value::as_str)
+            .collect();
+        (same_lists && now() < until && packages.iter().all(|p| clean.contains(&p.as_str())))
+            .then_some(until)
+    }
+
+    /// Remember that `clean` had no entries on `lists` until `until`.
+    pub(crate) fn record(&self, repo: &Repo, lists: &[String], until: u64, clean: &[String]) {
+        let Some(cache) = &self.cache else {
+            return;
+        };
+        save(
+            &repo.cache_dir(cache).join(VERIFIED),
+            &json!({"lists": lists, "until": until, "clean": clean}),
+        );
     }
 
     /// The repository's root `packages.json`.

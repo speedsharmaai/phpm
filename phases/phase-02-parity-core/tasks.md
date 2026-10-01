@@ -33,6 +33,6 @@ the same PR, `just ci` green, Sonar green.
 ## Exit
 
 - [x] All Phase 01 fixtures still byte-identical; new plugin fixtures produce working apps.
-- [ ] Laravel with scripts ≥ 5x faster warm than Composer.
+- [x] Laravel with scripts ≥ 5x faster warm than Composer.
 - [x] Malware filter proven against a blocked package.
 - [ ] `progress.md` with what was checked.

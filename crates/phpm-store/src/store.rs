@@ -46,6 +46,15 @@ impl Store {
         self.path(name, key).is_ok_and(|p| p.is_dir())
     }
 
+    /// Drop `name` at `key`, as when a policy refuses what was just fetched.
+    pub fn remove(&self, name: &str, key: &str) -> Result<()> {
+        let dir = self.path(name, key)?;
+        if dir.is_dir() {
+            remove_tree(&dir).at(&dir)?;
+        }
+        Ok(())
+    }
+
     /// Extract a zip into the store. A no-op if another process got there first.
     pub fn insert_zip(&self, name: &str, key: &str, zip: &[u8]) -> Result<PathBuf> {
         self.insert_zip_with(name, key, zip, Limits::default())
@@ -259,6 +268,11 @@ mod tests {
         assert_eq!(std::fs::read(dir.join("a.php")).unwrap(), b"<?php\n");
         let again = store.insert_zip("o/r", "1", b"not even a zip").unwrap();
         assert_eq!(dir, again);
+        store.remove("o/r", "1").unwrap();
+        assert!(!store.contains("o/r", "1"));
+        store.remove("o/r", "1").unwrap();
+        assert!(store.remove("../x", "1").is_err());
+        store.insert_zip("o/r", "1", &zip()).unwrap();
         let leftovers = std::fs::read_dir(store.root().join(".tmp"))
             .unwrap()
             .count();
