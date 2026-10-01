@@ -240,7 +240,16 @@ pub fn installed_files(ctx: &InstallContext<'_>) -> Result<InstalledFiles, Error
             }
             find_shortest_path(&repo_dir, &normalize_path(&path), true)
         };
-        let installation_source = installation_source(ctx, &package);
+        // Likewise, the installation-source Composer dumps for an
+        // untouched package is whatever it already was (dist or source),
+        // not what today's install preferences would pick fresh. A config
+        // straight from the lock never has this key, so a changed package
+        // always falls through to computing it fresh.
+        let installation_source = match source.get("installation-source").and_then(Value::as_str) {
+            Some("dist") => Some("dist"),
+            Some("source") => Some("source"),
+            _ => installation_source(ctx, &package),
+        };
         installed.push(Installed {
             package,
             installation_source,
@@ -538,15 +547,10 @@ mod tests {
     use super::{InstallContext, InstallPaths, installed_files};
     use crate::manifest::{ComposerJson, Lock};
     use crate::root::RootVersion;
-    use serde_json::json;
+    use serde_json::{Map, Value, json};
     use std::collections::BTreeMap;
 
-    fn run(
-        composer: serde_json::Value,
-        lock: serde_json::Value,
-        dev: bool,
-        version: &RootVersion,
-    ) -> (String, String) {
+    fn run(composer: Value, lock: Value, dev: bool, version: &RootVersion) -> (String, String) {
         let composer = ComposerJson::from_value(composer).unwrap();
         let lock = Lock::from_value(lock).unwrap();
         let ctx = InstallContext {
@@ -637,7 +641,7 @@ mod tests {
         };
         let (json, php) = run(composer, lock, true, &version);
 
-        let decoded: serde_json::Value = serde_json::from_str(&json).unwrap();
+        let decoded: Value = serde_json::from_str(&json).unwrap();
         let names: Vec<&str> = decoded["packages"]
             .as_array()
             .unwrap()
@@ -649,10 +653,7 @@ mod tests {
         assert_eq!(decoded["packages"][0]["installation-source"], "source");
         assert_eq!(decoded["packages"][1]["installation-source"], "dist");
         assert!(decoded["packages"][2].get("installation-source").is_none());
-        assert_eq!(
-            decoded["packages"][2]["install-path"],
-            serde_json::Value::Null
-        );
+        assert_eq!(decoded["packages"][2]["install-path"], Value::Null);
         assert_eq!(decoded["packages"][3]["install-path"], "../d/dev/D/X");
 
         for needle in [
@@ -739,6 +740,48 @@ mod tests {
             files
                 .installed_php
                 .contains("'install_path' => __DIR__ . '/../../web/app/plugins/plugin',")
+        );
+    }
+
+    #[test]
+    fn an_untouched_package_keeps_its_own_installation_source() {
+        // FilesystemRepository::write dumps the Package object already in
+        // the repository for a package no operation visited; one installed
+        // from source keeps saying so, not whatever today's install
+        // preferences would pick for a fresh dist-only placement.
+        let composer = ComposerJson::parse("{}").unwrap();
+        let lock = Lock::from_value(json!({"packages": [
+            {"name": "a/lib", "version": "1.0.0", "source": {"type": "git", "url": "u", "reference": "r"}, "dist": {"type": "zip", "url": "d", "reference": "r"}},
+        ]}))
+        .unwrap();
+        let unchanged: BTreeMap<String, Map<String, Value>> = [(
+            "a/lib".to_owned(),
+            match json!({
+                "name": "a/lib", "version": "1.0.0",
+                "source": {"type": "git", "url": "u", "reference": "r"},
+                "dist": {"type": "zip", "url": "d", "reference": "r"},
+                "installation-source": "source",
+            }) {
+                Value::Object(m) => m,
+                _ => unreachable!(),
+            },
+        )]
+        .into();
+        let ctx = InstallContext {
+            composer_json: &composer,
+            lock: &lock,
+            root_version: &default_version(),
+            root_dir: "/p",
+            dev_mode: false,
+            install_paths: &InstallPaths::new(),
+            installed_json_indent: None,
+            unchanged_installed: &unchanged,
+        };
+        let files = installed_files(&ctx).unwrap();
+        assert!(
+            files
+                .installed_json
+                .contains("\"installation-source\": \"source\"")
         );
     }
 
