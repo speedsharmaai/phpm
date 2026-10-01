@@ -10,6 +10,13 @@ pub(crate) struct Error {
 }
 
 impl Error {
+    pub(crate) fn new(code: u8, message: impl Into<String>) -> Self {
+        Self {
+            message: message.into(),
+            code,
+        }
+    }
+
     /// Exit code 1: the install could not be done.
     pub(crate) fn install(message: impl Into<String>) -> Self {
         Self {
@@ -68,6 +75,7 @@ mod tests {
     fn carries_exit_codes() {
         assert_eq!(Error::install("x").code, 1);
         assert_eq!(Error::usage("x").code, 2);
+        assert_eq!(Error::new(5, "x").code, 5);
         let e = Error::io(Path::new("/a"), &std::io::Error::other("boom"));
         assert_eq!(e.to_string(), "/a: boom");
         let _ = e.exit_code();

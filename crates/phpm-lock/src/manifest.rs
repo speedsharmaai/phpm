@@ -72,6 +72,10 @@ impl Lock {
         into_object(value, "composer.lock").map(|data| Self { data })
     }
 
+    pub fn data(&self) -> &Map<String, Value> {
+        &self.data
+    }
+
     fn list(&self, key: &str) -> Result<Vec<&Map<String, Value>>, Error> {
         let Some(Value::Array(items)) = self.data.get(key) else {
             return Ok(Vec::new());

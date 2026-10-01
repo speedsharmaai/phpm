@@ -1,6 +1,6 @@
 use crate::Error;
 use crate::autoloads::Entry;
-use crate::constraint::{Bound, lower_bound};
+use phpm_lock::constraint::{Bound, lower_bound};
 use phpm_php::{smart_strcmp, var_export_str};
 use regex::bytes::RegexBuilder;
 use std::collections::BTreeSet;

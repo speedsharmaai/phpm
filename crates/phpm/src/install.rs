@@ -18,6 +18,7 @@ use crate::classes::{Tree, cache_root, known_classes};
 use crate::error::Error;
 use crate::fsutil::{Modes, path_string, write_if_changed};
 use crate::out::Out;
+use crate::platform::{Filter, Platform, Requirements};
 use crate::project::{Env, ProjectFiles, dirs, locate, with_vendor_dir};
 use crate::state::{Inputs, State, git_fingerprint, state_path};
 
@@ -114,6 +115,13 @@ pub(crate) fn run(req: &Request, env: Env<'_>, out: &mut Out<'_>) -> Result<(), 
         .add("git", git_fingerprint(&files.root).as_bytes());
     for key in ENV_INPUTS {
         inputs.add(key, env(key).as_deref().unwrap_or("\0").as_bytes());
+    }
+    if !req.ignore_platform_reqs {
+        let php = crate::platform::find_php(env);
+        inputs.add(
+            "php",
+            crate::platform::fingerprint(php.as_deref(), env).as_bytes(),
+        );
     }
     let inputs = inputs.finish();
     let state_file = phpm_store::cache_dir()
@@ -431,6 +439,7 @@ fn install(
         entries.extend(lock.packages_dev()?);
     }
     guard(req, &composer, &entries)?;
+    check_platform(req, env, &composer, &lock, out)?;
     let dirs = dirs(&composer, &files.root, env)?;
     let composer = with_vendor_dir(composer, &files.root, &dirs.vendor);
     let vendor = normalize_path(&dirs.vendor);
@@ -607,6 +616,46 @@ fn install(
 
     out.info(&summary(placements.len(), removed));
     Ok(written)
+}
+
+// Composer: Installer.php doInstall, "Verifying lock file contents can be installed on current platform."
+fn check_platform(
+    req: &Request,
+    env: Env<'_>,
+    composer: &ComposerJson,
+    lock: &Lock,
+    out: &mut Out<'_>,
+) -> Result<(), Error> {
+    let filter = Filter::new(req.ignore_platform_reqs, &req.ignore_platform_req);
+    let reqs = Requirements::from_lock(composer, lock, req.dev)?;
+    if !reqs.needs_platform(&filter) {
+        return Ok(());
+    }
+    let started = Instant::now();
+    let php = crate::platform::find_php(env).ok_or_else(|| {
+        Error::install(
+            "php is not on PATH, so the platform requirements in the lock file cannot be checked; \
+             install PHP or run with --ignore-platform-reqs",
+        )
+    })?;
+    let cache = phpm_store::cache_dir().ok();
+    let probe = crate::platform::probe(&php, cache.as_deref(), env)?;
+    let overrides: Vec<(&str, &Value)> = lock
+        .data()
+        .get("platform-overrides")
+        .and_then(Value::as_object)
+        .into_iter()
+        .flatten()
+        .map(|(k, v)| (k.as_str(), v))
+        .collect();
+    let platform = Platform::build(&probe, &overrides)?;
+    crate::platform::verify(&platform, &reqs, &filter)?;
+    out.detail(&format!(
+        "platform requirements met by {} ({:.1?})",
+        php.display(),
+        started.elapsed()
+    ));
+    Ok(())
 }
 
 fn packages(n: usize) -> String {

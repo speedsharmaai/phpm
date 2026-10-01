@@ -14,7 +14,7 @@ use std::path::{Path, PathBuf};
 
 use sha2::{Digest, Sha256};
 
-fn hex(bytes: &[u8]) -> String {
+pub(crate) fn hex(bytes: &[u8]) -> String {
     bytes.iter().fold(String::with_capacity(64), |mut s, b| {
         let _ = write!(s, "{b:02x}");
         s
@@ -67,6 +67,12 @@ impl Stamp {
             mtime_ns,
             inode,
         })
+    }
+}
+
+impl std::fmt::Display for Stamp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}:{}", self.len, self.mtime_ns, self.inode)
     }
 }
 
