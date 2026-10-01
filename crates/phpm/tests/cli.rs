@@ -1089,6 +1089,19 @@ fn live_packagist_blocks_the_aikido_test_package() {
     assert!(!p.root.join("vendor").exists());
 }
 
+/// The POSTs once at least `n` have arrived: a detached phpm sends them
+/// after the install has exited.
+fn posts(p: &Project, n: usize) -> Vec<(String, String)> {
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
+    loop {
+        let posts = p.server.posts.lock().unwrap().clone();
+        if posts.len() >= n || std::time::Instant::now() > deadline {
+            return posts;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(20));
+    }
+}
+
 #[test]
 fn notifies_downloads_once_per_url_for_what_was_installed() {
     let p = Project::with(|_, lock| {
@@ -1113,10 +1126,11 @@ fn notifies_downloads_once_per_url_for_what_was_installed() {
     }
     std::fs::write(p.root.join("composer.lock"), lock.to_string()).unwrap();
     ok(&p.phpm(&["install"]));
-    let posts = p.server.posts.lock().unwrap().clone();
-    assert_eq!(posts.len(), 1, "{posts:?}");
-    assert_eq!(posts[0].0, "/downloads/");
-    let body: Value = serde_json::from_str(&posts[0].1).unwrap();
+    let first = posts(&p, 1);
+    assert_eq!(first.len(), 1, "{first:?}");
+    let posts_seen = first;
+    assert_eq!(posts_seen[0].0, "/downloads/");
+    let body: Value = serde_json::from_str(&posts_seen[0].1).unwrap();
     assert_eq!(body["downloads"][0]["name"], "a/lib");
     assert_eq!(body["downloads"][0]["version"], "1.0.0.0");
     assert_eq!(body["downloads"][1]["name"], "b/tool");
@@ -1125,16 +1139,16 @@ fn notifies_downloads_once_per_url_for_what_was_installed() {
         "only Packagist gets sizes"
     );
     assert!(
-        posts[0].1.contains(r#""name":"a\/lib""#),
+        posts_seen[0].1.contains(r#""name":"a\/lib""#),
         "PHP json_encode escapes slashes"
     );
 
     ok(&p.phpm(&["install"]));
     std::fs::remove_dir_all(p.root.join("vendor/a")).unwrap();
     ok(&p.phpm(&["install"]));
-    let posts = p.server.posts.lock().unwrap().clone();
-    assert_eq!(posts.len(), 2, "{posts:?}");
-    let body: Value = serde_json::from_str(&posts[1].1).unwrap();
+    let second = posts(&p, 2);
+    assert_eq!(second.len(), 2, "{second:?}");
+    let body: Value = serde_json::from_str(&second[1].1).unwrap();
     assert_eq!(body["downloads"].as_array().unwrap().len(), 1);
 
     let mut composer: Value =
@@ -1147,5 +1161,6 @@ fn notifies_downloads_once_per_url_for_what_was_installed() {
         &["install", "--no-dev"],
         &[("COMPOSER_DISABLE_NETWORK", "1")],
     ));
+    std::thread::sleep(std::time::Duration::from_millis(500));
     assert_eq!(p.server.posts.lock().unwrap().len(), 2);
 }

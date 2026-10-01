@@ -488,8 +488,9 @@ fn abandoned(entry: &Map<String, Value>) -> Option<Abandonment> {
     }
 }
 
-/// Send download notifications for what this run installed, on a thread of
-/// its own so the POST overlaps the rest of the install.
+/// Send download notifications for what this run installed, from a detached
+/// copy of phpm (or a thread of its own when that cannot start), so the POST
+/// never holds the install up.
 // Composer: Installer.php run, config notify-on-install
 #[expect(
     clippy::too_many_arguments,
@@ -526,23 +527,14 @@ fn notify_installs(
     if downloads.is_empty() {
         return None;
     }
+    let batches = notify::batches(&downloads);
+    if notify::detach(&files.root, config, &batches) {
+        return None;
+    }
     let root = files.root.clone();
     let config = config.cloned();
     Some(std::thread::spawn(move || {
-        let Ok(auth) = Auth::load(Some(&root), config.as_ref()) else {
-            return;
-        };
-        let (Ok(fetcher), Ok(rt)) = (
-            Fetcher::new(FetchOptions {
-                auth,
-                retries: 0,
-                ..FetchOptions::default()
-            }),
-            runtime(),
-        ) else {
-            return;
-        };
-        rt.block_on(notify::send(&fetcher, notify::batches(&downloads)));
+        notify::send_blocking(&root, config.as_ref(), batches);
     }))
 }
 

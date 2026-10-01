@@ -41,6 +41,9 @@ pub(crate) struct Cli {
 pub(crate) enum Command {
     /// Install the packages in composer.lock into vendor/
     Install(InstallArgs),
+    /// Send download notifications read from stdin, for a finished install
+    #[command(name = "__notify", hide = true)]
+    Notify,
 }
 
 #[derive(Debug, Args)]
@@ -142,7 +145,9 @@ mod tests {
     }
 
     fn args(cli: &Cli) -> &super::InstallArgs {
-        let Command::Install(a) = &cli.command;
+        let Command::Install(a) = &cli.command else {
+            panic!("expected install");
+        };
         a
     }
 

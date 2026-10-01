@@ -49,7 +49,13 @@ fn run(args: impl IntoIterator<Item = OsString>, env: Env<'_>, out: &mut Out<'_>
     } else {
         Verbosity::Normal
     });
-    let Command::Install(args) = cli.command;
+    let args = match cli.command {
+        Command::Install(args) => args,
+        Command::Notify => {
+            notify::run_detached(std::io::stdin().lock());
+            return ExitCode::SUCCESS;
+        }
+    };
     let request = Request {
         working_dir: cli.working_dir,
         dev: !args.no_dev,
