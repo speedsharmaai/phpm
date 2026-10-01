@@ -65,7 +65,11 @@ sweep-test:
 bench-real-test:
     tools/bench-real/test.sh
 
-ci: fmt-check lint docs test deny shear msrv typos md actions sweep-test bench-real-test cov
+# node --check and package.json shape checks for the npm wrapper scaffold
+npm-wrapper-test:
+    dist/npm-wrapper/test.sh
+
+ci: fmt-check lint docs test deny shear msrv typos md actions sweep-test bench-real-test npm-wrapper-test cov
 
 # warm placement time for a fixture; the first run fills the store
 place fixture="laravel-skeleton" *args="":

@@ -1,0 +1,118 @@
+{
+  "artifactDownloadUrls": [
+    "https://github.com/speedsharmaai/phpm/releases/download/v0.0.0"
+  ],
+  "author": "Sanjeev Sharma <speedsharma.ai@gmail.com>",
+  "bin": {
+    "phpm": "run-phpm.js"
+  },
+  "dependencies": {
+    "detect-libc": "^2.1.2"
+  },
+  "description": "An extremely fast, Composer-compatible PHP installer",
+  "devDependencies": {
+    "prettier": "^3.9.6"
+  },
+  "engines": {
+    "node": ">=14.14",
+    "npm": ">=6"
+  },
+  "glibcMinimum": {
+    "major": 2,
+    "series": 31
+  },
+  "homepage": "https://speedsharmaai.github.io/phpm/",
+  "license": "MIT OR Apache-2.0",
+  "name": "phpm",
+  "preferUnplugged": true,
+  "repository": "https://github.com/speedsharmaai/phpm",
+  "scripts": {
+    "fmt": "prettier --write **/*.js",
+    "fmt:check": "prettier --check **/*.js",
+    "postinstall": "node ./install.js"
+  },
+  "supportedPlatforms": {
+    "aarch64-apple-darwin": {
+      "artifactName": "phpm-aarch64-apple-darwin.tar.xz",
+      "bins": {
+        "phpm": "phpm"
+      },
+      "zipExt": ".tar.xz"
+    },
+    "aarch64-pc-windows-msvc": {
+      "artifactName": "phpm-x86_64-pc-windows-msvc.zip",
+      "bins": {
+        "phpm": "phpm.exe"
+      },
+      "zipExt": ".zip"
+    },
+    "aarch64-unknown-linux-gnu": {
+      "artifactName": "phpm-aarch64-unknown-linux-musl.tar.xz",
+      "bins": {
+        "phpm": "phpm"
+      },
+      "zipExt": ".tar.xz"
+    },
+    "aarch64-unknown-linux-musl-dynamic": {
+      "artifactName": "phpm-aarch64-unknown-linux-musl.tar.xz",
+      "bins": {
+        "phpm": "phpm"
+      },
+      "zipExt": ".tar.xz"
+    },
+    "aarch64-unknown-linux-musl-static": {
+      "artifactName": "phpm-aarch64-unknown-linux-musl.tar.xz",
+      "bins": {
+        "phpm": "phpm"
+      },
+      "zipExt": ".tar.xz"
+    },
+    "x86_64-apple-darwin": {
+      "artifactName": "phpm-x86_64-apple-darwin.tar.xz",
+      "bins": {
+        "phpm": "phpm"
+      },
+      "zipExt": ".tar.xz"
+    },
+    "x86_64-pc-windows-gnu": {
+      "artifactName": "phpm-x86_64-pc-windows-msvc.zip",
+      "bins": {
+        "phpm": "phpm.exe"
+      },
+      "zipExt": ".zip"
+    },
+    "x86_64-pc-windows-msvc": {
+      "artifactName": "phpm-x86_64-pc-windows-msvc.zip",
+      "bins": {
+        "phpm": "phpm.exe"
+      },
+      "zipExt": ".zip"
+    },
+    "x86_64-unknown-linux-gnu": {
+      "artifactName": "phpm-x86_64-unknown-linux-musl.tar.xz",
+      "bins": {
+        "phpm": "phpm"
+      },
+      "zipExt": ".tar.xz"
+    },
+    "x86_64-unknown-linux-musl-dynamic": {
+      "artifactName": "phpm-x86_64-unknown-linux-musl.tar.xz",
+      "bins": {
+        "phpm": "phpm"
+      },
+      "zipExt": ".tar.xz"
+    },
+    "x86_64-unknown-linux-musl-static": {
+      "artifactName": "phpm-x86_64-unknown-linux-musl.tar.xz",
+      "bins": {
+        "phpm": "phpm"
+      },
+      "zipExt": ".tar.xz"
+    }
+  },
+  "version": "0.0.0",
+  "volta": {
+    "node": "18.14.1",
+    "npm": "9.5.0"
+  }
+}
