@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Install projects with Composer and phpm and compare the trees; one JSON
+# record per project.
+#
+#   tools/sweep/run <owner/name> <commit> <pure|default> [--fixture NAME]
+#   tools/sweep/run batch <corpus.json> <pure|default> [--shard I/N | --slice A..B] [--out FILE]
+#   tools/sweep/run publish <site-dir> <date> <records.jsonl>...
+#
+# SWEEP_BIN: a built sweep binary (default: cargo run). PHPM_BIN: the phpm
+# to test (default: phpm on PATH). See `sweep` for the other settings.
+set -euo pipefail
+
+root="$(cd "$(dirname "$0")/../.." && pwd)"
+case "${1:-}" in
+  batch | publish) cmd=("$@") ;;
+  *) cmd=(run "$@") ;;
+esac
+export SWEEP_FIXTURES="${SWEEP_FIXTURES:-$root/fixtures}"
+if [ -n "${SWEEP_BIN:-}" ]; then
+  exec "$SWEEP_BIN" "${cmd[@]}"
+fi
+exec cargo run -q --locked --manifest-path "$root/Cargo.toml" -p phpm-sweep --bin sweep -- "${cmd[@]}"

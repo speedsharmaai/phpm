@@ -1,0 +1,26 @@
+[package]
+name = "phpm-sweep"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description = "Install a corpus of lockfiles with Composer and phpm and compare the results"
+repository.workspace = true
+license.workspace = true
+publish = false
+
+[[bin]]
+name = "sweep"
+path = "src/main.rs"
+
+[dependencies]
+phpm-diffvendor = { path = "../phpm-diffvendor" }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = { workspace = true }
+tempfile = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+
+[lints]
+workspace = true
