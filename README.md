@@ -1,15 +1,30 @@
-# phpm
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/design/logo/mark-dark.svg">
+    <img src="docs/design/logo/mark.svg" alt="" width="88" height="88">
+  </picture>
+</p>
 
-[![ci](https://github.com/speedsharmaai/phpm/actions/workflows/ci.yml/badge.svg)](https://github.com/speedsharmaai/phpm/actions/workflows/ci.yml)
-[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=speedsharmaai_phpm&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=speedsharmaai_phpm)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=speedsharmaai_phpm&metric=coverage)](https://sonarcloud.io/summary/new_code?id=speedsharmaai_phpm)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/speedsharmaai/phpm/badge)](https://scorecard.dev/viewer/?uri=github.com/speedsharmaai/phpm)
-[![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)](#licence)
+<h1 align="center">phpm</h1>
 
-An extremely fast, Composer-compatible PHP installer, written in Rust. It reads
-your `composer.json` and `composer.lock` unchanged and writes the same
-`vendor/`, byte for byte, in a fraction of the time on every install that is
-not bound by the network.
+<p align="center">
+  <a href="https://github.com/speedsharmaai/phpm/actions/workflows/ci.yml"><img src="https://github.com/speedsharmaai/phpm/actions/workflows/ci.yml/badge.svg" alt="ci"></a>
+  <a href="https://sonarcloud.io/summary/new_code?id=speedsharmaai_phpm"><img src="https://sonarcloud.io/api/project_badges/measure?project=speedsharmaai_phpm&amp;metric=alert_status" alt="Quality Gate"></a>
+  <a href="https://sonarcloud.io/summary/new_code?id=speedsharmaai_phpm"><img src="https://sonarcloud.io/api/project_badges/measure?project=speedsharmaai_phpm&amp;metric=coverage" alt="Coverage"></a>
+  <a href="https://scorecard.dev/viewer/?uri=github.com/speedsharmaai/phpm"><img src="https://api.scorecard.dev/projects/github.com/speedsharmaai/phpm/badge" alt="OpenSSF Scorecard"></a>
+  <a href="#licence"><img src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue" alt="License: MIT OR Apache-2.0"></a>
+</p>
+
+<p align="center">
+  An extremely fast, Composer-compatible PHP installer, written in Rust. It reads
+  your <code>composer.json</code> and <code>composer.lock</code> unchanged and writes the same
+  <code>vendor/</code>, byte for byte, in a fraction of the time on every install that is
+  not bound by the network.
+</p>
+
+<p align="center">
+  <img src="docs/design/poster/x-card.png" alt="phpm: 18x faster warm installs than Composer, byte-identical vendor/ output, measured on the Laravel skeleton against Composer, riff and vivacity">
+</p>
 
 > **Status: pre-release.** phpm passed its Phase 01 gate and finished
 > Phase 02 on 2026-10-01. `phpm install` works on any lockfile with dist
