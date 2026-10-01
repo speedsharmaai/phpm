@@ -3,6 +3,7 @@
 //! name and the versions whose source was read and compared; any other
 //! plugin, or any input an adapter cannot reproduce, stays with Composer.
 
+mod hooks;
 pub(crate) mod installers;
 mod php;
 
@@ -14,11 +15,14 @@ use serde_json::{Map, Value};
 use crate::plugins::{Adapter, Plugins};
 use installers::{Installers, Locked, Root};
 
+pub(crate) use hooks::{Hooks, Installed, uninstalled};
+
 /// What an adapter does in place of its plugin.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Role {
+pub(crate) enum Role {
     Installers,
     WordPressCore,
+    Pest,
 }
 
 #[derive(Debug)]
@@ -30,7 +34,7 @@ struct Known {
     does: &'static str,
 }
 
-const KNOWN: [Known; 2] = [
+const KNOWN: [Known; 3] = [
     Known {
         name: "composer/installers",
         versions: &["2.3.0.0"],
@@ -43,7 +47,23 @@ const KNOWN: [Known; 2] = [
         role: Role::WordPressCore,
         does: "phpm computes the wordpress-core install path",
     },
+    Known {
+        name: "pestphp/pest-plugin",
+        versions: &["2.0.1.0", "2.1.1.0", "3.0.0.0", "4.0.0.0", "5.0.0.0"],
+        role: Role::Pest,
+        does: "phpm writes vendor/pest-plugins.json",
+    },
 ];
+
+/// The adapter for a plugin package at a verified version.
+pub(crate) fn known_version(name: &str, pretty_version: &str) -> Option<Role> {
+    let known = KNOWN.iter().find(|k| k.name.eq_ignore_ascii_case(name))?;
+    let version = phpm_lock::version::normalize(pretty_version).ok()?;
+    known
+        .versions
+        .contains(&version.as_str())
+        .then_some(known.role)
+}
 
 /// Where the project is, for the adapters that need paths.
 #[derive(Debug, Clone, Copy)]
@@ -55,6 +75,14 @@ pub(crate) struct Context<'a> {
     pub(crate) vendor: &'a str,
     /// `vendor-dir` as configured, before it is made absolute.
     pub(crate) vendor_relative: &'a str,
+}
+
+/// What the native adapters take over for this install.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub(crate) struct Covered {
+    pub(crate) paths: Paths,
+    /// Listeners phpm runs; empty unless every active plugin is covered.
+    pub(crate) hooks: Hooks,
 }
 
 /// Install directories chosen by installer plugins, by lowercase name.
@@ -151,18 +179,26 @@ fn install_paths(
     Ok(paths)
 }
 
-/// Mark each active plugin a native adapter covers, and work out the
-/// install paths the covered installer plugins choose.
+/// Whether an adapter reproduces its plugin for these inputs.
+fn check(role: Role, entries: &[&Map<String, Value>], ctx: Context<'_>) -> Result<(), String> {
+    match role {
+        Role::Pest => hooks::pest_check(entries, ctx.root_extra),
+        Role::Installers | Role::WordPressCore => Ok(()),
+    }
+}
+
+/// Mark each active plugin a native adapter covers. Adapters take over only
+/// when they cover every active plugin; otherwise Composer runs them all.
 pub(crate) fn cover(
     plugins: &mut Plugins,
     entries: &[&Map<String, Value>],
     ctx: Context<'_>,
-) -> Paths {
+) -> Covered {
     let mut roles: Vec<(usize, Role)> = Vec::new();
     for (i, plugin) in plugins.active.iter_mut().enumerate() {
         let Some(known) = KNOWN
             .iter()
-            .find(|k| k.name == plugin.name.to_ascii_lowercase())
+            .find(|k| k.name.eq_ignore_ascii_case(&plugin.name))
         else {
             continue;
         };
@@ -181,9 +217,19 @@ pub(crate) fn cover(
             ));
             continue;
         }
+        if let Err(why) = check(known.role, entries, ctx) {
+            plugin.adapter = Adapter::Declined(why);
+            continue;
+        }
         plugin.adapter = Adapter::Native(known.does);
         roles.push((i, known.role));
     }
+    let decline = |plugins: &mut Plugins, why: &str| {
+        for (i, _) in &roles {
+            plugins.active[*i].adapter = Adapter::Declined(why.to_owned());
+        }
+        Covered::default()
+    };
     let others: Vec<&str> = plugins
         .active
         .iter()
@@ -192,13 +238,10 @@ pub(crate) fn cover(
         .collect();
     if !others.is_empty() {
         let why = format!(
-            "Composer loads {} for this install, so it places the packages too",
+            "Composer loads {} for this install, so it runs every plugin",
             others.join(", ")
         );
-        for (i, _) in &roles {
-            plugins.active[*i].adapter = Adapter::Declined(why.clone());
-        }
-        return Paths::default();
+        return decline(plugins, &why);
     }
     let only: Vec<Role> = roles.iter().map(|(_, r)| *r).collect();
     match install_paths(&only, entries, ctx) {
@@ -206,20 +249,18 @@ pub(crate) fn cover(
             for (i, _) in &roles {
                 plugins.active[*i].needs_full_install = None;
             }
-            paths
-        }
-        Err(why) => {
-            for (i, _) in &roles {
-                plugins.active[*i].adapter = Adapter::Declined(why.clone());
+            Covered {
+                paths,
+                hooks: Hooks { roles: only },
             }
-            Paths::default()
         }
+        Err(why) => decline(plugins, &why),
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Context, Paths, Role, cover, install_paths};
+    use super::{Context, Covered, Paths, Role, cover, install_paths};
     use crate::plugins::{Adapter, Plugin, Plugins};
     use serde_json::{Map, Value, json};
 
@@ -282,7 +323,9 @@ mod tests {
             ],
             skipped: Vec::new(),
         };
-        let paths = cover(&mut plugins, &refs, ctx(&extra));
+        let covered = cover(&mut plugins, &refs, ctx(&extra));
+        assert_eq!(covered.hooks.roles, [Role::Installers, Role::WordPressCore]);
+        let paths = covered.paths;
         assert!(
             plugins
                 .active
@@ -324,7 +367,7 @@ mod tests {
             ],
             skipped: Vec::new(),
         };
-        let paths = cover(&mut plugins, &refs, ctx(&extra));
+        let paths = cover(&mut plugins, &refs, ctx(&extra)).paths;
         assert_eq!(paths, Paths::default());
         assert_eq!(
             plugins.active[0].adapter,
@@ -344,18 +387,65 @@ mod tests {
         let refs: Vec<&Map<String, Value>> = entries.iter().collect();
         let extra = Map::new();
         let mut plugins = Plugins {
-            active: vec![plugin("composer/installers"), plugin("pestphp/pest-plugin")],
+            active: vec![plugin("composer/installers"), plugin("x/unknown")],
             skipped: Vec::new(),
         };
-        assert_eq!(cover(&mut plugins, &refs, ctx(&extra)), Paths::default());
+        assert_eq!(cover(&mut plugins, &refs, ctx(&extra)), Covered::default());
         assert_eq!(
             plugins.active[0].adapter,
             Adapter::Declined(
-                "Composer loads pestphp/pest-plugin for this install, so it places the packages too"
-                    .into()
+                "Composer loads x/unknown for this install, so it runs every plugin".into()
             )
         );
         assert!(plugins.active[0].needs_full_install.is_some());
+    }
+
+    #[test]
+    fn pest_runs_natively_unless_its_lists_are_odd() {
+        let mut entries = bedrock();
+        entries.push(obj(
+            json!({"name": "pestphp/pest-plugin", "version": "v4.0.0", "type": "composer-plugin"}),
+        ));
+        let refs: Vec<&Map<String, Value>> = entries.iter().collect();
+        let extra = obj(json!({"wordpress-install-dir": "web/wp"}));
+        let active = || Plugins {
+            active: vec![
+                plugin("composer/installers"),
+                plugin("roots/wordpress-core-installer"),
+                plugin("pestphp/pest-plugin"),
+            ],
+            skipped: Vec::new(),
+        };
+        let mut plugins = active();
+        let covered = cover(&mut plugins, &refs, ctx(&extra));
+        assert_eq!(
+            covered.hooks.roles,
+            [Role::Installers, Role::WordPressCore, Role::Pest]
+        );
+        let odd = obj(json!({"wordpress-install-dir": "web/wp", "pest": {"plugins": "One"}}));
+        let mut plugins = active();
+        assert_eq!(cover(&mut plugins, &refs, ctx(&odd)), Covered::default());
+        assert_eq!(
+            plugins.active[2].adapter,
+            Adapter::Declined("extra.pest.plugins is not a list".into())
+        );
+        assert!(
+            matches!(&plugins.active[0].adapter, Adapter::Declined(why) if why.contains("pestphp/pest-plugin"))
+        );
+    }
+
+    #[test]
+    fn knows_verified_versions_by_name() {
+        assert_eq!(
+            super::known_version("PestPHP/pest-plugin", "v3.0.0"),
+            Some(Role::Pest)
+        );
+        assert_eq!(super::known_version("pestphp/pest-plugin", "v1.1.0"), None);
+        assert_eq!(super::known_version("a/b", "1.0.0"), None);
+        assert_eq!(
+            super::known_version("composer/installers", "not a version"),
+            None
+        );
     }
 
     #[test]
@@ -373,7 +463,7 @@ mod tests {
             ],
             skipped: Vec::new(),
         };
-        let paths = cover(&mut plugins, &refs, ctx(&extra));
+        let paths = cover(&mut plugins, &refs, ctx(&extra)).paths;
         assert_eq!(paths, Paths::default());
         for p in &plugins.active {
             assert!(matches!(&p.adapter, Adapter::Declined(why) if why.contains("cakephp")));

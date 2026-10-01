@@ -353,6 +353,7 @@ struct Previous {
     source: Option<String>,
     install_path: Option<String>,
     bins: Vec<String>,
+    plugin: bool,
 }
 
 fn previous(vendor: &str) -> BTreeMap<String, Previous> {
@@ -383,6 +384,10 @@ fn previous(vendor: &str) -> BTreeMap<String, Previous> {
                     source: text(p, "installation-source"),
                     install_path,
                     bins: bins(p),
+                    plugin: text(p, "type").is_some_and(|t| {
+                        t.eq_ignore_ascii_case("composer-plugin")
+                            || t.eq_ignore_ascii_case("composer-installer")
+                    }),
                 },
             ))
         })
@@ -688,7 +693,7 @@ fn install(
         )?
     };
     let root_extra = composer.data().get("extra").and_then(Value::as_object);
-    let paths = adapters::cover(
+    let covered = adapters::cover(
         &mut plugins,
         &entries,
         adapters::Context {
@@ -698,9 +703,10 @@ fn install(
             vendor_relative: &dirs.vendor_relative,
         },
     );
+    let paths = &covered.paths;
     let locked = entries
         .iter()
-        .map(|e| locked(e, &composer, &vendor, &root_dir, &paths))
+        .map(|e| locked(e, &composer, &vendor, &root_dir, paths))
         .collect::<Result<Vec<_>, _>>()?;
     let before = previous(&vendor);
     let changed: Vec<&Locked> = locked
@@ -734,7 +740,19 @@ fn install(
         })
     });
     let scripts = Scripts::new(&composer, env);
-    let plan = fallback::plan(req, &scripts, plugins, !changed.is_empty(), removing);
+    let removed_plugins: Vec<(&str, Option<adapters::Role>)> = before
+        .iter()
+        .filter(|(name, p)| p.plugin && !req.no_plugins && !locked.iter().any(|l| l.name == **name))
+        .map(|(name, p)| (name.as_str(), adapters::known_version(name, &p.version)))
+        .collect();
+    let mut plan = fallback::plan(req, &scripts, plugins, !changed.is_empty(), removing);
+    if plan.full_install.is_none()
+        && let Some((name, _)) = removed_plugins.iter().find(|(_, role)| role.is_none())
+    {
+        plan.full_install = Some(format!(
+            "{name} is a plugin being removed, and Composer runs its uninstall hooks"
+        ));
+    }
     let runs_scripts = !req.no_scripts
         && [
             scripts::PRE_INSTALL,
@@ -949,6 +967,13 @@ fn install(
         dev_mode: req.dev,
         install_paths: &paths.normalized,
     })?;
+    for (_, role) in &removed_plugins {
+        if let Some(file) = role.and_then(|r| adapters::uninstalled(r, &vendor))
+            && file.exists()
+        {
+            fs::remove_file(&file).map_err(|e| Error::io(&file, &e))?;
+        }
+    }
     let mut written = vec![
         repo.join("installed.json"),
         repo.join("installed.php"),
@@ -1034,6 +1059,17 @@ fn install(
         ));
     }
 
+    let mut local_repo: Vec<&Map<String, Value>> = entries.clone();
+    local_repo.sort_by(|a, b| {
+        text(a, "name")
+            .unwrap_or_default()
+            .cmp(&text(b, "name").unwrap_or_default())
+    });
+    let at = adapters::Installed {
+        vendor: &vendor,
+        composer: &composer,
+        packages: &local_repo,
+    };
     match &plan.autoload {
         Step::Native(_) => {
             steps.event(req, &plan.pre_autoload, scripts::PRE_AUTOLOAD, false, out)?;
@@ -1046,6 +1082,9 @@ fn install(
                 &class_trees(&store, &placements, &vendor_real, &vendor),
                 out,
             )?);
+            if !req.no_scripts {
+                written.extend(covered.hooks.post_autoload(at)?);
+            }
             steps.event(req, &plan.post_autoload, scripts::POST_AUTOLOAD, false, out)?;
         }
         Step::Composer(why) => {
@@ -1529,7 +1568,7 @@ mod tests {
             json!({"packages": [
                 {"name": "a/b", "version": "1.0.0", "dist": {"reference": "abc"},
                  "installation-source": "dist", "install-path": "../a/b", "bin": ["bin/tool"]},
-                {"name": "a/m", "version": "1.0.0", "install-path": null},
+                {"name": "a/m", "version": "1.0.0", "install-path": null, "type": "Composer-Plugin"},
             ]})
             .to_string(),
         )
@@ -1543,9 +1582,11 @@ mod tests {
                 source: Some("dist".into()),
                 install_path: Some(format!("{vendor}/a/b")),
                 bins: vec!["bin/tool".into()],
+                plugin: false,
             }
         );
         assert_eq!(before["a/m"].install_path, None);
+        assert!(before["a/m"].plugin);
 
         let c = composer(json!({}));
         let l = locked(&zip_entry("a/b"), &c, &vendor, "/p", &Paths::default()).unwrap();
