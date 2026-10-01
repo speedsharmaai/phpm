@@ -1,0 +1,405 @@
+name: bench-real
+
+on:
+  schedule:
+    - cron: "11 3 * * 1"
+  workflow_dispatch:
+    inputs:
+      oses:
+        description: Comma-separated runner images to bench
+        default: ubuntu-latest,macos-latest,windows-latest
+        required: true
+      projects_per_shard:
+        description: Projects per shard (lower = more, smaller, faster jobs)
+        default: "8"
+        required: true
+
+permissions: {}
+
+concurrency:
+  group: bench-real
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  CI_SCENARIO_REPOS: >-
+    symfony/demo@8d2e2ef75c3e18df173d8bf2379a14abb58c4c31
+    filamentphp/demo@d5b618a1e7d50e5adf3d8faa192b08b55cc23514
+    kimai/kimai@8528bb174469f0dcc0c4efb5bd18971460d74c78
+    laravelio/laravel.io@24be48939aaf4ab3a3438926ac0c55474bfb9f25
+
+jobs:
+  # Always builds, even when ubuntu-latest is left out of a validation
+  # slice: the publish job's aggregator (bench-real) is the linux binary.
+  build-linux:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      shards: ${{ steps.shards.outputs.list }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - run: cargo build --release --locked -p phpm -p phpm-diffvendor -p phpm-bench-real
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bin-ubuntu-latest
+          path: |
+            target/release/phpm
+            target/release/diffvendor
+            target/release/bench-real
+          retention-days: 3
+      - id: shards
+        env:
+          PROJECTS_PER_SHARD: ${{ inputs.projects_per_shard || '8' }}
+        run: |
+          n=$(jq '.projects | length' bench-real/corpus.json)
+          count=$(( (n + PROJECTS_PER_SHARD - 1) / PROJECTS_PER_SHARD ))
+          echo "list=$(jq -cn --argjson c "$count" '[range(1; $c + 1) | "\(.)/\($c)"]')" >> "$GITHUB_OUTPUT"
+
+  build-macos:
+    if: contains(github.event.inputs.oses || 'ubuntu-latest,macos-latest,windows-latest', 'macos-latest')
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - run: cargo build --release --locked -p phpm -p phpm-diffvendor -p phpm-bench-real
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bin-macos-latest
+          path: |
+            target/release/phpm
+            target/release/diffvendor
+            target/release/bench-real
+          retention-days: 3
+
+  build-windows:
+    if: contains(github.event.inputs.oses || 'ubuntu-latest,macos-latest,windows-latest', 'windows-latest')
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - run: cargo build --release --locked -p phpm -p phpm-diffvendor -p phpm-bench-real
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bin-windows-latest
+          path: |
+            target/release/phpm.exe
+            target/release/diffvendor.exe
+            target/release/bench-real.exe
+          retention-days: 3
+
+  bench-linux:
+    needs: build-linux
+    if: contains(github.event.inputs.oses || 'ubuntu-latest,macos-latest,windows-latest', 'ubuntu-latest')
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.build-linux.outputs.shards) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: "8.4"
+          tools: composer:2.10.3
+          coverage: none
+      - uses: taiki-e/install-action@83ac0ad63c0167e6f06796fab0fce28db1bf3db0 # v2.87.22
+        with:
+          tool: hyperfine@1.20.0
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: bin-ubuntu-latest
+          path: bin
+      - name: Bench
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: |
+          chmod +x bin/phpm bin/diffvendor
+          export PHPM_BIN="$PWD/bin/phpm" DIFFVENDOR_BIN="$PWD/bin/diffvendor"
+          mkdir -p records
+          tools/bench-real/run batch bench-real/corpus.json --os ubuntu-latest --shard "$SHARD" \
+            --out "records/bench-ubuntu-latest-${SHARD%/*}.jsonl"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: records-bench-ubuntu-latest-${{ strategy.job-index }}
+          path: records/*.jsonl
+          retention-days: 90
+
+  bench-macos:
+    needs: build-macos
+    runs-on: macos-latest
+    timeout-minutes: 300
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: "8.4"
+          tools: composer:2.10.3
+          coverage: none
+      - uses: taiki-e/install-action@83ac0ad63c0167e6f06796fab0fce28db1bf3db0 # v2.87.22
+        with:
+          tool: hyperfine@1.20.0
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: bin-macos-latest
+          path: bin
+      - name: Bench
+        run: |
+          chmod +x bin/phpm bin/diffvendor
+          export PHPM_BIN="$PWD/bin/phpm" DIFFVENDOR_BIN="$PWD/bin/diffvendor"
+          mkdir -p records
+          tools/bench-real/run batch bench-real/corpus.json --os macos-latest --out records/bench-macos-latest.jsonl
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: records-bench-macos-latest
+          path: records/*.jsonl
+          retention-days: 90
+
+  bench-windows:
+    needs: build-windows
+    runs-on: windows-latest
+    timeout-minutes: 300
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: "8.4"
+          tools: composer:2.10.3
+          coverage: none
+      - uses: taiki-e/install-action@83ac0ad63c0167e6f06796fab0fce28db1bf3db0 # v2.87.22
+        with:
+          tool: hyperfine@1.20.0
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: bin-windows-latest
+          path: bin
+      - name: Bench
+        shell: bash
+        run: |
+          composer_bin=$(powershell -NoProfile -Command '(Get-Command composer).Source')
+          export COMPOSER_BIN="${composer_bin//\\//}"
+          PHPM_BIN=$(cygpath -m "$PWD/bin/phpm.exe")
+          DIFFVENDOR_BIN=$(cygpath -m "$PWD/bin/diffvendor.exe")
+          export PHPM_BIN DIFFVENDOR_BIN
+          mkdir -p records
+          tools/bench-real/run batch bench-real/corpus.json --os windows-latest --out records/bench-windows-latest.jsonl
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: records-bench-windows-latest
+          path: records/*.jsonl
+          retention-days: 90
+
+  worktrees:
+    needs: [build-linux, build-macos, build-windows]
+    if: always()
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - if: contains(github.event.inputs.oses || 'ubuntu-latest,macos-latest,windows-latest', matrix.os)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - if: contains(github.event.inputs.oses || 'ubuntu-latest,macos-latest,windows-latest', matrix.os)
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: "8.4"
+          tools: composer:2.10.3
+          coverage: none
+      - if: contains(github.event.inputs.oses || 'ubuntu-latest,macos-latest,windows-latest', matrix.os)
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: bin-${{ matrix.os }}
+          path: bin
+      - if: contains(github.event.inputs.oses || 'ubuntu-latest,macos-latest,windows-latest', matrix.os) && matrix.os != 'windows-latest'
+        name: Worktree scenario
+        run: |
+          chmod +x bin/phpm bin/diffvendor
+          export PHPM_BIN="$PWD/bin/phpm" DIFFVENDOR_BIN="$PWD/bin/diffvendor"
+          mkdir -p records
+          tools/bench-real/worktrees laravel-skeleton --os ${{ matrix.os }} --count 10 --out records/worktree-${{ matrix.os }}.jsonl
+      - if: contains(github.event.inputs.oses || 'ubuntu-latest,macos-latest,windows-latest', matrix.os) && matrix.os == 'windows-latest'
+        name: Worktree scenario (Windows)
+        shell: bash
+        run: |
+          composer_bin=$(powershell -NoProfile -Command '(Get-Command composer).Source')
+          export COMPOSER_BIN="${composer_bin//\\//}"
+          PHPM_BIN=$(cygpath -m "$PWD/bin/phpm.exe")
+          DIFFVENDOR_BIN=$(cygpath -m "$PWD/bin/diffvendor.exe")
+          export PHPM_BIN DIFFVENDOR_BIN
+          mkdir -p records
+          tools/bench-real/worktrees laravel-skeleton --os windows-latest --count 10 --out records/worktree-windows-latest.jsonl
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: records-worktree-${{ matrix.os }}
+          path: records/*.jsonl
+          retention-days: 90
+          if-no-files-found: ignore
+
+  ci-scenario:
+    needs: [build-linux, build-macos, build-windows]
+    if: always()
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    steps:
+      - if: contains(github.event.inputs.oses || 'ubuntu-latest,macos-latest,windows-latest', matrix.os)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - if: contains(github.event.inputs.oses || 'ubuntu-latest,macos-latest,windows-latest', matrix.os)
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: "8.4"
+          tools: composer:2.10.3
+          coverage: none
+      - if: contains(github.event.inputs.oses || 'ubuntu-latest,macos-latest,windows-latest', matrix.os)
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: bin-${{ matrix.os }}
+          path: bin
+      - if: contains(github.event.inputs.oses || 'ubuntu-latest,macos-latest,windows-latest', matrix.os) && matrix.os != 'windows-latest'
+        name: CI scenario
+        run: |
+          chmod +x bin/phpm bin/diffvendor
+          export PHPM_BIN="$PWD/bin/phpm" DIFFVENDOR_BIN="$PWD/bin/diffvendor"
+          mkdir -p records
+          for pair in $CI_SCENARIO_REPOS; do
+            tools/bench-real/ci-scenario "${pair%@*}" "${pair#*@}" --os ${{ matrix.os }} --out records/ci-${{ matrix.os }}.jsonl
+          done
+      - if: contains(github.event.inputs.oses || 'ubuntu-latest,macos-latest,windows-latest', matrix.os) && matrix.os == 'windows-latest'
+        name: CI scenario (Windows)
+        shell: bash
+        run: |
+          composer_bin=$(powershell -NoProfile -Command '(Get-Command composer).Source')
+          export COMPOSER_BIN="${composer_bin//\\//}"
+          PHPM_BIN=$(cygpath -m "$PWD/bin/phpm.exe")
+          DIFFVENDOR_BIN=$(cygpath -m "$PWD/bin/diffvendor.exe")
+          export PHPM_BIN DIFFVENDOR_BIN
+          mkdir -p records
+          for pair in $CI_SCENARIO_REPOS; do
+            tools/bench-real/ci-scenario "${pair%@*}" "${pair#*@}" --os windows-latest --out records/ci-windows-latest.jsonl
+          done
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: records-ci-${{ matrix.os }}
+          path: records/*.jsonl
+          retention-days: 90
+          if-no-files-found: ignore
+
+  publish:
+    needs: [bench-linux, bench-macos, bench-windows, worktrees, ci-scenario]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: bin-ubuntu-latest
+          path: bin
+        continue-on-error: true
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: records-*
+          path: records
+          merge-multiple: true
+        continue-on-error: true
+      - name: Results
+        env:
+          REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
+          SHA: ${{ github.sha }}
+          RUN: ${{ github.run_id }}
+        run: |
+          chmod +x bin/bench-real
+          mkdir -p site/bench records
+          touch records/empty.jsonl
+          for f in index.html app.js results.json history.json badge.json; do
+            curl -fsSL "https://${OWNER}.github.io/${REPO#*/}/$f" -o "site/$f" 2>/dev/null || true
+          done
+          shopt -s nullglob
+          projects=(records/bench-*.jsonl records/empty.jsonl)
+          worktree=(records/worktree-*.jsonl)
+          ci=(records/ci-*.jsonl)
+          args=(--meta "phpm=$SHA" --meta composer=2.10.3 --meta php=8.4 --meta "run=$RUN" --projects "${projects[@]}")
+          [ "${#worktree[@]}" -gt 0 ] && args+=(--worktree "${worktree[@]}")
+          [ "${#ci[@]}" -gt 0 ] && args+=(--ci "${ci[@]}")
+          bin/bench-real aggregate site/bench "$(date -u +%F)" "${args[@]}" | tee summary.txt
+          cp tools/bench-real/page/* site/bench/
+          {
+            echo "## Real-world benchmarks"
+            echo
+            sed 's/^/- /' summary.txt
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bench-real-results
+          path: site/bench/results.json
+          retention-days: 90
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site
+
+  deploy:
+    needs: publish
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

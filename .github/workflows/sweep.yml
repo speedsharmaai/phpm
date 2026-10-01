@@ -201,6 +201,10 @@ jobs:
             --meta phpm="$SHA" --meta composer=2.10.3 --meta php=8.4 --meta run="$RUN" \
             records/*.jsonl | tee summary.txt
           cp tools/sweep/page/* site/
+          mkdir -p site/bench
+          for f in index.html app.js results.json history.json badge.json; do
+            curl -fsSL "https://${OWNER}.github.io/${REPO#*/}/bench/$f" -o "site/bench/$f" 2>/dev/null || rm -f "site/bench/$f"
+          done
           {
             echo "## Compatibility sweep"
             echo

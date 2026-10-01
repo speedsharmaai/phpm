@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>phpm real-world benchmarks</title>
+<meta name="description" content="Composer vs phpm on the largest open-source PHP applications: cold, warm and no-op installs, a 10-worktree scenario, and a CI job-time scenario, on three runner OSes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAF9F7; --surface: #FFFFFF; --surface-2: #F1EFEA; --line: #E4E1D9; --line-2: #D2CEC3;
+    --ink: #17151B; --ink-2: #4B4754; --ink-3: #716C7D;
+    --accent: #A2650F; --accent-ink: #FFFFFF; --accent-soft: #A2650F1F;
+    --good: #0CA30C; --warning: #C98500; --critical: #D03B3B; --skip: #8A8578;
+    --font-display: "Space Grotesk", system-ui, sans-serif;
+    --font-body: "IBM Plex Sans", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121113; --surface: #19181B; --surface-2: #201F23; --line: #2C2A30; --line-2: #3A3840;
+      --ink: #F2F0EC; --ink-2: #A8A4AC; --ink-3: #716D78;
+      --accent: #F2A93C; --accent-ink: #1A1408; --accent-soft: #F2A93C26;
+      --skip: #8B8690;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.6 var(--font-body); }
+  main { max-width: 1180px; margin: 0 auto; padding: 48px 16px 80px; }
+  h1 { font: 600 34px/1.15 var(--font-display); letter-spacing: -0.5px; margin: 0 0 8px; }
+  h2 { font: 600 22px/1.25 var(--font-display); margin: 48px 0 16px; }
+  .kicker { display: flex; align-items: center; gap: 8px; color: var(--ink-3); font: 500 12px/1 var(--font-mono);
+    text-transform: uppercase; letter-spacing: 0.2px; margin: 0 0 10px; }
+  .kicker .ring { width: 10px; height: 10px; border: 2px solid var(--accent); border-radius: 50%; display: inline-block; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font: 13px/1.4 var(--font-mono); }
+  .muted { color: var(--ink-2); }
+  .assumption { color: var(--ink-3); font-size: 13px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 16px; }
+  .card { border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; background: var(--surface); }
+  .card .big { font: 600 28px/1.2 var(--font-display); color: var(--accent); }
+  .card .label { font: 500 12px/1 var(--font-mono); text-transform: uppercase; letter-spacing: 0.2px; color: var(--ink-3); margin-bottom: 6px; }
+  .callout { border: 1px solid var(--line-2); background: var(--surface-2); border-radius: 10px; padding: 16px 18px; margin-top: 16px; }
+  .chart-block { margin: 20px 0 32px; }
+  .chart-title { font: 500 13px/1 var(--font-mono); color: var(--ink-2); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.2px; }
+  svg.bars { display: block; width: 100%; height: auto; }
+  svg.bars text { font: 12px var(--font-mono); fill: var(--ink-2); }
+  svg.bars text.name { font: 12px var(--font-body); fill: var(--ink); text-anchor: end; }
+  svg.bars text.value { font: 500 12px var(--font-mono); }
+  .legend { display: flex; gap: 18px; margin-top: 8px; font: 12px var(--font-mono); color: var(--ink-2); }
+  .legend span.dot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 10px; }
+  .controls input[type=search] { flex: 1 1 220px; padding: 7px 12px; border: 1px solid var(--line-2);
+    border-radius: 6px; background: var(--surface); color: var(--ink); font: inherit; }
+  .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; background: var(--surface); }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; white-space: nowrap; }
+  th { background: var(--surface-2); position: sticky; top: 0; font: 500 11px var(--font-mono); text-transform: uppercase; letter-spacing: 0.2px; color: var(--ink-3); }
+  td.num, td.mono { font-family: var(--font-mono); text-align: right; font-variant-numeric: tabular-nums; }
+  tr.phpm-row { background: var(--accent-soft); }
+  tr.phpm-row td.mono { color: var(--accent); font-weight: 600; }
+  tr:last-child td { border-bottom: 0; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 6px; background: var(--surface-2); font: 500 12px var(--font-mono); white-space: nowrap; }
+  .badge .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .identical .dot { background: var(--good); } .different .dot, .install-failed .dot { background: var(--critical); }
+  .why { color: var(--ink-3); font-size: 12px; }
+  footer { margin-top: 56px; font-size: 13px; color: var(--ink-2); border-top: 1px solid var(--line); padding-top: 20px; }
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker"><span class="ring"></span>benchmarks</p>
+  <h1>phpm real-world benchmarks</h1>
+  <p class="muted" id="meta">Loading results&hellip;</p>
+  <p>Composer and phpm install the same real-world open-source PHP applications &mdash; the
+    corpus is <a href="https://github.com/speedsharmaai/phpm/blob/main/bench-real/corpus.json">bench-real/corpus.json</a>,
+    40 projects by GitHub stars &mdash; cold, warm and no-op, 10 warm runs each, via
+    <a href="https://github.com/sharkdp/hyperfine">hyperfine</a>, on GitHub-hosted
+    <code>ubuntu-latest</code>, <code>macos-latest</code> and <code>windows-latest</code> runners.
+    Every row also gets a <code>diffvendor</code> identity check and phpm's own
+    <code>--explain</code> fallback reasons. Losses are published: a project where phpm
+    falls back or is slower stays in the table with the reason.</p>
+
+  <h2>Headline, by OS</h2>
+  <div class="cards" id="cards"></div>
+
+  <div class="callout" id="time-saved">
+    <div class="label" style="font:500 12px var(--font-mono);text-transform:uppercase;color:var(--ink-3);margin-bottom:6px;">Time saved per year, estimated</div>
+    <div id="time-saved-value" class="big" style="font:600 22px var(--font-display);color:var(--accent);">&hellip;</div>
+    <p class="assumption" id="time-saved-assumption"></p>
+  </div>
+
+  <h2>Cold, warm, no-op</h2>
+  <p class="muted">One horizontal bar chart per scenario: every project's Composer time (grey) against phpm's (amber), sorted by speed-up, <code>ubuntu-latest</code>.</p>
+  <div id="scenario-charts"></div>
+
+  <h2>Ten worktrees of laravel-skeleton</h2>
+  <p class="muted">The AI-agent-workflow number: ten git worktrees of the same project, <code>composer install</code> &times; 10 (ten full <code>vendor/</code> copies) against <code>phpm install</code> &times; 10 from one warm store.</p>
+  <div class="scroll"><table>
+    <thead><tr><th>OS</th><th class="num">Worktrees</th><th class="num">Composer total</th><th class="num">phpm total</th><th class="num">Time speed-up</th><th class="num">Disk, Composer : phpm</th></tr></thead>
+    <tbody id="worktree-rows"></tbody>
+  </table></div>
+
+  <h2>CI job time, with and without <code>actions/cache</code></h2>
+  <p class="muted">A representative project's own CI install step, before and after phpm: total job time (install plus a lint pass over <code>vendor/</code>), not just the install line.</p>
+  <div class="scroll"><table>
+    <thead><tr><th>OS</th><th>Project</th><th class="num">Composer, cached</th><th class="num">phpm, cached</th><th class="num">Speed-up, cached</th><th class="num">Speed-up, uncached</th></tr></thead>
+    <tbody id="ci-rows"></tbody>
+  </table></div>
+
+  <h2>Projects</h2>
+  <div class="controls">
+    <input type="search" id="filter" placeholder="Filter by repository" aria-label="Filter by repository">
+    <label><input type="checkbox" id="problems"> Only fallbacks and differences</label>
+  </div>
+  <div class="scroll"><table>
+    <thead><tr><th>Project</th><th class="num">Stars</th><th class="num">Packages</th><th>OS</th>
+      <th class="num">Cold</th><th class="num">Warm</th><th class="num">No-op</th>
+      <th>Identity</th><th>Fallback</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table></div>
+
+  <footer>
+    Corpus: <a href="https://github.com/speedsharmaai/phpm/blob/main/bench-real/corpus.json">bench-real/corpus.json</a>.
+    Raw data: <a href="results.json">results.json</a>, <a href="history.json">history.json</a>.
+    Workflow: <a href="https://github.com/speedsharmaai/phpm/blob/main/.github/workflows/bench-real.yml">bench-real.yml</a>.
+    Source: <a href="https://github.com/speedsharmaai/phpm">speedsharmaai/phpm</a>. Also see the
+    <a href="../">compatibility sweep</a>.
+  </footer>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
