@@ -105,6 +105,7 @@ fn live_with(fixture: &str, dev_mode: bool, setup: impl Fn(&Path)) {
         root_version: &root_version,
         root_dir: &root_dir,
         dev_mode,
+        install_paths: &phpm_lock::InstallPaths::new(),
     };
     let ours = phpm_lock::installed_files(&ctx).expect("live test setup");
 

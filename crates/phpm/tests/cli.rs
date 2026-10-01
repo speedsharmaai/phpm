@@ -1181,3 +1181,123 @@ fn notifies_downloads_once_per_url_for_what_was_installed() {
         "COMPOSER_HOME/config.json turns notifications off too"
     );
 }
+
+/// `composer/installers` 2.3.0 and a `WordPress` plugin it places under `web/`.
+fn installers_project() -> Project {
+    let mut files = BTreeMap::new();
+    files.insert(
+        "/composer/installers.zip".to_owned(),
+        zip("installers", &[("src/Plugin.php", 0o644, "<?php\n")]),
+    );
+    files.insert(
+        "/w/seo.zip".to_owned(),
+        zip(
+            "seo",
+            &[
+                ("src/Seo.php", 0o644, "<?php\nnamespace W;\nclass Seo {}\n"),
+                ("bin/seo", 0o755, "#!/bin/sh\necho seo\n"),
+            ],
+        ),
+    );
+    Project::serving(files, |composer, lock| {
+        composer["require"] = json!({"composer/installers": "^2.3", "w/seo": "^1.0"});
+        composer["config"] = json!({"allow-plugins": {"composer/installers": true}});
+        composer["extra"] =
+            json!({"installer-paths": {"web/app/plugins/{$name}/": ["type:wordpress-plugin"]}});
+        let base = lock["packages"][0]["dist"]["url"]
+            .as_str()
+            .unwrap()
+            .trim_end_matches("/a/lib.zip")
+            .to_owned();
+        let mut installers = package(
+            &base,
+            "composer/installers",
+            &json!({"type": "composer-plugin", "extra": {"class": "Composer\\Installers\\Plugin"}}),
+        );
+        installers["version"] = json!("v2.3.0");
+        let seo = package(
+            &base,
+            "w/seo",
+            &json!({"type": "wordpress-plugin", "autoload": {"psr-4": {"W\\": "src/"}}, "bin": ["bin/seo"]}),
+        );
+        lock["packages"] = json!([installers, seo]);
+        lock["packages-dev"] = json!([]);
+    })
+}
+
+#[test]
+#[cfg(unix)]
+fn places_packages_where_composer_installers_would_without_composer() {
+    let p = installers_project();
+    let out = ok(&p.phpm_env(
+        &["install", "--explain"],
+        &[("PHPM_COMPOSER", "/nonexistent/composer")],
+    ));
+    assert!(
+        out.contains(
+            "decision plugins: native, composer/installers (phpm computes its install paths)"
+        ),
+        "{out}"
+    );
+    assert!(!out.contains("Composer runs"), "{out}");
+    let plugin = p.root.join("web/app/plugins/seo");
+    assert!(plugin.join("src/Seo.php").is_file());
+    assert!(!p.vendor("w").exists());
+    let json = installed(&p);
+    let seo = json["packages"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|e| e["name"] == "w/seo")
+        .unwrap()
+        .clone();
+    assert_eq!(seo["install-path"], "../../web/app/plugins/seo");
+    let psr4 = std::fs::read_to_string(p.vendor("composer/autoload_psr4.php")).unwrap();
+    assert!(
+        psr4.contains("'W\\\\' => array($baseDir . '/web/app/plugins/seo/src'),"),
+        "{psr4}"
+    );
+    let proxy = std::fs::read_to_string(p.vendor("bin/seo")).unwrap();
+    assert!(
+        proxy.contains("cd '../../web/app/plugins/seo/bin' && pwd"),
+        "{proxy}"
+    );
+
+    let again = ok(&p.phpm(&["install"]));
+    assert_eq!(again, "Nothing to install, update or remove\n");
+
+    let lock_path = p.root.join("composer.lock");
+    let mut lock: Value = serde_json::from_slice(&std::fs::read(&lock_path).unwrap()).unwrap();
+    lock["packages"].as_array_mut().unwrap().truncate(1);
+    std::fs::write(&lock_path, lock.to_string()).unwrap();
+    ok(&p.phpm_env(&["install"], &[("PHPM_COMPOSER", "/nonexistent/composer")]));
+    assert!(
+        !plugin.exists(),
+        "a package an installer placed is removed from there"
+    );
+    assert!(
+        !p.root.join("web/app/plugins").exists() && p.root.join("web/app").is_dir(),
+        "like Composer, the emptied parent goes too"
+    );
+}
+
+#[test]
+#[cfg(unix)]
+fn other_installer_versions_still_need_composer() {
+    let p = installers_project();
+    let lock_path = p.root.join("composer.lock");
+    let mut lock: Value = serde_json::from_slice(&std::fs::read(&lock_path).unwrap()).unwrap();
+    lock["packages"][0]["version"] = json!("v2.2.0");
+    std::fs::write(&lock_path, lock.to_string()).unwrap();
+    let out = p.phpm_env(
+        &["install", "--explain"],
+        &[("PHPM_COMPOSER", "/nonexistent/composer")],
+    );
+    assert_eq!(out.status.code(), Some(1));
+    assert!(
+        stderr(&out).contains("composer/installers: it changes where packages are installed"),
+        "{}",
+        stderr(&out)
+    );
+    assert!(!p.root.join("web").exists());
+}
