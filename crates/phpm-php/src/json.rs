@@ -11,19 +11,29 @@ const INDENT: &str = "    ";
 /// list.
 pub fn encode_pretty(value: &Value) -> String {
     let mut out = String::new();
-    write_value(&mut out, value, 0);
+    write_value(&mut out, value, 0, false);
     out
 }
 
-fn write_value(out: &mut String, value: &Value, level: usize) {
+/// `json_encode($value, JSON_PRETTY_PRINT)`: slashes and non-ASCII escaped,
+/// as PHP does by default.
+pub fn encode_pretty_escaped(value: &Value) -> String {
+    let mut out = String::new();
+    write_value(&mut out, value, 0, true);
+    out
+}
+
+fn write_value(out: &mut String, value: &Value, level: usize, escaped: bool) {
     match value {
         Value::Null => out.push_str("null"),
         Value::Bool(b) => out.push_str(if *b { "true" } else { "false" }),
         Value::Number(n) => write_number(out, n),
-        Value::String(s) => write_string(out, s),
-        Value::Array(items) => write_list(out, items.iter(), items.len(), level),
-        Value::Object(map) if is_list(map) => write_list(out, map.values(), map.len(), level),
-        Value::Object(map) => write_object(out, map, level),
+        Value::String(s) => write_string(out, s, escaped),
+        Value::Array(items) => write_list(out, items.iter(), items.len(), level, escaped),
+        Value::Object(map) if is_list(map) => {
+            write_list(out, map.values(), map.len(), level, escaped);
+        }
+        Value::Object(map) => write_object(out, map, level, escaped),
     }
 }
 
@@ -36,6 +46,7 @@ fn write_list<'a>(
     items: impl Iterator<Item = &'a Value>,
     len: usize,
     level: usize,
+    escaped: bool,
 ) {
     if len == 0 {
         out.push_str("[]");
@@ -47,23 +58,23 @@ fn write_list<'a>(
             out.push_str(",\n");
         }
         push_indent(out, level + 1);
-        write_value(out, item, level + 1);
+        write_value(out, item, level + 1, escaped);
     }
     out.push('\n');
     push_indent(out, level);
     out.push(']');
 }
 
-fn write_object(out: &mut String, map: &Map<String, Value>, level: usize) {
+fn write_object(out: &mut String, map: &Map<String, Value>, level: usize, escaped: bool) {
     out.push_str("{\n");
     for (i, (key, item)) in map.iter().enumerate() {
         if i > 0 {
             out.push_str(",\n");
         }
         push_indent(out, level + 1);
-        write_string(out, key);
+        write_string(out, key, escaped);
         out.push_str(": ");
-        write_value(out, item, level + 1);
+        write_value(out, item, level + 1, escaped);
     }
     out.push('\n');
     push_indent(out, level);
@@ -183,10 +194,17 @@ fn shortest_digits(f: f64) -> (String, i32) {
     }
 }
 
-fn write_string(out: &mut String, s: &str) {
+fn write_string(out: &mut String, s: &str, escaped: bool) {
     out.push('"');
     for c in s.chars() {
         match c {
+            '/' if escaped => out.push_str("\\/"),
+            c if escaped && !c.is_ascii() => {
+                let mut units = [0_u16; 2];
+                for unit in c.encode_utf16(&mut units) {
+                    let _ = write!(out, "\\u{unit:04x}");
+                }
+            }
             '"' => out.push_str("\\\""),
             '\\' => out.push_str("\\\\"),
             '\u{8}' => out.push_str("\\b"),
@@ -207,7 +225,7 @@ fn write_string(out: &mut String, s: &str) {
 
 #[cfg(test)]
 mod tests {
-    use super::{encode_pretty, format_float};
+    use super::{encode_pretty, encode_pretty_escaped, format_float};
     use serde_json::{Value, json};
 
     fn parse(s: &str) -> Value {
@@ -268,6 +286,16 @@ mod tests {
             encode_pretty(&v),
             "\"x/y\\u2028\\u2029\u{7f}\\u0001\\u001f é 😀 \\\"\\\\ \\b\\f\\n\\r\\t\""
         );
+    }
+
+    #[test]
+    fn default_flags_escape_slashes_and_unicode() {
+        let v = json!({"k/é": ["Pest\\Plugins\\Bail", "a/b", "é 😀\u{2028}"]});
+        assert_eq!(
+            encode_pretty_escaped(&v),
+            "{\n    \"k\\/\\u00e9\": [\n        \"Pest\\\\Plugins\\\\Bail\",\n        \"a\\/b\",\n        \"\\u00e9 \\ud83d\\ude00\\u2028\"\n    ]\n}"
+        );
+        assert_eq!(encode_pretty_escaped(&json!([])), "[]");
     }
 
     #[test]
