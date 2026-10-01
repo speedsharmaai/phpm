@@ -53,12 +53,18 @@ fallback_plugin_names() {
 scenario_timing() {
   local dir="$1" cmd="$2" work="$3" name="$4"
   local clear_caches="rm -rf $work/cache"
+  # hyperfine resolves a bare shell name through its own PATH search, which
+  # has been unreliable for anything but cmd.exe/powershell on windows-latest
+  # (it fails hyperfine's shell-spawning calibration); an absolute path
+  # avoids that search entirely, on every OS.
+  local bash_bin
+  bash_bin="$(command -v bash)"
   (
     cd "$dir" || exit 1
-    HOME="$work/home" hyperfine --shell bash --runs 3 --warmup 0 \
+    HOME="$work/home" hyperfine --shell "$bash_bin" --runs 3 --warmup 0 \
       --prepare "rm -rf $dir/vendor; $clear_caches" \
       -n "cold" "$cmd" --export-json "$work/$name-cold.json" >/dev/null
-    HOME="$work/home" hyperfine --shell bash --runs 5 --warmup 1 \
+    HOME="$work/home" hyperfine --shell "$bash_bin" --runs 5 --warmup 1 \
       --prepare "rm -rf $dir/vendor" \
       -n "warm" "$cmd" --export-json "$work/$name-warm.json" >/dev/null
     HOME="$work/home" hyperfine -N --runs 10 --warmup 1 \
