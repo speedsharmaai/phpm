@@ -647,8 +647,6 @@ mod tests {
         );
     }
 
-    use super::BinInstaller;
-    use crate::fsutil::Modes;
     use std::fs;
     use std::path::Path;
 
@@ -687,21 +685,6 @@ mod tests {
         .unwrap()
     }
 
-    fn installer(root: &Path, modes: Modes) -> BinInstaller {
-        let vendor = root.join("vendor").to_string_lossy().into_owned();
-        BinInstaller::new(root.join("vendor/bin"), vendor.clone(), vendor, true, modes)
-    }
-
-    fn lay_out(root: &Path) {
-        for (name, files) in PACKAGES {
-            for (rel, content) in files {
-                let path = root.join("vendor").join(name).join(rel);
-                fs::create_dir_all(path.parent().unwrap()).unwrap();
-                fs::write(path, content).unwrap();
-            }
-        }
-    }
-
     #[test]
     fn proxies_match_composer_byte_for_byte() {
         for (name, files) in PACKAGES {
@@ -722,92 +705,116 @@ mod tests {
         }
     }
 
-    #[test]
-    fn installs_every_proxy_and_chmods_the_targets() {
-        let tmp = tempfile::tempdir().unwrap();
-        let root = fs::canonicalize(tmp.path()).unwrap();
-        lay_out(&root);
-        let modes = Modes::probe(&root).unwrap();
-        let mut bins = installer(&root, modes);
-        for (name, files) in PACKAGES {
-            let list: Vec<String> = files.iter().map(|(r, _)| (*r).to_owned()).collect();
-            let path = root.join("vendor").join(name);
-            bins.install(name, &path.to_string_lossy(), &list).unwrap();
+    #[cfg(unix)]
+    mod on_disk {
+        use super::super::BinInstaller;
+        use super::{PACKAGES, golden};
+        use crate::fsutil::Modes;
+        use std::fs;
+        use std::path::Path;
+
+        fn installer(root: &Path, modes: Modes) -> BinInstaller {
+            let vendor = root.join("vendor").to_string_lossy().into_owned();
+            BinInstaller::new(root.join("vendor/bin"), vendor.clone(), vendor, true, modes)
         }
-        assert!(bins.warnings.is_empty(), "{:?}", bins.warnings);
-        let mut names: Vec<&String> = bins.written().iter().collect();
-        names.sort();
-        assert_eq!(names.len(), 14);
-        for name in names {
-            let path = root.join("vendor/bin").join(name);
-            assert_eq!(fs::read(&path).unwrap(), golden(name), "{name}");
+
+        fn lay_out(root: &Path) {
+            for (name, files) in PACKAGES {
+                for (rel, content) in files {
+                    let path = root.join("vendor").join(name).join(rel);
+                    fs::create_dir_all(path.parent().unwrap()).unwrap();
+                    fs::write(path, content).unwrap();
+                }
+            }
+        }
+
+        #[test]
+        fn installs_every_proxy_and_chmods_the_targets() {
+            let tmp = tempfile::tempdir().unwrap();
+            let root = fs::canonicalize(tmp.path()).unwrap();
+            lay_out(&root);
+            let modes = Modes::probe(&root).unwrap();
+            let mut bins = installer(&root, modes);
+            for (name, files) in PACKAGES {
+                let list: Vec<String> = files.iter().map(|(r, _)| (*r).to_owned()).collect();
+                let path = root.join("vendor").join(name);
+                bins.install(name, &path.to_string_lossy(), &list).unwrap();
+            }
+            assert!(bins.warnings.is_empty(), "{:?}", bins.warnings);
+            let mut names: Vec<&String> = bins.written().iter().collect();
+            names.sort();
+            assert_eq!(names.len(), 14);
+            for name in names {
+                let path = root.join("vendor/bin").join(name);
+                assert_eq!(fs::read(&path).unwrap(), golden(name), "{name}");
+                #[cfg(unix)]
+                {
+                    use std::os::unix::fs::PermissionsExt;
+                    let mode = fs::metadata(&path).unwrap().permissions().mode() & 0o777;
+                    assert_eq!(Modes::with_exec(mode), modes, "{name}");
+                }
+            }
             #[cfg(unix)]
             {
                 use std::os::unix::fs::PermissionsExt;
-                let mode = fs::metadata(&path).unwrap().permissions().mode() & 0o777;
-                assert_eq!(Modes::with_exec(mode), modes, "{name}");
+                let target = root.join("vendor/a/sh/bin/run.sh");
+                let mode = fs::metadata(target).unwrap().permissions().mode() & 0o777;
+                assert_eq!(Modes::with_exec(mode), modes);
             }
         }
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            let target = root.join("vendor/a/sh/bin/run.sh");
-            let mode = fs::metadata(target).unwrap().permissions().mode() & 0o777;
-            assert_eq!(Modes::with_exec(mode), modes);
+
+        #[test]
+        fn skips_bins_it_cannot_proxy_and_cleans_up_old_ones() {
+            let tmp = tempfile::tempdir().unwrap();
+            let root = fs::canonicalize(tmp.path()).unwrap();
+            let pkg = root.join("vendor/a/b");
+            fs::create_dir_all(pkg.join("dir")).unwrap();
+            fs::write(pkg.join("tool"), "<?php\n").unwrap();
+            fs::write(root.join("outside"), "<?php\n").unwrap();
+            #[cfg(unix)]
+            std::os::unix::fs::symlink(root.join("outside"), pkg.join("escape")).unwrap();
+            let mut bins = installer(&root, Modes::with_exec(0o755));
+            let list: Vec<String> = ["missing", "dir", "../../../outside", "tool", "tool"]
+                .iter()
+                .map(|s| (*s).to_owned())
+                .collect();
+            bins.install("a/b", &pkg.to_string_lossy(), &list).unwrap();
+            #[cfg(unix)]
+            bins.install("a/b", &pkg.to_string_lossy(), &["escape".to_owned()])
+                .unwrap();
+            let reasons: Vec<&str> = bins
+                .warnings
+                .iter()
+                .map(|w| w.rsplit(": ").next().unwrap())
+                .collect();
+            assert_eq!(
+                reasons[..4],
+                [
+                    "file not found in package",
+                    "found a directory at that path",
+                    "the bin resolves to a path outside of the package directory",
+                    "name conflicts with an existing file",
+                ]
+            );
+            let bin_dir = root.join("vendor/bin");
+            assert!(bin_dir.join("tool").is_file());
+            assert!(bin_dir.join("tool.bat").is_file());
+
+            fs::write(bin_dir.join("old"), "x").unwrap();
+            fs::write(bin_dir.join("old.bat"), "x").unwrap();
+            bins.remove_stale(["old", "tool", "never"]).unwrap();
+            assert!(!bin_dir.join("old").exists() && !bin_dir.join("old.bat").exists());
+            assert!(bin_dir.join("tool").exists());
+
+            fs::write(bin_dir.join("keep"), "x").unwrap();
+            let mut fresh = installer(&root, Modes::with_exec(0o755));
+            fresh.remove_stale(["tool"]).unwrap();
+            assert!(!bin_dir.join("tool.bat").exists());
+            assert!(bin_dir.join("keep").exists());
+            fs::remove_file(bin_dir.join("keep")).unwrap();
+            fs::write(bin_dir.join("last"), "x").unwrap();
+            fresh.remove_stale(["last"]).unwrap();
+            assert!(!bin_dir.exists());
         }
-    }
-
-    #[test]
-    fn skips_bins_it_cannot_proxy_and_cleans_up_old_ones() {
-        let tmp = tempfile::tempdir().unwrap();
-        let root = fs::canonicalize(tmp.path()).unwrap();
-        let pkg = root.join("vendor/a/b");
-        fs::create_dir_all(pkg.join("dir")).unwrap();
-        fs::write(pkg.join("tool"), "<?php\n").unwrap();
-        fs::write(root.join("outside"), "<?php\n").unwrap();
-        #[cfg(unix)]
-        std::os::unix::fs::symlink(root.join("outside"), pkg.join("escape")).unwrap();
-        let mut bins = installer(&root, Modes::with_exec(0o755));
-        let list: Vec<String> = ["missing", "dir", "../../../outside", "tool", "tool"]
-            .iter()
-            .map(|s| (*s).to_owned())
-            .collect();
-        bins.install("a/b", &pkg.to_string_lossy(), &list).unwrap();
-        #[cfg(unix)]
-        bins.install("a/b", &pkg.to_string_lossy(), &["escape".to_owned()])
-            .unwrap();
-        let reasons: Vec<&str> = bins
-            .warnings
-            .iter()
-            .map(|w| w.rsplit(": ").next().unwrap())
-            .collect();
-        assert_eq!(
-            reasons[..4],
-            [
-                "file not found in package",
-                "found a directory at that path",
-                "the bin resolves to a path outside of the package directory",
-                "name conflicts with an existing file",
-            ]
-        );
-        let bin_dir = root.join("vendor/bin");
-        assert!(bin_dir.join("tool").is_file());
-        assert!(bin_dir.join("tool.bat").is_file());
-
-        fs::write(bin_dir.join("old"), "x").unwrap();
-        fs::write(bin_dir.join("old.bat"), "x").unwrap();
-        bins.remove_stale(["old", "tool", "never"]).unwrap();
-        assert!(!bin_dir.join("old").exists() && !bin_dir.join("old.bat").exists());
-        assert!(bin_dir.join("tool").exists());
-
-        fs::write(bin_dir.join("keep"), "x").unwrap();
-        let mut fresh = installer(&root, Modes::with_exec(0o755));
-        fresh.remove_stale(["tool"]).unwrap();
-        assert!(!bin_dir.join("tool.bat").exists());
-        assert!(bin_dir.join("keep").exists());
-        fs::remove_file(bin_dir.join("keep")).unwrap();
-        fs::write(bin_dir.join("last"), "x").unwrap();
-        fresh.remove_stale(["last"]).unwrap();
-        assert!(!bin_dir.exists());
     }
 }

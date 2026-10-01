@@ -6,7 +6,7 @@
 use std::collections::BTreeMap;
 use std::io::{Cursor, Read, Write};
 use std::net::TcpListener;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::{Command, Output};
 use std::sync::{Arc, Mutex};
 
@@ -219,7 +219,7 @@ fn ok(out: &Output) -> String {
 }
 
 #[cfg(unix)]
-fn mode(path: &Path) -> u32 {
+fn mode(path: &std::path::Path) -> u32 {
     use std::os::unix::fs::PermissionsExt;
     std::fs::metadata(path).unwrap().permissions().mode() & 0o777
 }
@@ -252,6 +252,7 @@ fn usage_errors_exit_2() {
 }
 
 #[test]
+#[cfg_attr(windows, ignore = "Windows installs are Phase 03")]
 fn installs_then_does_nothing_until_something_changes() {
     let p = Project::new();
     let first = ok(&p.phpm(&["install"]));
@@ -307,6 +308,7 @@ fn installs_then_does_nothing_until_something_changes() {
 }
 
 #[test]
+#[cfg_attr(windows, ignore = "Windows installs are Phase 03")]
 fn no_dev_removes_dev_packages_and_their_bins() {
     let p = Project::new();
     ok(&p.phpm(&["install"]));
@@ -323,6 +325,7 @@ fn no_dev_removes_dev_packages_and_their_bins() {
 }
 
 #[test]
+#[cfg_attr(windows, ignore = "Windows installs are Phase 03")]
 fn refuses_plugins_and_scripts_without_the_flags() {
     let p = Project::with(|composer, lock| {
         composer["scripts"] = json!({"post-install-cmd": ["@php -v"]});
@@ -344,6 +347,7 @@ fn refuses_plugins_and_scripts_without_the_flags() {
 }
 
 #[test]
+#[cfg_attr(windows, ignore = "Windows installs are Phase 03")]
 fn reports_missing_inputs_and_failed_downloads() {
     let p = Project::new();
     std::fs::remove_file(p.root.join("composer.lock")).unwrap();
@@ -371,6 +375,7 @@ fn reports_missing_inputs_and_failed_downloads() {
 }
 
 #[test]
+#[cfg_attr(windows, ignore = "Windows installs are Phase 03")]
 fn honours_custom_file_names_and_dirs() {
     let p = Project::with(|composer, _| {
         composer["config"] = json!({"vendor-dir": "deps", "bin-dir": "tools"});
@@ -410,7 +415,8 @@ fn hardlink_mode_leaves_the_store_untouched() {
     assert!(p.vendor("a/lib/src/Lib.php").is_file());
 }
 
-fn walk(dir: &Path) -> Vec<PathBuf> {
+#[cfg(unix)]
+fn walk(dir: &std::path::Path) -> Vec<PathBuf> {
     let mut out = Vec::new();
     for entry in std::fs::read_dir(dir).unwrap() {
         let path = entry.unwrap().path();

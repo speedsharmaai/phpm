@@ -46,7 +46,7 @@ impl Modes {
         let file = fs::OpenOptions::new()
             .write(true)
             .create_new(true)
-            .mode(0o777)
+            .mode(0o777) // NOSONAR: empty probe file, removed at once; the kernel masks it with the umask being measured
             .open(&probe)?;
         let mode = file.metadata().map(|m| m.permissions().mode() & 0o777);
         drop(file);
@@ -55,6 +55,11 @@ impl Modes {
     }
 
     #[cfg(not(unix))]
+    #[allow(
+        clippy::unnecessary_wraps,
+        clippy::unused_self,
+        reason = "file modes only exist on unix"
+    )]
     pub(crate) fn probe(_dir: &Path) -> io::Result<Self> {
         Ok(Self { exec: 0o777 })
     }
@@ -69,6 +74,11 @@ impl Modes {
     }
 
     #[cfg(not(unix))]
+    #[allow(
+        clippy::unnecessary_wraps,
+        clippy::unused_self,
+        reason = "file modes only exist on unix"
+    )]
     pub(crate) fn set_exec(self, _path: &Path) -> io::Result<()> {
         Ok(())
     }
@@ -97,6 +107,11 @@ impl Modes {
     }
 
     #[cfg(not(unix))]
+    #[allow(
+        clippy::unnecessary_wraps,
+        clippy::unused_self,
+        reason = "file modes only exist on unix"
+    )]
     pub(crate) fn set_exec_unshared(self, _path: &Path) -> io::Result<()> {
         Ok(())
     }
@@ -104,7 +119,9 @@ impl Modes {
 
 #[cfg(test)]
 mod tests {
-    use super::{Modes, path_string, read_head, write_if_changed};
+    #[cfg(unix)]
+    use super::Modes;
+    use super::{path_string, read_head, write_if_changed};
     use std::fs;
     use std::path::Path;
 
