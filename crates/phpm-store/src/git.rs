@@ -60,10 +60,15 @@ fn spawn(
 ) -> std::io::Result<Output> {
     let mut cmd = Command::new("git");
     cmd.args(args)
-        // Composer: Util/Git.php cleanEnv
+        // Composer: Util/Git.php cleanEnv. GIT_COMMON_DIR is cleared too:
+        // Composer predates git worktrees, but the same "running inside a
+        // git hook" rogue-env problem applies to it, and phpm itself runs
+        // as a pre-push hook step in its own repo.
         .env("GIT_TERMINAL_PROMPT", "0")
         .env_remove("GIT_DIR")
-        .env_remove("GIT_WORK_TREE");
+        .env_remove("GIT_WORK_TREE")
+        .env_remove("GIT_COMMON_DIR")
+        .env_remove("GIT_INDEX_FILE");
     if let Some((name, value)) = header {
         // Config injected through the environment never appears in argv,
         // unlike a `-c http.extraHeader=...` flag a process listing would show.
@@ -192,22 +197,31 @@ mod tests {
     use std::path::Path;
     use std::process::Command;
 
-    fn git(dir: &Path, args: &[&str]) {
-        let status = Command::new("git")
-            .args([
-                "-c",
-                "user.name=t",
-                "-c",
-                "user.email=t@example.com",
-                "-c",
-                "commit.gpgsign=false",
-            ])
-            .args(args)
-            .current_dir(dir)
-            .env_remove("GIT_DIR")
+    // A pre-push hook running this test inherits GIT_DIR/GIT_COMMON_DIR from
+    // the real repository; without clearing them, `git init` in a fresh
+    // temp dir re-initializes the real repo instead, and every command
+    // after it operates on the wrong repository. Composer: Util/Git.php
+    // cleanEnv, extended for worktrees (it predates GIT_COMMON_DIR).
+    fn no_leaked_repo(cmd: &mut Command) -> &mut Command {
+        cmd.env_remove("GIT_DIR")
             .env_remove("GIT_WORK_TREE")
-            .output()
-            .unwrap();
+            .env_remove("GIT_COMMON_DIR")
+            .env_remove("GIT_INDEX_FILE")
+    }
+
+    fn git(dir: &Path, args: &[&str]) {
+        let mut cmd = Command::new("git");
+        cmd.args([
+            "-c",
+            "user.name=t",
+            "-c",
+            "user.email=t@example.com",
+            "-c",
+            "commit.gpgsign=false",
+        ])
+        .args(args)
+        .current_dir(dir);
+        let status = no_leaked_repo(&mut cmd).output().unwrap();
         assert!(
             status.status.success(),
             "git {args:?}: {}",
@@ -216,11 +230,9 @@ mod tests {
     }
 
     fn head(dir: &Path) -> String {
-        let out = Command::new("git")
-            .args(["rev-parse", "HEAD"])
-            .current_dir(dir)
-            .output()
-            .unwrap();
+        let mut cmd = Command::new("git");
+        cmd.args(["rev-parse", "HEAD"]).current_dir(dir);
+        let out = no_leaked_repo(&mut cmd).output().unwrap();
         String::from_utf8(out.stdout).unwrap().trim().to_owned()
     }
 
