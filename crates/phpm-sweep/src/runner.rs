@@ -362,41 +362,6 @@ fn compare_trees(
     Ok((compared, diffs, normalized))
 }
 
-/// Files Composer writes from its package map, whose order on a first
-/// install follows the order packages finished installing, not the
-/// `installed.json` order every later dump uses.
-const AUTOLOAD_FILES: &[&str] = &[
-    "include_paths.php",
-    "autoload_files.php",
-    "autoload_static.php",
-    "autoload_psr4.php",
-    "autoload_namespaces.php",
-    "autoload_classmap.php",
-];
-
-/// Whether a difference is in one of those files under the vendor dir.
-fn in_autoloader(diff: &str, vendor: &str) -> bool {
-    diff.split_once(": ")
-        .and_then(|(path, _)| path.strip_prefix(&format!("{vendor}/composer/")))
-        .is_some_and(|name| AUTOLOAD_FILES.contains(&name))
-}
-
-/// `composer dump-autoload` that only rewrites the autoloader.
-fn redump_argv(composer: &[String]) -> Vec<String> {
-    let args = [
-        "dump-autoload",
-        "--no-interaction",
-        "--no-scripts",
-        "--no-plugins",
-        "--ignore-platform-reqs",
-    ];
-    composer
-        .iter()
-        .cloned()
-        .chain(args.iter().map(|s| (*s).to_owned()))
-        .collect()
-}
-
 fn clean(dir: &Path) -> io::Result<()> {
     match fs::remove_dir_all(dir) {
         Err(e) if e.kind() != io::ErrorKind::NotFound => Err(e),
@@ -517,21 +482,23 @@ fn install_both(p: &Project, mode: Mode, cfg: &Config, rec: &mut Record) -> Resu
     let dirs = compared_dirs(&composer_json);
     let (compared, mut diffs, mut normalized) =
         compare_trees(&composer_out, &phpm_out, &dirs).map_err(io_err)?;
-    if !diffs.is_empty() && diffs.iter().all(|d| in_autoloader(d, &dirs[0])) {
+    if !diffs.is_empty() {
+        // A first install keeps packages in the order they finished
+        // installing, a second one in installed.json's order, which phpm uses.
         fs::rename(&composer_out, &project).map_err(io_err)?;
-        let dump = exec(
-            &redump_argv(&cfg.composer),
+        let again = exec(
+            &argv(&cfg.composer, &[]),
             &project,
             &env,
-            &cfg.work.join("redump-log"),
+            &cfg.work.join("composer-again-log"),
             cfg.timeout,
         );
         fs::rename(&project, &composer_out).map_err(io_err)?;
-        if dump.is_ok_and(|d| d.run().ok()) {
-            let (_, again, _) = compare_trees(&composer_out, &phpm_out, &dirs).map_err(io_err)?;
-            if again.is_empty() {
+        if again.is_ok_and(|a| a.run().ok()) {
+            let (_, left, _) = compare_trees(&composer_out, &phpm_out, &dirs).map_err(io_err)?;
+            if left.is_empty() {
                 normalized.extend(diffs.drain(..).map(|d| {
-                    format!("{d} (Composer's first-install package order; identical after composer dump-autoload)")
+                    format!("{d} (Composer's first install only; a second composer install gives phpm's bytes)")
                 }));
             }
         }
@@ -551,37 +518,11 @@ fn install_both(p: &Project, mode: Mode, cfg: &Config, rec: &mut Record) -> Resu
 #[cfg(test)]
 mod tests {
     use super::{
-        compared_dirs, count_packages, describe, in_autoloader, mask_apcu_prefix, redump_argv,
-        retry, without_git_env,
+        compared_dirs, count_packages, describe, mask_apcu_prefix, retry, without_git_env,
     };
     use phpm_diffvendor::Difference;
     use serde_json::json;
     use std::path::PathBuf;
-
-    #[test]
-    fn autoloader_differences_are_recognised() {
-        assert!(in_autoloader(
-            "vendor/composer/include_paths.php: bytes differ at offset 3",
-            "vendor"
-        ));
-        assert!(in_autoloader(
-            "lib/composer/autoload_files.php: bytes differ at offset 3",
-            "lib"
-        ));
-        assert!(!in_autoloader(
-            "vendor/composer/installed.json: bytes differ at offset 3",
-            "vendor"
-        ));
-        assert!(!in_autoloader(
-            "vendor/a/composer/autoload_files.php: x",
-            "vendor"
-        ));
-        assert!(!in_autoloader("garbage", "vendor"));
-        assert_eq!(
-            redump_argv(&["php".to_owned(), "c.phar".to_owned()])[..3],
-            ["php", "c.phar", "dump-autoload"]
-        );
-    }
 
     #[test]
     fn masks_only_a_random_apcu_prefix() {
@@ -889,12 +830,12 @@ mod tests {
         }
 
         #[test]
-        fn first_install_order_is_checked_against_a_redump() {
+        fn first_install_order_is_checked_against_a_second_install() {
             let e = Env::new();
             let app = e.app();
             let order = |first: &str, later: &str| {
                 format!(
-                    "mkdir -p vendor/composer\nif [ \"$1\" = dump-autoload ]; then echo {later} > vendor/composer/autoload_files.php; else echo {first} > vendor/composer/autoload_files.php; fi"
+                    "mkdir -p vendor/composer\nif [ -f vendor/composer/autoload_files.php ]; then echo {later} > vendor/composer/autoload_files.php; else echo {first} > vendor/composer/autoload_files.php; fi"
                 )
             };
             let cfg = e.config(
@@ -904,7 +845,7 @@ mod tests {
             let r = run_project(&app, Mode::Pure, &cfg);
             assert_eq!(r.outcome, Outcome::Identical, "{r:?}");
             assert_eq!(r.normalized.len(), 1);
-            assert!(r.normalized[0].contains("identical after composer dump-autoload"));
+            assert!(r.normalized[0].contains("a second composer install gives phpm's bytes"));
 
             let cfg = e.config(
                 &order("one-two", "one-two"),
