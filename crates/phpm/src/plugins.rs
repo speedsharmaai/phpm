@@ -278,7 +278,7 @@ pub(crate) struct Global {
     installed: Vec<Map<String, Value>>,
 }
 
-fn read_object(path: &Path) -> Option<Map<String, Value>> {
+pub(crate) fn read_object(path: &Path) -> Option<Map<String, Value>> {
     let bytes = fs::read(path).ok()?;
     match serde_json::from_slice(&bytes).ok()? {
         Value::Object(map) => Some(map),
