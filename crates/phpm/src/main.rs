@@ -1,4 +1,5 @@
 mod bins;
+mod classes;
 mod cli;
 mod error;
 mod fsutil;

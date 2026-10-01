@@ -309,6 +309,25 @@ fn installs_then_does_nothing_until_something_changes() {
 
 #[test]
 #[cfg_attr(windows, ignore = "Windows installs are Phase 03")]
+fn optimized_autoloaders_match_with_and_without_the_class_cache() {
+    let p = Project::new();
+    ok(&p.phpm(&["install", "-o"]));
+    let classmap = p.vendor("composer/autoload_classmap.php");
+    let first = std::fs::read(&classmap).unwrap();
+    assert!(
+        String::from_utf8_lossy(&first)
+            .contains("'A\\\\Lib' => $vendorDir . '/a/lib/src/Lib.php',"),
+        "{}",
+        String::from_utf8_lossy(&first)
+    );
+    std::fs::remove_dir_all(p.root.join("vendor")).unwrap();
+    let out = ok(&p.phpm(&["install", "-o", "-v"]));
+    assert!(out.contains("loaded class scans for 3 packages"), "{out}");
+    assert_eq!(std::fs::read(&classmap).unwrap(), first);
+}
+
+#[test]
+#[cfg_attr(windows, ignore = "Windows installs are Phase 03")]
 fn no_dev_removes_dev_packages_and_their_bins() {
     let p = Project::new();
     ok(&p.phpm(&["install"]));

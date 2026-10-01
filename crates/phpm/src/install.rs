@@ -5,14 +5,16 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use std::time::Instant;
 
 use phpm_autoload::PlatformRequirements;
 use phpm_lock::{ComposerJson, INSTALLED_VERSIONS_PHP, InstallContext, Lock, normalize_path};
-use phpm_store::{Auth, Dist, FetchOptions, Fetcher, LinkMode, Package, Store, place};
+use phpm_store::{Auth, Dist, FetchOptions, Fetcher, LinkMode, Package, Placement, Store, place};
 use serde_json::{Map, Value};
 
 use crate::bins::{BinInstaller, php_basename, php_dirname};
+use crate::classes::{Tree, cache_root, known_classes};
 use crate::error::Error;
 use crate::fsutil::{Modes, path_string, write_if_changed};
 use crate::out::Out;
@@ -382,6 +384,26 @@ fn remove_package(vendor: &str, name: &str, path: &str) -> Result<bool, Error> {
     Ok(removed)
 }
 
+/// Class scan caches for the packages placed this run; packages left in
+/// place may have been edited in `vendor/`, so the autoloader reads those.
+fn class_trees(store: &Store, placements: &[Placement], vendor_real: &str) -> Vec<Tree> {
+    let Ok(cache) = phpm_store::cache_dir() else {
+        return Vec::new();
+    };
+    let root = cache_root(&cache);
+    placements
+        .iter()
+        .filter_map(|p| {
+            let rel = p.source.strip_prefix(store.root()).ok()?;
+            Some(Tree {
+                store_dir: p.source.clone(),
+                cache_file: root.join(rel),
+                vendor_dir: format!("{vendor_real}/{}", path_string(&p.install_path)),
+            })
+        })
+        .collect()
+}
+
 fn runtime() -> Result<tokio::runtime::Runtime, Error> {
     tokio::runtime::Builder::new_current_thread()
         .enable_all()
@@ -414,6 +436,12 @@ fn install(
     let vendor = normalize_path(&dirs.vendor);
     let root_dir = path_string(&files.root);
 
+    let root_version = {
+        let data = composer.data().clone();
+        let root = files.root.clone();
+        let from_env = env("COMPOSER_ROOT_VERSION");
+        std::thread::spawn(move || phpm_lock::root_version(&data, &root, from_env.as_deref()))
+    };
     let locked = entries
         .iter()
         .map(|e| locked(e, &composer))
@@ -476,13 +504,14 @@ fn install(
         started.elapsed()
     ));
 
+    let vendor_real =
+        fs::canonicalize(&vendor).map_or_else(|_| vendor.clone(), |p| path_string(&p));
     let repo = PathBuf::from(format!("{vendor}/composer"));
     fs::create_dir_all(&repo).map_err(|e| Error::io(&repo, &e))?;
-    let root_version = phpm_lock::root_version(
-        composer.data(),
-        &files.root,
-        env("COMPOSER_ROOT_VERSION").as_deref(),
-    )?;
+    let root_version = root_version
+        .join()
+        .map_err(|_| Error::install("guessing the root version failed"))??;
+    let started = Instant::now();
     let installed = phpm_lock::installed_files(&InstallContext {
         composer_json: &composer,
         lock: &lock,
@@ -499,13 +528,16 @@ fn install(
     write_file(&written[1], installed.installed_php.as_bytes())?;
     write_file(&written[2], INSTALLED_VERSIONS_PHP.as_bytes())?;
 
-    let vendor_real =
-        fs::canonicalize(&vendor).map_or_else(|_| vendor.clone(), |p| path_string(&p));
+    out.detail(&format!(
+        "wrote installed.json and installed.php in {:.1?}",
+        started.elapsed()
+    ));
+    let started = Instant::now();
     let modes = Modes::probe(&repo).map_err(|e| Error::io(&repo, &e))?;
     let mut bins = BinInstaller::new(
         PathBuf::from(&dirs.bin),
         vendor.clone(),
-        vendor_real,
+        vendor_real.clone(),
         dirs.full_bin_compat,
         modes,
     );
@@ -525,10 +557,11 @@ fn install(
         out.warn(w);
     }
     written.extend(bins.written().iter().map(|n| Path::new(&dirs.bin).join(n)));
+    out.detail(&format!("wrote bin proxies in {:.1?}", started.elapsed()));
 
     if !req.no_autoloader {
         let started = Instant::now();
-        let options = phpm_autoload::Options {
+        let mut options = phpm_autoload::Options {
             dev_mode: req.dev,
             optimize: req.optimize,
             classmap_authoritative: req.classmap_authoritative,
@@ -536,6 +569,15 @@ fn install(
             ..phpm_autoload::Options::default()
         }
         .with_config(&composer);
+        if options.optimize {
+            let trees = class_trees(&store, &placements, &vendor_real);
+            options.known_classes = Some(Arc::new(known_classes(&trees)));
+            out.detail(&format!(
+                "loaded class scans for {} packages in {:.1?}",
+                trees.len(),
+                started.elapsed()
+            ));
+        }
         let autoload = phpm_autoload::generate(
             &phpm_autoload::Project {
                 composer_json: &composer,

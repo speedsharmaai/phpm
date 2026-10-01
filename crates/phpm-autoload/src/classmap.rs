@@ -1,7 +1,7 @@
 use crate::Error;
 use crate::autoloads::{Autoloads, key_string};
 use crate::paths::{preg_quote, real_path};
-use crate::scan::{find_classes, raw_bytes};
+use crate::scan::{file_classes, raw_bytes};
 use indexmap::IndexMap;
 use phpm_lock::normalize_path;
 use phpm_php::{is_absolute_path, smart_strcmp};
@@ -314,6 +314,7 @@ impl ClassMap {
         optimize: bool,
         base: &str,
         vendor: &str,
+        known: Option<&HashMap<String, Vec<String>>>,
     ) -> Result<Self, Error> {
         let excluded = &autoloads.exclude;
         let mut jobs: Vec<Job> = autoloads
@@ -382,8 +383,11 @@ impl ClassMap {
         let parsed: HashMap<&str, Result<Vec<String>, String>> = unique
             .par_iter()
             .map(|&(real, file)| {
+                if let Some(classes) = known.and_then(|k| k.get(real)) {
+                    return (real, Ok(classes.clone()));
+                }
                 let classes = std::fs::read(file)
-                    .map(|source| find_classes(&source, true))
+                    .map(|source| file_classes(&source))
                     .map_err(|e| e.to_string());
                 (real, classes)
             })
@@ -563,6 +567,7 @@ mod tests {
     use crate::autoloads::Autoloads;
     use crate::paths::{preg_quote, real_path};
     use phpm_php::PhpKey;
+    use std::collections::HashMap;
     use std::path::Path;
 
     fn write(root: &Path, rel: &str, body: &str) {
@@ -657,7 +662,7 @@ mod tests {
             )],
             ..Autoloads::default()
         };
-        let mut map = ClassMap::scan(&autoloads, true, &root, &vendor).unwrap();
+        let mut map = ClassMap::scan(&autoloads, true, &root, &vendor, None).unwrap();
         map.sort();
         let entries: Vec<(String, String)> = map
             .entries()
@@ -684,7 +689,7 @@ mod tests {
             )
         );
 
-        let without_o = ClassMap::scan(&autoloads, false, &root, &vendor).unwrap();
+        let without_o = ClassMap::scan(&autoloads, false, &root, &vendor, None).unwrap();
         assert_eq!(without_o.entries().count(), 2);
     }
 
@@ -704,7 +709,8 @@ mod tests {
             ],
             ..Autoloads::default()
         };
-        let map = ClassMap::scan(&autoloads, false, &root, &format!("{root}/vendor")).unwrap();
+        let map =
+            ClassMap::scan(&autoloads, false, &root, &format!("{root}/vendor"), None).unwrap();
         assert_eq!(
             map.entries()
                 .next()
@@ -719,11 +725,30 @@ mod tests {
             classmap: vec!["nope".into()],
             ..Autoloads::default()
         };
-        assert!(ClassMap::scan(&missing, false, &root, &root).is_err());
+        assert!(ClassMap::scan(&missing, false, &root, &root, None).is_err());
         let glob = Autoloads {
             classmap: vec!["lib/*".into()],
             ..Autoloads::default()
         };
-        assert!(ClassMap::scan(&glob, false, &root, &root).is_err());
+        assert!(ClassMap::scan(&glob, false, &root, &root, None).is_err());
+    }
+
+    #[test]
+    fn uses_known_classes_instead_of_reading() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = real_path(dir.path()).unwrap();
+        write(dir.path(), "lib/Read.php", "<?php class Read {}");
+        write(dir.path(), "lib/Known.php", "<?php class Ignored {}");
+        let autoloads = Autoloads {
+            classmap: vec!["lib".into()],
+            ..Autoloads::default()
+        };
+        let known: HashMap<String, Vec<String>> =
+            [(format!("{root}/lib/Known.php"), vec!["Cached".to_owned()])].into();
+        let vendor = format!("{root}/vendor");
+        let map = ClassMap::scan(&autoloads, false, &root, &vendor, Some(&known)).unwrap();
+        let mut classes: Vec<&str> = map.entries().map(|(c, _)| c).collect();
+        classes.sort_unstable();
+        assert_eq!(classes, ["Cached", "Read"]);
     }
 }

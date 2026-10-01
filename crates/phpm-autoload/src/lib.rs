@@ -25,6 +25,7 @@ use std::fmt;
 use std::fmt::Write as _;
 use std::hash::{BuildHasher, Hasher};
 use std::path::Path;
+use std::sync::Arc;
 
 pub use crate::platform::PlatformRequirements;
 
@@ -82,6 +83,9 @@ pub struct Options {
     /// and the existing `vendor/autoload.php` are consulted when `None`.
     pub suffix: Option<String>,
     pub platform: PlatformRequirements,
+    /// [`scan::file_classes`] results the caller already has, keyed by real
+    /// path; those files are not read again.
+    pub known_classes: Option<Arc<HashMap<String, Vec<String>>>>,
 }
 
 /// PHP truthiness of a JSON config value.
@@ -428,7 +432,13 @@ pub fn generate(project: &Project<'_>, options: &Options) -> Result<Output, Erro
     }
     psr4_file.push_str(");\n");
 
-    let mut class_map = ClassMap::scan(&autoloads, options.optimize, &base, &vendor)?;
+    let mut class_map = ClassMap::scan(
+        &autoloads,
+        options.optimize,
+        &base,
+        &vendor,
+        options.known_classes.as_deref(),
+    )?;
     class_map.add_class(
         "Composer\\InstalledVersions",
         &format!("{vendor}/composer/InstalledVersions.php"),
