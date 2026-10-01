@@ -4,3 +4,5 @@ extend-exclude = ["fixtures/", "**/snapshots/", "*.snap", "Cargo.lock", "crates/
 [default.extend-words]
 psr = "psr"
 IST = "IST"
+# \u{02ba}, a Unicode codepoint in a confusable-character table, not the word "by"/"be".
+ba = "ba"

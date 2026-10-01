@@ -41,6 +41,126 @@ fn shell_escape(arg: &str) -> String {
     format!("'{}'", arg.replace('\'', "'\\''"))
 }
 
+/// `ProcessExecutor::escape`, the branch Composer takes when it is itself
+/// running on Windows: cmd.exe quoting, not POSIX, even though the string
+/// this crate uses it for ends up inside a shell-script bin proxy meant for
+/// a POSIX shell (git-bash, WSL) — Composer picks the escaping by its own
+/// host OS, not the target shell, so matching it byte for byte means doing
+/// the same.
+// Composer: Util/ProcessExecutor.php escapeArgument (Windows)
+#[cfg_attr(
+    not(windows),
+    allow(
+        dead_code,
+        reason = "only reachable through host_shell_escape on windows; tested on every platform"
+    )
+)]
+fn windows_shell_escape(arg: &str) -> String {
+    if arg.is_empty() {
+        return "\"\"".to_owned();
+    }
+    let confusable = |c: char| match c {
+        '\n' => Some(' '),
+        '\u{ff02}' | '\u{02ba}' | '\u{301d}' | '\u{301e}' | '\u{030e}' => Some('"'),
+        '\u{ff1a}' | '\u{0589}' | '\u{2236}' => Some(':'),
+        '\u{ff0f}' | '\u{2044}' | '\u{2215}' | '\u{00b4}' => Some('/'),
+        _ => None,
+    };
+    let normalized: String = arg.chars().map(|c| confusable(c).unwrap_or(c)).collect();
+    let mut quote = normalized.contains([' ', '\t', ',']);
+
+    // Double every backslash run immediately before a '"', then escape the
+    // '"' itself; count how many quotes that touched.
+    let mut escaped = String::with_capacity(normalized.len());
+    let mut trailing_backslashes = 0u32;
+    let mut dquotes = 0u32;
+    for c in normalized.chars() {
+        if c == '\\' {
+            trailing_backslashes += 1;
+            escaped.push('\\');
+        } else if c == '"' {
+            for _ in 0..trailing_backslashes {
+                escaped.push('\\');
+            }
+            escaped.push_str("\\\"");
+            dquotes += 1;
+            trailing_backslashes = 0;
+        } else {
+            escaped.push(c);
+            trailing_backslashes = 0;
+        }
+    }
+
+    let meta = dquotes > 0 || has_delimited_run(&escaped, '%') || has_delimited_run(&escaped, '!');
+    if !meta && !quote {
+        quote = escaped.contains(['^', '&', '|', '<', '>', '(', ')']);
+    }
+    if quote {
+        // Double a trailing backslash run so it does not escape the
+        // closing quote, then wrap; a '^' from the meta pass below still
+        // lands in front of each of these two added quotes too.
+        escaped.push('"');
+        for _ in 0..trailing_backslashes {
+            escaped.insert(escaped.len() - 1, '\\');
+        }
+        escaped.insert(0, '"');
+    }
+    if meta {
+        let mut out = String::with_capacity(escaped.len() * 2);
+        for c in escaped.chars() {
+            if matches!(c, '"' | '^' | '&' | '|' | '<' | '>' | '(' | ')' | '%') {
+                out.push('^');
+            }
+            out.push(c);
+        }
+        let mut doubled = String::with_capacity(out.len() * 2);
+        for c in out.chars() {
+            if c == '!' {
+                doubled.push('^');
+                doubled.push('^');
+            }
+            doubled.push(c);
+        }
+        escaped = doubled;
+    }
+    escaped
+}
+
+/// Whether `s` contains `delim`, at least one other character, then `delim`
+/// again (Composer: `%[^%]+%` or `![^!]+!`).
+#[cfg_attr(
+    not(windows),
+    allow(
+        dead_code,
+        reason = "only reachable through windows_shell_escape on windows"
+    )
+)]
+fn has_delimited_run(s: &str, delim: char) -> bool {
+    let mut open: Option<usize> = None;
+    for (i, c) in s.char_indices() {
+        if c != delim {
+            continue;
+        }
+        if let Some(start) = open
+            && i > start + delim.len_utf8()
+        {
+            return true;
+        }
+        open = Some(i);
+    }
+    false
+}
+
+#[cfg(windows)]
+fn host_shell_escape(arg: &str) -> String {
+    windows_shell_escape(arg)
+}
+
+#[cfg(not(windows))]
+fn host_shell_escape(arg: &str) -> String {
+    shell_escape(arg)
+}
+
 fn is_drive_root(path: &str) -> bool {
     let b = path.as_bytes();
     (b.len() == 2 || (b.len() == 3 && b[2] == b'/')) && b[0].is_ascii_alphabetic() && b[1] == b':'
@@ -290,7 +410,7 @@ pub(crate) fn unixy_proxy(
     let bin_path = find_shortest_path(link, bin, false).unwrap_or_else(|| bin.to_owned());
     let BinKind::Php { shebang } = bin_kind(head) else {
         return sh_proxy(
-            &shell_escape(&php_dirname(&bin_path)),
+            &host_shell_escape(&php_dirname(&bin_path)),
             php_basename(&bin_path),
         );
     };
@@ -546,8 +666,37 @@ fn inside_package(install_path: &Path, bin_path: &Path) -> Option<PathBuf> {
 mod tests {
     use super::{
         BinKind, bin_kind, binary_caller, php_basename, php_dirname, shortest_path_code,
-        unixy_proxy, windows_proxy,
+        unixy_proxy, windows_proxy, windows_shell_escape,
     };
+
+    #[test]
+    fn escapes_arguments_like_composer_does_on_windows() {
+        // Composer: Util/ProcessExecutor.php escapeArgument, the Windows
+        // branch; cases traced by hand against that algorithm.
+        assert_eq!(windows_shell_escape(""), "\"\"");
+        // No space, tab, comma or meta char: left bare, unlike the POSIX
+        // branch which always wraps in single quotes (issue #67).
+        assert_eq!(
+            windows_shell_escape("C:/project/vendor/bin"),
+            "C:/project/vendor/bin"
+        );
+        assert_eq!(
+            windows_shell_escape("C:/path with space"),
+            "\"C:/path with space\""
+        );
+        // A trailing backslash run is doubled so it cannot escape the
+        // closing quote that quoting (triggered here by the space) adds.
+        assert_eq!(windows_shell_escape("C:\\a b\\"), "\"C:\\a b\\\\\"");
+        // An embedded '"' is escaped and counts as a meta character; with
+        // no space/tab/comma present this stays unquoted.
+        assert_eq!(windows_shell_escape("C:/a\"b"), "C:/a\\^\"b");
+        // A %...% block is a meta character too, caret-escaped, unquoted.
+        assert_eq!(windows_shell_escape("C:/%temp%/x"), "C:/^%temp^%/x");
+        // '!' gets a double caret, independently of the single-caret set.
+        assert_eq!(windows_shell_escape("C:/%a%!b"), "C:/^%a^%^^!b");
+        // ^&|<>() alone (no meta, no space) still forces quoting.
+        assert_eq!(windows_shell_escape("a&b"), "\"a&b\"");
+    }
 
     #[test]
     fn detects_php_bins_like_composer() {
@@ -630,7 +779,13 @@ mod tests {
             b"#!/bin/bash\necho hi\n",
         );
         assert!(code.starts_with("#!/usr/bin/env sh\n"));
+        // Composer picks the quoting style by its own host OS: POSIX
+        // single-quotes everywhere but Windows, where a plain path like
+        // this one (no space, tab, comma or meta character) needs none.
+        #[cfg(not(windows))]
         assert!(code.contains("cd '../it'\\''s/x/bin' && pwd)"));
+        #[cfg(windows)]
+        assert!(code.contains("cd ../it's/x/bin && pwd)"));
         assert!(code.ends_with("exec \"${dir}/run\" \"$@\"\n"));
     }
 
@@ -706,7 +861,16 @@ mod tests {
                 let base = php_basename(rel);
                 let link = format!("/p/vendor/bin/{base}");
                 let proxy = unixy_proxy(&bin, &link, "/p/vendor", "/p/vendor", content.as_bytes());
-                assert_eq!(proxy.as_bytes(), golden(base), "{base}");
+                // The golden files were captured from a real `composer`
+                // running on a POSIX host. A shell (non-PHP) bin's proxy
+                // embeds its directory escaped by Composer's own host OS
+                // (issue #67), so on Windows it diverges from that POSIX
+                // golden by design; sanity-check the unquoted path instead.
+                if cfg!(windows) && matches!(bin_kind(content.as_bytes()), BinKind::Shell) {
+                    assert!(proxy.contains("cd ../a/sh/bin && pwd)"), "{base}: {proxy}");
+                } else {
+                    assert_eq!(proxy.as_bytes(), golden(base), "{base}");
+                }
                 let bat = format!("{link}.bat");
                 let proxy = windows_proxy(&bin, &bat, content.as_bytes());
                 assert_eq!(
