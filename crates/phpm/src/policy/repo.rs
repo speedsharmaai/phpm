@@ -79,53 +79,88 @@ impl Repo {
     }
 }
 
+/// A `{"type": "composer", "url": ...}` entry with its `filter` option.
+fn composer_repo(obj: &serde_json::Map<String, Value>) -> Option<Repo> {
+    if obj.get("type").and_then(Value::as_str) != Some("composer") {
+        return None;
+    }
+    let mut repo = Repo::new(obj.get("url").and_then(Value::as_str)?);
+    match obj.get("filter") {
+        Some(Value::Bool(false)) => repo.filter_off = true,
+        Some(Value::Object(lists)) => {
+            repo.skip_lists = lists
+                .iter()
+                .filter(|(_, v)| **v == Value::Bool(false))
+                .map(|(k, _)| k.clone())
+                .collect();
+        }
+        _ => {}
+    }
+    Some(repo)
+}
+
+// Composer: Config::merge, the packagist.org pattern
+fn is_packagist_url(url: &str) -> bool {
+    let Some(rest) = url
+        .strip_prefix("https://")
+        .or_else(|| url.strip_prefix("http://"))
+    else {
+        return false;
+    };
+    let host = rest.split('/').next().unwrap_or_default();
+    host == "packagist.org"
+        || host.strip_suffix(".packagist.org").is_some_and(|sub| {
+            !sub.is_empty()
+                && sub
+                    .bytes()
+                    .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-' || b == b'.')
+        })
+}
+
 /// The composer repositories in composer.json, then Packagist unless it is
-/// turned off; the order Composer's `RepositoryManager` keeps.
+/// turned off or redefined; the order Composer's `RepositoryManager` keeps.
+/// A repository named `packagist` or `packagist.org` takes Packagist's place.
+// Composer: Config::merge, disableRepoByName
 pub(crate) fn repos(composer: &ComposerJson) -> Vec<Repo> {
     let mut out = Vec::new();
-    let mut packagist = true;
+    let mut packagist = Some(Repo::new(PACKAGIST));
     let entries: Vec<(Option<&str>, &Value)> = match composer.data().get("repositories") {
         Some(Value::Array(list)) => list.iter().map(|v| (None, v)).collect(),
         Some(Value::Object(map)) => map.iter().map(|(k, v)| (Some(k.as_str()), v)).collect(),
         _ => Vec::new(),
     };
     for (key, entry) in entries {
-        if matches!(key, Some("packagist" | "packagist.org")) && entry == &Value::Bool(false) {
-            packagist = false;
+        let named_packagist = matches!(key, Some("packagist" | "packagist.org"));
+        if entry == &Value::Bool(false) {
+            if named_packagist {
+                packagist = None;
+            }
             continue;
         }
         let Some(obj) = entry.as_object() else {
             continue;
         };
-        if obj.get("packagist.org") == Some(&Value::Bool(false))
-            || obj.get("packagist") == Some(&Value::Bool(false))
+        if obj.len() == 1
+            && (obj.get("packagist.org") == Some(&Value::Bool(false))
+                || obj.get("packagist") == Some(&Value::Bool(false)))
         {
-            packagist = false;
+            packagist = None;
             continue;
         }
-        if obj.get("type").and_then(Value::as_str) != Some("composer") {
+        let repo = composer_repo(obj);
+        if named_packagist {
+            packagist = repo;
             continue;
         }
-        let Some(url) = obj.get("url").and_then(Value::as_str) else {
+        let Some(repo) = repo else {
             continue;
         };
-        let mut repo = Repo::new(url);
-        match obj.get("filter") {
-            Some(Value::Bool(false)) => repo.filter_off = true,
-            Some(Value::Object(lists)) => {
-                repo.skip_lists = lists
-                    .iter()
-                    .filter(|(_, v)| **v == Value::Bool(false))
-                    .map(|(k, _)| k.clone())
-                    .collect();
-            }
-            _ => {}
+        if is_packagist_url(&repo.url) {
+            packagist = None;
         }
         out.push(repo);
     }
-    if packagist {
-        out.push(Repo::new(PACKAGIST));
-    }
+    out.extend(packagist);
     out
 }
 
@@ -284,7 +319,7 @@ impl Client<'_> {
 
 #[cfg(test)]
 mod tests {
-    use super::{Cached, Client, PACKAGIST, Repo, read, repos, write};
+    use super::{Cached, Client, PACKAGIST, Repo, is_packagist_url, read, repos, write};
     use phpm_lock::ComposerJson;
     use serde_json::json;
     use std::path::Path;
@@ -310,12 +345,37 @@ mod tests {
         assert_eq!(r[1].skip_lists, ["malware"]);
         assert_eq!(r[2].url, PACKAGIST);
         for off in [
+            json!({"repositories": {"packagist": {"type": "vcs", "url": "https://x.test/r"}}}),
             json!({"repositories": [{"packagist.org": false}]}),
             json!({"repositories": [{"packagist": false}]}),
             json!({"repositories": {"packagist.org": false}}),
         ] {
             assert!(repos(&composer(off)).is_empty());
         }
+    }
+
+    #[test]
+    fn a_repository_named_packagist_takes_its_place() {
+        let r = repos(&composer(json!({"repositories": {
+            "packagist": {"type": "composer", "url": "https://mirrors.aliyun.com/composer/"},
+            "corp": {"type": "composer", "url": "https://satis.corp"},
+        }})));
+        let urls: Vec<&str> = r.iter().map(|r| r.url.as_str()).collect();
+        assert_eq!(
+            urls,
+            ["https://satis.corp", "https://mirrors.aliyun.com/composer"]
+        );
+        let r = repos(&composer(json!({"repositories": [
+            {"type": "composer", "url": "https://repo.packagist.org"},
+        ]})));
+        assert_eq!(r, [Repo::new(PACKAGIST)]);
+        let r = repos(&composer(json!({"repositories": {"other": false}})));
+        assert_eq!(r, [Repo::new(PACKAGIST)]);
+        assert!(is_packagist_url("http://packagist.org"));
+        assert!(is_packagist_url("https://repo.packagist.org/x"));
+        assert!(!is_packagist_url("https://notpackagist.org"));
+        assert!(!is_packagist_url("https://.packagist.org"));
+        assert!(!is_packagist_url("ftp://packagist.org"));
     }
 
     #[test]
