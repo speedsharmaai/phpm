@@ -5,3 +5,4 @@ crates/*/tests/golden/** -text
 crates/*/tests/data/** -text
 crates/*/composer/** -text
 crates/*/vendor/** -text
+**/*.pen -text -diff
