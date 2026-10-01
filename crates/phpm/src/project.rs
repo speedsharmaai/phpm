@@ -42,6 +42,8 @@ pub(crate) fn locate(root: PathBuf, env: Env<'_>) -> ProjectFiles {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct Dirs {
     pub(crate) vendor: String,
+    /// `vendor-dir` as Composer reports it with `RELATIVE_PATHS`.
+    pub(crate) vendor_relative: String,
     pub(crate) bin: String,
     pub(crate) full_bin_compat: bool,
 }
@@ -95,14 +97,18 @@ fn is_absolute_config_path(path: &str) -> bool {
         })
 }
 
-// Composer: Config.php get for '*-dir' keys, without RELATIVE_PATHS
-fn config_dir(raw: &str, base: &str, vendor: Option<&str>, env: Env<'_>) -> String {
+// Composer: Config.php get for '*-dir' keys, with RELATIVE_PATHS
+fn config_dir_relative(raw: &str, vendor: Option<&str>, env: Env<'_>) -> String {
     let processed = match vendor {
         Some(v) => raw.replace("{$vendor-dir}", v),
         None => raw.to_owned(),
     };
-    let trimmed = processed.trim_end_matches(['/', '\\']);
-    let expanded = expand_path(trimmed, env);
+    expand_path(processed.trim_end_matches(['/', '\\']), env)
+}
+
+// Composer: Config.php get for '*-dir' keys, without RELATIVE_PATHS
+fn config_dir(raw: &str, base: &str, vendor: Option<&str>, env: Env<'_>) -> String {
+    let expanded = config_dir_relative(raw, vendor, env);
     if is_absolute_config_path(&expanded) {
         expanded
     } else {
@@ -116,6 +122,7 @@ pub(crate) fn dirs(composer: &ComposerJson, root: &Path, env: Env<'_>) -> Result
         .or_else(|| config_str(composer, "vendor-dir"))
         .unwrap_or_else(|| "vendor".to_owned());
     let vendor = config_dir(&vendor_raw, &base, None, env);
+    let vendor_relative = config_dir_relative(&vendor_raw, None, env);
     let bin_raw = non_empty(env("COMPOSER_BIN_DIR"))
         .or_else(|| config_str(composer, "bin-dir"))
         .unwrap_or_else(|| "{$vendor-dir}/bin".to_owned());
@@ -135,6 +142,7 @@ pub(crate) fn dirs(composer: &ComposerJson, root: &Path, env: Env<'_>) -> Result
     };
     Ok(Dirs {
         vendor,
+        vendor_relative,
         bin,
         full_bin_compat,
     })
@@ -204,6 +212,7 @@ mod tests {
         );
         let d = dirs(&c, Path::new("/p"), &env(&[])).unwrap();
         assert_eq!(d.vendor, "/p/lib");
+        assert_eq!(d.vendor_relative, "lib");
         assert_eq!(d.bin, "/p/lib/../tools");
         assert!(d.full_bin_compat);
 

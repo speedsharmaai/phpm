@@ -8,7 +8,7 @@ use crate::error::Error;
 use crate::exec;
 use crate::install::Request;
 use crate::out::{Out, Verbosity};
-use crate::plugins::Plugins;
+use crate::plugins::{Adapter, Plugin, Plugins};
 use crate::scripts::{self, Route, Scripts};
 
 /// How one step of the install runs.
@@ -65,8 +65,16 @@ const PLACING_EVENTS: [&str; 7] = [
 const REMOVING_EVENTS: [&str; 2] = ["pre-package-uninstall", "post-package-uninstall"];
 const ALWAYS_EVENTS: [&str; 4] = ["init", "command", "pre-command-run", "pre-pool-create"];
 
+/// The active plugins only Composer can run.
+fn for_composer(plugins: &Plugins) -> impl Iterator<Item = &Plugin> {
+    plugins
+        .active
+        .iter()
+        .filter(|p| !matches!(p.adapter, Adapter::Native(_)))
+}
+
 fn names(plugins: &Plugins) -> String {
-    let list: Vec<&str> = plugins.active.iter().map(|p| p.name.as_str()).collect();
+    let list: Vec<&str> = for_composer(plugins).map(|p| p.name.as_str()).collect();
     list.join(", ")
 }
 
@@ -108,7 +116,7 @@ pub(crate) fn plan(
             format!("composer.json has scripts for {e}, which only Composer's own install fires")
         });
     }
-    let with_plugins = !plugins.active.is_empty();
+    let with_plugins = for_composer(&plugins).next().is_some();
     let no_scripts = || Step::Skip("--no-scripts".to_owned());
     let pre_install = if req.no_scripts {
         no_scripts()
@@ -202,16 +210,35 @@ impl Plan {
 
     pub(crate) fn decision_lines(&self, req: &Request) -> Vec<String> {
         let mut lines = Vec::new();
+        let native: Vec<String> = self
+            .plugins
+            .active
+            .iter()
+            .filter_map(|p| match p.adapter {
+                Adapter::Native(does) => Some(format!("{} ({does})", p.name)),
+                _ => None,
+            })
+            .collect();
         lines.push(if req.no_plugins {
             "decision plugins: none loaded, --no-plugins".to_owned()
         } else if self.plugins.active.is_empty() {
             "decision plugins: none to load".to_owned()
+        } else if for_composer(&self.plugins).next().is_none() {
+            format!("decision plugins: native, {}", native.join(", "))
         } else {
             format!(
                 "decision plugins: {} allowed, so Composer runs the steps they hook",
                 names(&self.plugins)
             )
         });
+        for p in &self.plugins.active {
+            if let Adapter::Declined(why) = &p.adapter {
+                lines.push(format!("decision plugins: {} not native, {why}", p.name));
+            }
+        }
+        if !native.is_empty() && for_composer(&self.plugins).next().is_some() {
+            lines.push(format!("decision plugins: native, {}", native.join(", ")));
+        }
         if let Some(why) = &self.full_install {
             lines.push(format!(
                 "decision install: fallback to composer install, {why}"
@@ -384,7 +411,7 @@ mod tests {
     use crate::install::Request;
     #[cfg(unix)]
     use crate::out::{Verbosity, tests::capture};
-    use crate::plugins::{Plugin, Plugins};
+    use crate::plugins::{Adapter, Plugin, Plugins};
     use crate::scripts::Scripts;
     use phpm_lock::ComposerJson;
     use serde_json::{Value, json};
@@ -404,6 +431,7 @@ mod tests {
                     name: (*n).to_owned(),
                     global: false,
                     needs_full_install: f.map(str::to_owned),
+                    adapter: Adapter::Missing,
                 })
                 .collect(),
             skipped: Vec::new(),
@@ -415,6 +443,44 @@ mod tests {
             dev: true,
             ..Request::default()
         }
+    }
+
+    #[test]
+    fn plugins_with_native_adapters_need_no_composer() {
+        let mut both = plugins(&[("composer/installers", None), ("a/other", None)]);
+        both.active[0].adapter = Adapter::Native("phpm computes its install paths");
+        both.active[1].adapter = Adapter::Declined("no adapter for version 9".into());
+        let p = plan(&req(), &scripts(&json!({})), both.clone(), true, false);
+        assert_eq!(
+            p.autoload,
+            Step::Composer("plugins are loaded (a/other)".into())
+        );
+        let lines = p.decision_lines(&req());
+        assert_eq!(
+            lines[0],
+            "decision plugins: a/other allowed, so Composer runs the steps they hook"
+        );
+        assert_eq!(
+            lines[1],
+            "decision plugins: a/other not native, no adapter for version 9"
+        );
+        assert_eq!(
+            lines[2],
+            "decision plugins: native, composer/installers (phpm computes its install paths)"
+        );
+
+        both.active.truncate(1);
+        let p = plan(&req(), &scripts(&json!({})), both, true, false);
+        assert_eq!(p.full_install, None);
+        assert_eq!(
+            p.autoload,
+            Step::Native("phpm writes the autoloader".into())
+        );
+        assert!(!p.uses_composer());
+        assert_eq!(
+            p.decision_lines(&req())[0],
+            "decision plugins: native, composer/installers (phpm computes its install paths)"
+        );
     }
 
     #[test]

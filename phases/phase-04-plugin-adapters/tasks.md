@@ -13,29 +13,36 @@ with `phpm-diffvendor`, 0 differences) and the app smoke checks
 
 ## Groundwork
 
-- [ ] Install paths: one map from package to install directory used by
+- [x] Install paths: one map from package to install directory used by
   placement, `installed.json`/`installed.php` `install-path`, the
   autoloader, bin proxies and removal, so a plugin can move a package.
-- [ ] Local repository order: Composer's install order (`Transaction`
-  ordering, plugins first) for plugins that read the local repository.
-- [ ] Adapter registry: decide per active plugin, before anything is placed,
+- [x] Local repository order: plugins that walk the local repository
+  (pest-plugin, `include_paths.php`) see Composer's first install in the
+  order archives finished unzipping, which varies; a second install uses
+  `installed.json`'s order. phpm uses that order, and `just e2e-apps`
+  compares against a second Composer install before counting a difference,
+  as the sweep does.
+- [x] Adapter registry: decide per active plugin, before anything is placed,
   whether a native adapter covers it; `--explain` says which and why not.
-  When every active plugin is covered, the install runs with no Composer;
-  when only the install-path plugins are covered, phpm places packages and
-  Composer still runs the hooks of the rest.
+  Installer plugins go native only when every active plugin is covered: with
+  any other plugin left, Composer runs the whole install as before, because
+  its hooks would see a different local repository.
 
 ## composer/installers
 
-- [ ] Every installer type at the locked version (2.x): framework prefix
+- [x] Every installer type at the locked version (2.3.0): framework prefix
   lookup as `Installer::findFrameworkType`, `supports()` pattern, each
   installer's locations and `inflectPackageVars`.
-- [ ] Root `extra.installer-paths` with `{$name}`, `{$vendor}`, `{$type}`
+- [x] Root `extra.installer-paths` with `{$name}`, `{$vendor}`, `{$type}`
   and `type:`, `vendor:` and package-name keys; `extra.installer-name`;
   `extra.installer-disable`.
-- [ ] Installers with side effects or environment lookups (CakePHP's local
-  repository check, Oxid's vendor metadata file) stay on fallback.
-- [ ] roots/wordpress-core-installer and johnpbloch's: `wordpress-install-dir`
-  for `wordpress-core` packages.
+- [x] Installers with side effects or environment lookups (CakePHP's local
+  repository check, Oxid's vendor metadata file, Bitrix's duplicate prompt)
+  stay on fallback. Checked against the real plugin on 855 type and name
+  cases (`crates/phpm/tests/golden/installers/`).
+- [x] roots/wordpress-core-installer (1.100.0 to 4.0.0, identical sources):
+  `wordpress-install-dir` for `wordpress-core` packages. johnpbloch's
+  stays on fallback.
 - [ ] Bedrock's `web/` identical; `install-path` in `installed.*` matches.
 
 ## drupal/core-composer-scaffold

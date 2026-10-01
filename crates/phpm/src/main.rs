@@ -1,3 +1,4 @@
+mod adapters;
 mod bins;
 mod classes;
 mod cli;

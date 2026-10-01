@@ -122,6 +122,7 @@ fn check(fixture: &str, dev_mode: bool) {
         composer_json: &composer,
         lock: &lock,
         root_dir: &root_dir,
+        install_paths: &phpm_lock::InstallPaths::new(),
     };
     let options = Options {
         dev_mode,

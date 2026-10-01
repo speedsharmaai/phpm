@@ -11,7 +11,7 @@ use phpm_php::{
 };
 use regex::Regex;
 use serde_json::{Map, Value};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::sync::LazyLock;
 
 /// Composer's `vendor/composer/InstalledVersions.php`, copied verbatim.
@@ -33,6 +33,11 @@ static PLATFORM_PACKAGE: LazyLock<Regex> = LazyLock::new(|| {
     .expect("valid pattern")
 });
 
+/// Install directories that plugins chose, by lowercase package name, as
+/// absolute normalised paths. Other packages go to
+/// `vendor/<name>[/<target-dir>]`.
+pub type InstallPaths = BTreeMap<String, String>;
+
 /// What an install from a lock file needs to reproduce Composer's
 /// `vendor/composer/installed.json` and `installed.php`.
 #[derive(Debug, Clone, Copy)]
@@ -44,6 +49,7 @@ pub struct InstallContext<'a> {
     /// the way `realpath(getcwd())` sees it.
     pub root_dir: &'a str,
     pub dev_mode: bool,
+    pub install_paths: &'a InstallPaths,
 }
 
 /// The two files Composer writes into `vendor/composer/` after an install.
@@ -200,6 +206,8 @@ pub fn installed_files(ctx: &InstallContext<'_>) -> Result<InstalledFiles, Error
         let package = Package::from_lock(config)?;
         let install_path = if package.kind == "metapackage" {
             None
+        } else if let Some(path) = ctx.install_paths.get(&package.name) {
+            find_shortest_path(&repo_dir, path, true)
         } else {
             let mut path = format!("{vendor_dir}/{}", package.pretty_name);
             if let Some(target) = package
@@ -496,7 +504,7 @@ fn installed_php(
 
 #[cfg(test)]
 mod tests {
-    use super::{InstallContext, installed_files};
+    use super::{InstallContext, InstallPaths, installed_files};
     use crate::manifest::{ComposerJson, Lock};
     use crate::root::RootVersion;
     use serde_json::json;
@@ -515,6 +523,7 @@ mod tests {
             root_version: version,
             root_dir: "/p",
             dev_mode: dev,
+            install_paths: &InstallPaths::new(),
         };
         let files = installed_files(&ctx).unwrap();
         (files.installed_json, files.installed_php)
@@ -659,6 +668,45 @@ mod tests {
     }
 
     #[test]
+    fn plugin_install_paths_replace_the_vendor_path() {
+        let composer = ComposerJson::parse("{}").unwrap();
+        let lock = Lock::from_value(json!({"packages": [
+            {"name": "A/Plugin", "version": "1.0.0", "type": "wordpress-plugin", "dist": {"type": "zip", "url": "d", "reference": "r"}},
+            {"name": "a/lib", "version": "1.0.0", "dist": {"type": "zip", "url": "d", "reference": "r"}},
+        ]}))
+        .unwrap();
+        let paths: InstallPaths = [(
+            "a/plugin".to_owned(),
+            "/p/web/app/plugins/plugin".to_owned(),
+        )]
+        .into();
+        let ctx = InstallContext {
+            composer_json: &composer,
+            lock: &lock,
+            root_version: &default_version(),
+            root_dir: "/p",
+            dev_mode: false,
+            install_paths: &paths,
+        };
+        let files = installed_files(&ctx).unwrap();
+        assert!(
+            files
+                .installed_json
+                .contains("\"install-path\": \"../../web/app/plugins/plugin\"")
+        );
+        assert!(
+            files
+                .installed_json
+                .contains("\"install-path\": \"../a/lib\"")
+        );
+        assert!(
+            files
+                .installed_php
+                .contains("'install_path' => __DIR__ . '/../../web/app/plugins/plugin',")
+        );
+    }
+
+    #[test]
     fn bad_lock_entries_are_errors() {
         let composer = ComposerJson::parse("{}").unwrap();
         let lock = Lock::parse(r#"{"packages":[{"name":"a/b"}]}"#).unwrap();
@@ -669,6 +717,7 @@ mod tests {
             root_version: &version,
             root_dir: "/p",
             dev_mode: false,
+            install_paths: &InstallPaths::new(),
         };
         assert!(installed_files(&ctx).is_err());
     }
