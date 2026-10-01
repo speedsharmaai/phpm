@@ -28,9 +28,10 @@
 
 - [ ] Lock parser and plan (install / update / remove) against `installed.json`.
 - [x] Root version guessing via git, matching `VersionGuesser` for tag, branch and no-VCS cases. hg, svn and fossil checkouts are refused.
-- [ ] Fetch: reqwest + tokio, HTTP/2, User-Agent with contact, ≤ 10 Packagist, ≤ 24 codeload, 3 retries, codeload-400 retry.
-- [ ] Store: `~/.cache/phpm/pkgs/v1/`, key `(name, reference)`, zip buffered in memory, `zip` crate on rayon, top-dir strip, `.DS_Store` skip, modes kept, temp + atomic rename.
-- [ ] Link: `libc::clonefile` per package directory (macOS); hardlink per file (Linux); copy fallback; stale packages removed.
+- [x] Fetch: reqwest + tokio, HTTP/2, User-Agent with contact, ≤ 10 Packagist, ≤ 24 codeload, 3 retries, codeload-400 retry. In `phpm-store` (rustls on ring); auth covers `github-oauth` and `http-basic`.
+- [ ] Auth beyond the spike: `bearer`, `gitlab-oauth`, `gitlab-token`, `bitbucket-oauth`, `forgejo-token`, `custom-headers`, client certs, inline `user:pass@host`, composer.json `config` auth, `github-domains`.
+- [x] Store: `<cache>/phpm/pkgs/v1/`, key `(name, reference)`, zip buffered in memory, `zip` crate on tokio's blocking pool, top-dir strip, `.DS_Store` skip, modes kept, temp + atomic rename.
+- [x] Link: `libc::clonefile` per package directory (macOS); FICLONE then hardlink per file (Linux); copy fallback; stale packages removed.
 - [x] `installed.json`, `installed.php`, `InstalledVersions.php` written. Byte-identical to Composer 2.10.3 on all five fixtures, dev and `--no-dev` (`just golden`).
 - [ ] Bin proxies from Composer's templates.
 - [ ] Autoload: PackageSorter port (weights, `strnatcasecmp`, stable sort), psr-0, psr-4, classmap and files sections, suffix rules, `autoload_static.php`, `platform_check.php` (php-only default).

@@ -38,6 +38,8 @@ pub struct Dist {
 }
 
 /// One package to install: name, dist, and where it goes relative to `vendor/`.
+///
+/// Metapackages have no dist and no install path; callers leave them out.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Package {
     pub name: String,

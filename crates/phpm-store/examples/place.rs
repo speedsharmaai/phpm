@@ -97,6 +97,9 @@ fn locked_packages(lock: &Path) -> Result<Vec<Package>, Box<dyn std::error::Erro
         let text = |v: &Value| v.as_str().map(str::to_owned);
         let name = text(&entry["name"]).ok_or("package without a name")?;
         let dist = &entry["dist"];
+        if dist.is_null() && entry["type"] == "metapackage" {
+            continue;
+        }
         out.push(Package::new(
             name,
             Dist {

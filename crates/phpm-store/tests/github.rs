@@ -24,6 +24,7 @@ fn locked_packages(lock: &Path) -> Vec<Package> {
         .iter()
         .filter_map(|k| lock[k].as_array())
         .flatten()
+        .filter(|p| p["type"] != "metapackage")
         .map(|p| {
             let dist = &p["dist"];
             let text = |v: &Value| v.as_str().map(str::to_owned);
