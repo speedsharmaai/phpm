@@ -1183,6 +1183,7 @@ fn notifies_downloads_once_per_url_for_what_was_installed() {
 }
 
 /// `composer/installers` 2.3.0 and a `WordPress` plugin it places under `web/`.
+#[cfg(unix)]
 fn installers_project() -> Project {
     let mut files = BTreeMap::new();
     files.insert(
