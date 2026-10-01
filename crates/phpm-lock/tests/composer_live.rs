@@ -106,6 +106,8 @@ fn live_with(fixture: &str, dev_mode: bool, setup: impl Fn(&Path)) {
         root_dir: &root_dir,
         dev_mode,
         install_paths: &phpm_lock::InstallPaths::new(),
+        installed_json_indent: None,
+        unchanged_installed: &std::collections::BTreeMap::default(),
     };
     let ours = phpm_lock::installed_files(&ctx).expect("live test setup");
 

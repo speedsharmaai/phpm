@@ -354,6 +354,12 @@ struct Previous {
     install_path: Option<String>,
     bins: Vec<String>,
     plugin: bool,
+    /// The entry exactly as the file had it, name included. An unchanged
+    /// package keeps this (not a fresh dump of the lock) when installed.json
+    /// is rewritten: Composer's own package object, for one no operation
+    /// touched, is still whatever `FilesystemRepository::read` loaded, not
+    /// the locked one, and `write` dumps that object, not the lock's.
+    raw: Map<String, Value>,
 }
 
 fn previous(vendor: &str) -> BTreeMap<String, Previous> {
@@ -374,8 +380,21 @@ fn previous(vendor: &str) -> BTreeMap<String, Previous> {
         .filter_map(Value::as_object)
         .filter_map(|p| {
             let name = text(p, "name")?;
-            let install_path =
-                text(p, "install-path").map(|rel| normalize_path(&format!("{repo}/{rel}")));
+            // Composer 1.x installed.json has no "install-path" key at all;
+            // the location was always vendor/<name>[/<target-dir>] by
+            // convention, as LibraryInstaller::getInstallPath still computes
+            // it for such an entry. A *present* but null install-path means
+            // something else (a metapackage has none), so only a missing
+            // key gets the legacy fallback.
+            let install_path = if p.contains_key("install-path") {
+                text(p, "install-path").map(|rel| normalize_path(&format!("{repo}/{rel}")))
+            } else {
+                let path = match text(p, "target-dir").filter(|t| !t.is_empty() && t != "0") {
+                    Some(target) => format!("{vendor}/{name}/{target}"),
+                    None => format!("{vendor}/{name}"),
+                };
+                Some(normalize_path(&path))
+            };
             Some((
                 name,
                 Previous {
@@ -388,6 +407,7 @@ fn previous(vendor: &str) -> BTreeMap<String, Previous> {
                         t.eq_ignore_ascii_case("composer-plugin")
                             || t.eq_ignore_ascii_case("composer-installer")
                     }),
+                    raw: p.clone(),
                 },
             ))
         })
@@ -714,6 +734,7 @@ fn install(
         .iter()
         .filter(|l| !unchanged(before.get(&l.name), l))
         .collect();
+    let changed_names: BTreeSet<&str> = changed.iter().map(|l| l.name.as_str()).collect();
     let from_paths: Vec<&Locked> = changed
         .iter()
         .copied()
@@ -960,6 +981,16 @@ fn install(
         .join()
         .map_err(|_| Error::install("guessing the root version failed"))??;
     let started = Instant::now();
+    // Composer: Json/JsonFile.php detectIndenting, read when the repository
+    // is loaded and kept for the write() that regenerates installed.json.
+    let installed_json_indent = fs::read_to_string(repo.join("installed.json"))
+        .ok()
+        .map(|s| phpm_lock::detect_indent(&s));
+    let unchanged_installed: BTreeMap<String, Map<String, Value>> = before
+        .iter()
+        .filter(|(name, _)| !changed_names.contains(name.as_str()))
+        .map(|(name, prev)| (name.clone(), prev.raw.clone()))
+        .collect();
     let installed = phpm_lock::installed_files(&InstallContext {
         composer_json: &composer,
         lock: &lock,
@@ -967,6 +998,8 @@ fn install(
         root_dir: &root_dir,
         dev_mode: req.dev,
         install_paths: &paths.normalized,
+        installed_json_indent: installed_json_indent.as_deref(),
+        unchanged_installed: &unchanged_installed,
     })?;
     for (_, role) in &removed_plugins {
         if let Some(file) = role.and_then(|r| adapters::uninstalled(r, &vendor))
@@ -999,7 +1032,8 @@ fn install(
     );
     for l in &locked {
         if l.package.is_some() {
-            bins.install(&l.name, &l.dir, &l.bins)
+            let unchanged = !changed_names.contains(l.name.as_str());
+            bins.install(&l.name, &l.dir, &l.bins, unchanged)
                 .map_err(|e| Error::install(format!("bin proxies for {}: {e}", l.name)))?;
         }
     }
@@ -1339,8 +1373,8 @@ fn summary(placed: usize, removed: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        Previous, Request, bins, dist_url, locked, notify_on_install, package_line, previous,
-        remove_package, summary, top_files, unchanged,
+        Request, bins, dist_url, locked, notify_on_install, package_line, previous, remove_package,
+        summary, top_files, unchanged,
     };
     use crate::adapters::Paths;
     use phpm_autoload::PlatformRequirements;
@@ -1580,17 +1614,14 @@ mod tests {
         )
         .unwrap();
         let before = previous(&vendor);
-        assert_eq!(
-            before["a/b"],
-            Previous {
-                version: "1.0.0".into(),
-                reference: Some("abc".into()),
-                source: Some("dist".into()),
-                install_path: Some(format!("{vendor}/a/b")),
-                bins: vec!["bin/tool".into()],
-                plugin: false,
-            }
-        );
+        let b = &before["a/b"];
+        assert_eq!(b.version, "1.0.0");
+        assert_eq!(b.reference, Some("abc".into()));
+        assert_eq!(b.source, Some("dist".into()));
+        assert_eq!(b.install_path, Some(format!("{vendor}/a/b")));
+        assert_eq!(b.bins, vec!["bin/tool".to_owned()]);
+        assert!(!b.plugin);
+        assert_eq!(b.raw.get("name").and_then(Value::as_str), Some("a/b"));
         assert_eq!(before["a/m"].install_path, None);
         assert!(before["a/m"].plugin);
 
@@ -1606,7 +1637,24 @@ mod tests {
             b"[{\"name\":\"x/y\"}]",
         )
         .unwrap();
-        assert!(previous(&vendor).contains_key("x/y"));
+        let legacy = previous(&vendor);
+        assert!(legacy.contains_key("x/y"));
+        // Composer 1.x wrote no "install-path" key; the default location
+        // (vendor/<name>) is implied, not "no install path".
+        assert_eq!(legacy["x/y"].install_path, Some(format!("{vendor}/x/y")));
+
+        fs::write(
+            tmp.path().join("composer/installed.json"),
+            json!({"packages": [
+                {"name": "x/targeted", "target-dir": "Some/Dir"},
+            ]})
+            .to_string(),
+        )
+        .unwrap();
+        assert_eq!(
+            previous(&vendor)["x/targeted"].install_path,
+            Some(format!("{vendor}/x/targeted/Some/Dir"))
+        );
     }
 
     #[test]

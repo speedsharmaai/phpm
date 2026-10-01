@@ -440,6 +440,7 @@ impl BinInstaller {
         package: &str,
         install_path: &str,
         bins: &[String],
+        unchanged: bool,
     ) -> io::Result<()> {
         for bin in bins {
             let bin_path = format!("{install_path}/{bin}");
@@ -468,6 +469,18 @@ impl BinInstaller {
                 continue;
             }
             let link = format!("{}/{name}", self.bin_dir_real()?);
+            // Composer only touches a proxy for a package an operation
+            // actually (re)installs; one it leaves alone keeps whatever is
+            // already at `link`, non-symlink or not, byte for byte.
+            // Installer/BinaryInstaller.php installBinaries, ensureBinariesPresence
+            if unchanged && fs::symlink_metadata(&link).is_ok() {
+                self.written.insert(name.clone());
+                let bat = format!("{link}.bat");
+                if fs::symlink_metadata(&bat).is_ok() {
+                    self.written.insert(format!("{name}.bat"));
+                }
+                continue;
+            }
             let head = fsutil::read_head(Path::new(&bin_path), 500)?;
             let proxy = unixy_proxy(
                 &bin_path,
@@ -710,6 +723,7 @@ mod tests {
         use super::super::BinInstaller;
         use super::{PACKAGES, golden};
         use crate::fsutil::Modes;
+        use std::collections::BTreeSet;
         use std::fs;
         use std::path::Path;
 
@@ -738,7 +752,8 @@ mod tests {
             for (name, files) in PACKAGES {
                 let list: Vec<String> = files.iter().map(|(r, _)| (*r).to_owned()).collect();
                 let path = root.join("vendor").join(name);
-                bins.install(name, &path.to_string_lossy(), &list).unwrap();
+                bins.install(name, &path.to_string_lossy(), &list, false)
+                    .unwrap();
             }
             assert!(bins.warnings.is_empty(), "{:?}", bins.warnings);
             let mut names: Vec<&String> = bins.written().iter().collect();
@@ -764,6 +779,53 @@ mod tests {
         }
 
         #[test]
+        fn leaves_an_unchanged_packages_proxy_exactly_as_found() {
+            // Composer's ensureBinariesPresence skips an existing, non-symlink
+            // proxy without even a warning (BinaryInstaller::installBinaries,
+            // warnOnOverwrite: false) when the package had no install/update
+            // operation, so whatever is there (stale content, a committed
+            // .bat, an odd mode) stays untouched.
+            let tmp = tempfile::tempdir().unwrap();
+            let root = fs::canonicalize(tmp.path()).unwrap();
+            let pkg = root.join("vendor/a/b");
+            fs::create_dir_all(&pkg).unwrap();
+            fs::write(pkg.join("tool"), "<?php\n").unwrap();
+            let bin_dir = root.join("vendor/bin");
+            fs::create_dir_all(&bin_dir).unwrap();
+            fs::write(bin_dir.join("tool"), "stale proxy\n").unwrap();
+            fs::write(bin_dir.join("tool.bat"), "stale bat\n").unwrap();
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                fs::set_permissions(bin_dir.join("tool"), fs::Permissions::from_mode(0o600))
+                    .unwrap();
+            }
+            let mut bins = installer(&root, Modes::with_exec(0o755));
+            bins.install("a/b", &pkg.to_string_lossy(), &["tool".to_owned()], true)
+                .unwrap();
+            assert!(bins.warnings.is_empty(), "{:?}", bins.warnings);
+            assert_eq!(fs::read(bin_dir.join("tool")).unwrap(), b"stale proxy\n");
+            assert_eq!(fs::read(bin_dir.join("tool.bat")).unwrap(), b"stale bat\n");
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                let mode = fs::metadata(bin_dir.join("tool"))
+                    .unwrap()
+                    .permissions()
+                    .mode();
+                assert_eq!(mode & 0o777, 0o600, "mode was not touched");
+            }
+            // Kept, not rewritten: remove_stale must not delete either file.
+            let both: BTreeSet<String> = ["tool".to_owned(), "tool.bat".to_owned()]
+                .into_iter()
+                .collect();
+            assert_eq!(bins.written, both);
+            bins.remove_stale(["tool"]).unwrap();
+            assert!(bin_dir.join("tool").is_file());
+            assert!(bin_dir.join("tool.bat").is_file());
+        }
+
+        #[test]
         fn skips_bins_it_cannot_proxy_and_cleans_up_old_ones() {
             let tmp = tempfile::tempdir().unwrap();
             let root = fs::canonicalize(tmp.path()).unwrap();
@@ -778,9 +840,10 @@ mod tests {
                 .iter()
                 .map(|s| (*s).to_owned())
                 .collect();
-            bins.install("a/b", &pkg.to_string_lossy(), &list).unwrap();
+            bins.install("a/b", &pkg.to_string_lossy(), &list, false)
+                .unwrap();
             #[cfg(unix)]
-            bins.install("a/b", &pkg.to_string_lossy(), &["escape".to_owned()])
+            bins.install("a/b", &pkg.to_string_lossy(), &["escape".to_owned()], false)
                 .unwrap();
             let reasons: Vec<&str> = bins
                 .warnings
