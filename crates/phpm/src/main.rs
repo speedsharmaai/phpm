@@ -10,6 +10,7 @@ mod out;
 mod pathrepo;
 mod platform;
 mod plugins;
+mod policy;
 mod prefetch;
 mod project;
 mod runner;
@@ -58,14 +59,20 @@ fn run(args: impl IntoIterator<Item = OsString>, env: Env<'_>, out: &mut Out<'_>
         no_scripts: args.no_scripts,
         no_plugins: args.no_plugins,
         explain: args.explain,
-        no_audit: args.no_audit,
         ignore_platform_reqs: args.ignore_platform_reqs,
         ignore_platform_req: args.ignore_platform_req,
+        audit: args
+            .audit
+            .then(|| policy::AuditFormat::parse(&args.audit_format))
+            .flatten(),
+        no_blocking: args.no_blocking || args.no_security_blocking,
     };
     match install::run(&request, env, out) {
         Ok(()) => ExitCode::SUCCESS,
         Err(e) => {
-            out.error(&e.message);
+            if !e.message.is_empty() {
+                out.error(&e.message);
+            }
             e.exit_code()
         }
     }

@@ -23,7 +23,7 @@ use crate::error::Error;
 use crate::project::Env;
 use crate::state::{Stamp, hex};
 
-pub(crate) use check::{Filter, Requirements, verify};
+pub(crate) use check::{Filter, Requirements, glob, verify};
 
 const PROBE: &str = include_str!("probe.php");
 const PLUGIN_API_VERSION: &str = "2.9.0";

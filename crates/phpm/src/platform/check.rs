@@ -28,7 +28,7 @@ pub(crate) enum Filter {
 }
 
 /// `BasePackage::packageNameToRegexp`: case-insensitive, `*` matches anything.
-fn glob(pattern: &str, name: &str) -> bool {
+pub(crate) fn glob(pattern: &str, name: &str) -> bool {
     let p = pattern.to_ascii_lowercase().into_bytes();
     let n = name.to_ascii_lowercase().into_bytes();
     let (mut pi, mut ni) = (0, 0);

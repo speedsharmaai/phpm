@@ -263,7 +263,11 @@ pub(crate) fn install_args(req: &Request) -> Vec<String> {
         req.classmap_authoritative,
         "--classmap-authoritative",
     );
-    flag(&mut args, req.no_audit, "--no-audit");
+    if let Some(format) = req.audit {
+        args.push("--audit".to_owned());
+        args.push(format!("--audit-format={}", format.name()));
+    }
+    flag(&mut args, req.no_blocking, "--no-blocking");
     platform_flags(req, &mut args);
     args
 }
@@ -597,7 +601,8 @@ mod tests {
             no_autoloader: true,
             optimize: true,
             classmap_authoritative: true,
-            no_audit: true,
+            audit: Some(crate::policy::AuditFormat::Json),
+            no_blocking: true,
             ignore_platform_reqs: true,
             ignore_platform_req: vec!["ext-intl".into()],
             ..Request::default()
@@ -612,7 +617,9 @@ mod tests {
                 "--no-autoloader",
                 "--optimize-autoloader",
                 "--classmap-authoritative",
-                "--no-audit",
+                "--audit",
+                "--audit-format=json",
+                "--no-blocking",
                 "--ignore-platform-reqs",
                 "--ignore-platform-req=ext-intl"
             ]
