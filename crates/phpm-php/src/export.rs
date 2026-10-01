@@ -41,6 +41,7 @@ pub type PhpArray = IndexMap<PhpKey, PhpValue>;
 pub enum PhpValue {
     Null,
     Bool(bool),
+    Int(i64),
     String(String),
     Array(PhpArray),
 }
@@ -66,6 +67,12 @@ impl From<Option<String>> for PhpValue {
 impl From<bool> for PhpValue {
     fn from(b: bool) -> Self {
         Self::Bool(b)
+    }
+}
+
+impl From<i64> for PhpValue {
+    fn from(i: i64) -> Self {
+        Self::Int(i)
     }
 }
 
@@ -132,6 +139,9 @@ fn dump_level(out: &mut String, array: &PhpArray, level: usize) {
                 let _ = writeln!(out, "{},", var_export_str(s));
             }
             PhpValue::Bool(b) => out.push_str(if *b { "true,\n" } else { "false,\n" }),
+            PhpValue::Int(i) => {
+                let _ = writeln!(out, "{i},");
+            }
             PhpValue::Null => out.push_str("null,\n"),
         }
     }
@@ -142,9 +152,46 @@ fn dump_level(out: &mut String, array: &PhpArray, level: usize) {
     }
 }
 
+/// `var_export($value, true)`.
+pub fn var_export(value: &PhpValue) -> String {
+    let mut out = String::new();
+    export_value(&mut out, value, 0);
+    out
+}
+
+// php-src: ext/standard/var.c php_var_export_ex
+fn export_value(out: &mut String, value: &PhpValue, depth: usize) {
+    match value {
+        PhpValue::Null => out.push_str("NULL"),
+        PhpValue::Bool(b) => out.push_str(if *b { "true" } else { "false" }),
+        PhpValue::Int(i) => {
+            let _ = write!(out, "{i}");
+        }
+        PhpValue::String(s) => out.push_str(&var_export_str(s)),
+        PhpValue::Array(array) => {
+            if depth > 0 {
+                out.push('\n');
+                out.push_str(&"  ".repeat(depth));
+            }
+            out.push_str("array (\n");
+            for (key, value) in array {
+                out.push_str(&"  ".repeat(depth + 1));
+                out.push_str(&export_key(key));
+                out.push_str(" => ");
+                export_value(out, value, depth + 1);
+                out.push_str(",\n");
+            }
+            out.push_str(&"  ".repeat(depth));
+            out.push(')');
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{PhpArray, PhpKey, PhpValue, dump_to_php_code, is_absolute_path, var_export_str};
+    use super::{
+        PhpArray, PhpKey, PhpValue, dump_to_php_code, is_absolute_path, var_export, var_export_str,
+    };
 
     fn arr(items: Vec<(&str, PhpValue)>) -> PhpArray {
         items
@@ -237,5 +284,49 @@ mod tests {
             PhpValue::String("x".into())
         );
         assert_eq!(PhpValue::from("x".to_owned()), PhpValue::String("x".into()));
+        assert_eq!(PhpValue::from(4_i64), PhpValue::Int(4));
+    }
+
+    #[test]
+    fn exports_nested_arrays_like_php() {
+        let inner: PhpArray = [(PhpKey::from("y"), PhpArray::new().into())]
+            .into_iter()
+            .collect();
+        let list: PhpArray = [(PhpKey::Int(0), "x".into()), (PhpKey::Int(1), inner.into())]
+            .into_iter()
+            .collect();
+        let top = arr(vec![
+            ("a", 1_i64.into()),
+            ("b", list.into()),
+            ("5", PhpValue::Null),
+            ("c", true.into()),
+            ("d", "it's\\\0".into()),
+        ]);
+        let expected = "array (
+  'a' => 1,
+  'b' =>\x20
+  array (
+    0 => 'x',
+    1 =>\x20
+    array (
+      'y' =>\x20
+      array (
+      ),
+    ),
+  ),
+  5 => NULL,
+  'c' => true,
+  'd' => 'it\\'s\\\\' . \"\\0\" . '',
+)";
+        assert_eq!(var_export(&PhpValue::Array(top)), expected);
+        assert_eq!(var_export(&PhpArray::new().into()), "array (\n)");
+        assert_eq!(var_export(&(-3_i64).into()), "-3");
+        assert_eq!(var_export(&false.into()), "false");
+    }
+
+    #[test]
+    fn dumps_ints_in_installed_php() {
+        let a = arr(vec![("n", 7_i64.into())]);
+        assert_eq!(dump_to_php_code(&a), "array(\n    'n' => 7,\n)");
     }
 }

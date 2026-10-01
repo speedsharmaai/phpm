@@ -3,7 +3,10 @@
 //! on PATH. `strnatcasecmp` is only compared on ASCII input: PHP folds high
 //! bytes with the C library's locale-dependent `toupper`.
 
-use phpm_php::{encode_pretty, smart_strcmp, strnatcasecmp, strnatcmp, var_export_str};
+use phpm_php::{
+    PhpArray, PhpKey, PhpValue, encode_pretty, smart_strcmp, strnatcasecmp, strnatcmp, var_export,
+    var_export_str,
+};
 use proptest::prelude::*;
 use serde_json::Value;
 use std::io::Write;
@@ -78,6 +81,45 @@ fn json_value() -> impl Strategy<Value = Value> {
     })
 }
 
+fn without_floats() -> impl Strategy<Value = Value> {
+    json_value().prop_filter("no floats", |v| !has_float(v))
+}
+
+fn has_float(v: &Value) -> bool {
+    match v {
+        Value::Number(n) => !n.is_i64(),
+        Value::Array(items) => items.iter().any(has_float),
+        Value::Object(map) => map.values().any(has_float),
+        _ => false,
+    }
+}
+
+fn to_php(v: &Value) -> PhpValue {
+    match v {
+        Value::Null => PhpValue::Null,
+        Value::Bool(b) => PhpValue::Bool(*b),
+        Value::Number(n) => PhpValue::Int(n.as_i64().expect("floats filtered out")),
+        Value::String(s) => PhpValue::String(s.clone()),
+        Value::Array(items) => PhpValue::Array(
+            items
+                .iter()
+                .enumerate()
+                .map(|(i, v)| {
+                    (
+                        PhpKey::Int(i64::try_from(i).expect("small index")),
+                        to_php(v),
+                    )
+                })
+                .collect::<PhpArray>(),
+        ),
+        Value::Object(map) => PhpValue::Array(
+            map.iter()
+                .map(|(k, v)| (PhpKey::from(k.as_str()), to_php(v)))
+                .collect::<PhpArray>(),
+        ),
+    }
+}
+
 fn split(out: &str) -> Vec<&str> {
     let mut parts: Vec<&str> = out.split('\0').collect();
     parts.pop();
@@ -106,6 +148,15 @@ proptest! {
         let input = serde_json::to_string(&values).unwrap();
         let Some(out) = php(EXPORT, &input) else { return Ok(()) };
         let ours: Vec<String> = values.iter().map(|s| var_export_str(s)).collect();
+        prop_assert_eq!(ours, split(&out));
+    }
+
+    #[test]
+    #[ignore = "needs php on PATH"]
+    fn matches_php_var_export_arrays(values in prop::collection::vec(without_floats(), 1..16)) {
+        let input = serde_json::to_string(&values).unwrap();
+        let Some(out) = php(EXPORT, &input) else { return Ok(()) };
+        let ours: Vec<String> = values.iter().map(|v| var_export(&to_php(v))).collect();
         prop_assert_eq!(ours, split(&out));
     }
 
