@@ -18,11 +18,11 @@ the same PR, `just ci` green, Sonar green.
 
 ## Track B: platform, auth, repositories, policy
 
-- [ ] Platform: probe `php` once (version, `PHP_INT_SIZE`, extensions and versions, lib versions), cache by PHP binary path and mtime; verify locked requirements like Composer's platform solve; `config.platform`, `--ignore-platform-req(s)`; Composer's error wording.
-- [ ] Auth: every source (`COMPOSER_HOME/auth.json`, project `auth.json`, `COMPOSER_AUTH`, composer.json `config`) and type (`http-basic`, `bearer`, `github-oauth`, `gitlab-oauth`, `gitlab-token`, `bitbucket-oauth`, `forgejo-token`, `custom-headers`, inline `user:pass@host`, `github-domains`/`gitlab-domains`), Composer's precedence.
-- [ ] Repositories: `path` (symlink default, `relative`, `symlink: false` copy, `COMPOSER_MIRROR_PATH_REPOS`), `artifact`, private `composer` repos (Satis, Private Packagist) via the lock's dist URLs.
-- [ ] Policy: Composer 2.10 malware filter (`packages.json` filter metadata, `lists/all/summary.json`, conditional GET, Composer's defaults and exit codes); security-advisory audit after install with Composer's defaults; `--no-audit`, `--no-blocking`. Test against a package on the block list. Release blocker.
-- [ ] `notify-batch` download notifications to Packagist, batched, as Composer sends them.
+- [x] Platform: probe `php` once (version, `PHP_INT_SIZE`, extensions and versions, lib versions), cache by PHP binary path and mtime; verify locked requirements like Composer's platform solve; `config.platform`, `--ignore-platform-req(s)`; Composer's error wording.
+- [x] Auth: every source (`COMPOSER_HOME/auth.json`, project `auth.json`, `COMPOSER_AUTH`, composer.json `config`) and type (`http-basic`, `bearer`, `github-oauth`, `gitlab-oauth`, `gitlab-token`, `bitbucket-oauth`, `forgejo-token`, `custom-headers`, inline `user:pass@host`, `github-domains`/`gitlab-domains`), Composer's precedence.
+- [x] Repositories: `path` (symlink default, `relative`, `symlink: false` copy, `COMPOSER_MIRROR_PATH_REPOS`), `artifact`, private `composer` repos (Satis, Private Packagist) via the lock's dist URLs.
+- [x] Policy: Composer 2.10 malware filter (`packages.json` filter metadata, `lists/all/summary.json`, conditional GET, Composer's defaults and exit codes); security-advisory audit after install with Composer's defaults; `--no-audit`, `--no-blocking`. Test against a package on the block list. Release blocker.
+- [x] `notify-batch` download notifications to Packagist, batched, as Composer sends them.
 
 ## Track C: cold fetch and fuzzing
 
@@ -34,5 +34,5 @@ the same PR, `just ci` green, Sonar green.
 
 - [ ] All Phase 01 fixtures still byte-identical; new plugin fixtures produce working apps.
 - [ ] Laravel with scripts ≥ 5x faster warm than Composer.
-- [ ] Malware filter proven against a blocked package.
+- [x] Malware filter proven against a blocked package.
 - [ ] `progress.md` with what was checked.
