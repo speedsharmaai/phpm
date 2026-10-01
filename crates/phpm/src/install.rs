@@ -1070,6 +1070,7 @@ fn install(
         vendor: &vendor,
         composer: &composer,
         packages: &local_repo,
+        paths,
     };
     match &plan.autoload {
         Step::Native(_) => {
@@ -1105,6 +1106,9 @@ fn install(
         plan.post_install_for_plugins && !scripts.has(scripts::POST_INSTALL),
         out,
     )?;
+    if !req.no_scripts {
+        written.extend(covered.hooks.post_install(at)?);
+    }
     written.extend(wanted.iter().map(PathBuf::from));
     if let Some(handle) = notifier {
         let _ = handle.join();

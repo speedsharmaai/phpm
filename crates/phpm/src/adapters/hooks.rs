@@ -9,7 +9,7 @@ use serde_json::{Map, Value};
 use crate::error::Error;
 use crate::fsutil::write_if_changed;
 
-use super::{Role, symfony_runtime};
+use super::{Paths, Role, phpstan_extension_installer, symfony_runtime};
 
 /// The install as the plugins' listeners see it.
 #[derive(Debug, Clone, Copy)]
@@ -21,6 +21,8 @@ pub(crate) struct Installed<'a> {
     pub(crate) composer: &'a ComposerJson,
     /// The local repository in `installed.json`'s order.
     pub(crate) packages: &'a [&'a Map<String, Value>],
+    /// Where composer/installers chose to put packages, if it ran too.
+    pub(crate) paths: &'a Paths,
 }
 
 impl Installed<'_> {
@@ -48,7 +50,18 @@ impl Hooks {
             match role {
                 Role::Pest => written.push(pest(at)?),
                 Role::SymfonyRuntime => written.extend(runtime(at)?),
-                Role::Installers | Role::WordPressCore => {}
+                Role::Installers | Role::WordPressCore | Role::PhpstanExtensionInstaller => {}
+            }
+        }
+        Ok(written)
+    }
+
+    /// `post-install-cmd` listeners; returns the files they wrote.
+    pub(crate) fn post_install(&self, at: Installed<'_>) -> Result<Vec<PathBuf>, Error> {
+        let mut written = Vec::new();
+        for role in &self.roles {
+            if *role == Role::PhpstanExtensionInstaller {
+                written.push(phpstan(at)?);
             }
         }
         Ok(written)
@@ -126,21 +139,49 @@ fn runtime(at: Installed<'_>) -> Result<Option<PathBuf>, Error> {
     write(&Path::new(at.vendor).join("autoload_runtime.php"), &bytes).map(Some)
 }
 
+/// Whether phpm reproduces `GeneratedConfig.php` exactly.
+pub(crate) fn phpstan_check(
+    packages: &[&Map<String, Value>],
+    root_extra: Option<&Map<String, Value>>,
+    vendor: &str,
+) -> Result<(), String> {
+    phpstan_extension_installer::generate(packages, root_extra, &Paths::default(), vendor)
+        .map(|_| ())
+}
+
+fn phpstan(at: Installed<'_>) -> Result<PathBuf, Error> {
+    let bytes =
+        phpstan_extension_installer::generate(at.packages, at.root_extra(), at.paths, at.vendor)
+            .map_err(Error::install)?;
+    let own_path = at
+        .paths
+        .normalized
+        .get("phpstan/extension-installer")
+        .cloned()
+        .unwrap_or_else(|| format!("{}/phpstan/extension-installer", at.vendor));
+    write(
+        &Path::new(&own_path).join("src/GeneratedConfig.php"),
+        &bytes,
+    )
+}
+
 /// What a covered plugin's `uninstall()` removes when its package goes.
 // Composer: symfony/runtime Internal/ComposerPlugin::uninstall (always
 // unlinks); pestphp/pest-plugin Manager::uninstall (always unlinks).
+// phpstan/extension-installer's own uninstall() is a no-op: GeneratedConfig.php
+// stays behind, stale, exactly as Composer leaves it.
 pub(crate) fn uninstalled(role: Role, vendor: &str) -> Option<PathBuf> {
     match role {
         Role::Pest => Some(Path::new(vendor).join("pest-plugins.json")),
         Role::SymfonyRuntime => Some(Path::new(vendor).join("autoload_runtime.php")),
-        Role::Installers | Role::WordPressCore => None,
+        Role::Installers | Role::WordPressCore | Role::PhpstanExtensionInstaller => None,
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::{Hooks, Installed, pest_check, symfony_runtime_check, uninstalled};
-    use crate::adapters::Role;
+    use crate::adapters::{Paths, Role};
     use phpm_lock::ComposerJson;
     use serde_json::{Map, Value, json};
 
@@ -178,6 +219,7 @@ mod tests {
                 vendor: &vendor,
                 composer: &composer,
                 packages: &refs,
+                paths: &Paths::default(),
             })
             .unwrap();
         assert_eq!(written, [tmp.path().join("pest-plugins.json")]);
@@ -192,6 +234,7 @@ mod tests {
                 vendor: &vendor,
                 composer: &none,
                 packages: &[],
+                paths: &Paths::default(),
             })
             .unwrap();
         assert_eq!(
@@ -239,6 +282,7 @@ mod tests {
                 vendor: &vendor,
                 composer: &composer,
                 packages: &[],
+                paths: &Paths::default(),
             })
             .unwrap();
         assert_eq!(
@@ -255,6 +299,7 @@ mod tests {
                 vendor: &vendor,
                 composer: &off,
                 packages: &[],
+                paths: &Paths::default(),
             })
             .unwrap();
         assert!(written.is_empty());

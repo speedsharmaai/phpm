@@ -1385,3 +1385,74 @@ fn writes_autoload_runtime_natively_for_symfony_runtime() {
         "removing the plugin removes the file its uninstall() would"
     );
 }
+
+/// phpstan/extension-installer v1.4.3 as the only active plugin, with one
+/// extension package it should list in `GeneratedConfig.php`.
+#[cfg(unix)]
+fn phpstan_extension_installer_project() -> Project {
+    let mut files = BTreeMap::new();
+    files.insert(
+        "/phpstan/extension-installer.zip".to_owned(),
+        zip(
+            "extension-installer",
+            &[("src/Plugin.php", 0o644, "<?php\n")],
+        ),
+    );
+    files.insert(
+        "/x/phpstan-ext.zip".to_owned(),
+        zip("phpstan-ext", &[("extension.neon", 0o644, "parameters:\n")]),
+    );
+    Project::serving(files, |composer, lock| {
+        composer["require"] = json!({"phpstan/extension-installer": "^1.4"});
+        composer["config"] = json!({"allow-plugins": {"phpstan/extension-installer": true}});
+        let base = lock["packages"][0]["dist"]["url"]
+            .as_str()
+            .unwrap()
+            .trim_end_matches("/a/lib.zip")
+            .to_owned();
+        let mut installer = package(
+            &base,
+            "phpstan/extension-installer",
+            &json!({"type": "composer-plugin", "extra": {"class": "PHPStan\\ExtensionInstaller\\Plugin"}}),
+        );
+        installer["version"] = json!("1.4.3");
+        let ext = package(
+            &base,
+            "x/phpstan-ext",
+            &json!({
+                "extra": {"phpstan": {"includes": ["extension.neon"]}},
+                "require": {"phpstan/phpstan": "^1.11"},
+            }),
+        );
+        lock["packages"] = json!([installer, ext]);
+        lock["packages-dev"] = json!([]);
+    })
+}
+
+#[test]
+#[cfg(unix)]
+fn writes_generated_config_natively_for_phpstan_extension_installer() {
+    let p = phpstan_extension_installer_project();
+    let out = ok(&p.phpm_env(
+        &["install", "--explain"],
+        &[("PHPM_COMPOSER", "/nonexistent/composer")],
+    ));
+    assert!(
+        out.contains("decision plugins: native, phpstan/extension-installer (phpm writes GeneratedConfig.php)"),
+        "{out}"
+    );
+    assert!(!out.contains("Composer runs"), "{out}");
+    let code =
+        std::fs::read_to_string(p.vendor("phpstan/extension-installer/src/GeneratedConfig.php"))
+            .unwrap();
+    assert!(code.contains("'x/phpstan-ext' =>"), "{code}");
+    assert!(code.contains("/vendor/x/phpstan-ext',"), "{code}");
+    assert!(
+        code.contains("'phpstanVersionConstraint' => '>=1.11.0.0-dev, <2.0.0.0-dev',"),
+        "{code}"
+    );
+    assert!(
+        code.contains("PHPSTAN_VERSION_CONSTRAINT = '>=1.11.0.0-dev, <2.0.0.0-dev';"),
+        "{code}"
+    );
+}
