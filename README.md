@@ -6,24 +6,86 @@
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/speedsharmaai/phpm/badge)](https://scorecard.dev/viewer/?uri=github.com/speedsharmaai/phpm)
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)](#licence)
 
-A Composer-compatible PHP installer in Rust. Reads your `composer.json` and
-`composer.lock` unchanged, writes the same `vendor/`, and does it in a fraction
-of the time on every install that is not bound by the network.
+An extremely fast, Composer-compatible PHP installer, written in Rust. It reads
+your `composer.json` and `composer.lock` unchanged and writes the same
+`vendor/`, byte for byte, in a fraction of the time on every install that is
+not bound by the network.
 
-**Nothing beyond the spike is built until Phase 01 answers one question:**
-can a lockfile install produce a `vendor/` that is byte-identical to Composer's,
-at least 10x faster warm, on real projects, and is that a big enough difference
-to beat eight other people who had the same idea this year? Phase 01 is a
-spike with a gate that can kill the project in two weeks. Before it, Phase 00
-sets up the quality tooling on an empty workspace, so the spike is written
-under the same lints, hooks and CI as everything after it.
+> **Status: pre-release, not usable yet.** phpm is in Phase 01, a two-week
+> spike that ends in a gate which can stop the project. There is no release,
+> no installer and no `phpm install` command you can run today. Everything
+> below is built in the open, and every number is reproducible from this repo.
 
-Start here: [phase 00](phases/phase-00-foundation/scope.md) ·
-[phase 01](phases/phase-01-spike/scope.md) ·
-[phases](phases/README.md) ·
-[decisions](docs/decisions/README.md) ·
-[topology](docs/arch/topology.md) ·
-[research](docs/research/)
+## What works today
+
+| Piece | State | Measured |
+|---|---|---|
+| `installed.json`, `installed.php`, `InstalledVersions.php` | done | byte-identical to Composer 2.10.3 on all 5 fixtures, dev and `--no-dev` |
+| Download, global store, extraction | done | file contents and modes identical to Composer's per package |
+| Placement into `vendor/` (clonefile per package on APFS) | done | **0.13 s** for Laravel's 109 packages, vs ~2.6 s Composer spends re-extracting |
+| Autoload files (`autoload_*.php`, `ClassLoader.php`, `platform_check.php`) | in progress | non-optimised output merged; classmap scanning (`-o`) next |
+| `phpm install` command, bin proxies, no-op fast path | in progress | |
+| Head-to-head benchmark and the Phase 01 gate | next | |
+
+Measured on an M1 Pro (APFS), Composer 2.10.3, PHP 8.4, fixture
+`laravel-skeleton` (109 packages).
+
+## Where it stands against the field
+
+Other tools had the same idea this year. Measured on the same machine and
+fixture, before phpm has an install command of its own
+([details](phases/phase-01-spike/competitors.md)):
+
+| Tool | Warm install | No-op | `vendor/` vs Composer |
+|---|---|---|---|
+| Composer 2.10.3 | 4.28 s | 1.53 s | reference |
+| riff 0.0.7 | 2.46 s | 1.37 s | 4 files differ |
+| viv (vivace) 0.20.0 | 2.70 s | 9.3 ms | every file mode differs |
+| vivacity 0.19.1 | 0.76 s | 368 ms | identical |
+| **phpm target** | **≤ 0.40 s** | **≤ 10 ms** | **identical** |
+
+If phpm does not beat the best of these on warm installs and no-op while
+staying byte-identical, the plan says stop and contribute to the leader
+instead ([decision 0007](docs/decisions/0007-crowded-field-contribute-if-behind.md)).
+
+## Roadmap
+
+| Phase | What | State |
+|---|---|---|
+| 00 | Quality foundation: lints, hooks, CI on 3 OSes, coverage, CodeQL, Scorecard, Sonar | done |
+| 01 | Spike: `phpm install` on plugin-free lockfiles, byte-identical, gate | in progress |
+| 02 | Parity core: platform checks, auth, scripts, malware filter, Composer fallback | |
+| 03 | Compatibility sweep: nightly diff against Composer across hundreds of lockfiles | |
+| 04 | Plugin adapters: composer/installers, symfony/runtime, phpstan installer | |
+| 05 | Real-world benchmarks: Composer vs phpm on the largest open-source PHP apps | |
+| 06 | Launch: release, Homebrew, setup-php, Docker, GitHub Action | |
+| 07 | Resolver: `update` and `require` | |
+
+Full plan: [phases](phases/README.md) · [decisions](docs/decisions/README.md) ·
+[topology](docs/arch/topology.md) · [research](docs/research/)
+
+## Repository
+
+```text
+crates/
+  phpm            the binary
+  phpm-lock       composer.json / composer.lock, installed.json, installed.php
+  phpm-php        byte-exact PHP json_encode and var_export writers
+  phpm-store      fetch, global store, extraction, clonefile placement
+  phpm-autoload   Composer's autoload files and class scanning
+  phpm-diffvendor compare two vendor/ trees byte for byte, modes included
+  phpm-testkit    test helpers
+fixtures/         pinned lockfiles the gate is measured on
+tools/bench/      hyperfine harness: Composer vs phpm vs other installers
+```
+
+Build and check everything the way CI does:
+
+```sh
+just ci
+```
+
+See [CONTRIBUTING](CONTRIBUTING.md).
 
 ---
 
@@ -37,7 +99,7 @@ declined in 2025 and called Composer "great". Most PHP developers would agree.
 So the question is not "is Composer slow". It is "where is it slow enough that
 someone would install a second tool".
 
-Measured on this Mac, Composer 2.10.3, fresh Laravel skeleton, 109 packages:
+Measured on an M1 Pro, Composer 2.10.3, fresh Laravel skeleton, 109 packages:
 
 | Step | Composer | Floor measured | Where the time goes |
 |---|---|---|---|

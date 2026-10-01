@@ -1,60 +1,42 @@
 # Worklist
 
-Nothing is built. Research is written, a baseline is measured, the repo is
-public, and Phases 00 and 01 are tasked.
+The one-screen view. Details live in [phases](phases/README.md).
 
-Current state: **Phase 00 done; Phase 01 spike in progress (fixtures, bench, diffvendor merged).**
+Current state: **Phase 00 done. Phase 01 spike: metadata and store merged,
+autoload and the install command in progress.**
 
 ## Next three things
 
-1. **Owner actions from Phase 00.** `SONAR_TOKEN` (free on sonarcloud.io),
-   OpenSSF Best Practices registration, a signing key. See
-   [phase 00 progress](phases/phase-00-foundation/progress.md).
-2. **Trademark search for `phpm`.** The repo is public now, so a rename gets
-   more expensive every week.
-3. **Read riff and vivace properly** (Phase 01's first task). Binaries are
-   downloaded and verified; the head-to-head run is next.
+1. **Finish the install path.** Class scanning for `-o` (milestone 4), then
+   `phpm install` with bin proxies and the no-op fast path (milestone 5).
+2. **Run the gate.** `tools/bench/bench.sh` for Composer, phpm and vivacity on
+   every fixture, `diffvendor` on every `vendor/`, then write
+   `phases/phase-01-spike/gate.md` with the five numbers and the call.
+3. **Rename fixture lockfiles** so GitHub's dependency graph stops treating
+   them as dependencies (Dependabot opened six PRs against them; automated
+   security-fix PRs are paused until this lands).
 
-## Now
+## Owner actions
 
-- [x] Research: Composer internals, market and competitors, uv architecture, naming
-- [x] Baseline benchmark on this Mac (Composer 2.10.3, PHP 8.4, APFS)
-- [x] Proof the floor is real: 109 package dirs cloned in 0.14-0.24 s
-- [x] Decisions 0001-0007
-- [x] Phases 00 and 01 scoped and broken into tasks; phases 02-06 outlined
-- [ ] riff and vivace read and run
-- [ ] Trademark search and name reservation
-- [ ] Fixture set collected
-
-## Phase 00 · Foundation
-
-- [ ] Owner: SonarQube Cloud org + `SONAR_TOKEN`; Best Practices badge; signing key
-- [x] Workspace, toolchain, lints, rustfmt, clippy config
-- [x] prek hooks, committed, typos, tombi, markdownlint
-- [x] nextest, testkit, coverage floor (insta, proptest, criterion arrive with Phase 01 code)
-- [x] cargo-deny, cargo-shear, cargo-hack, Dependabot, SECURITY.md
-- [x] justfile
-- [x] CI, PR title, Sonar, CodeQL, Scorecard, release-plz workflows (dist moved to Phase 06)
-- [x] Ruleset on `main`, security settings
-- [x] Licences, CONTRIBUTING, CODEOWNERS, templates, badges
-- [x] Proof: every gate fails where it should
+- [x] `SONAR_TOKEN` added; Sonar quality gate runs on every PR
+- [x] SSH signing key registered; `main` requires verified signatures
+- [ ] OpenSSF Best Practices registration at bestpractices.dev
+- [ ] Trademark search for `phpm`
 
 ## Phase 01 · Spike
 
-- [ ] Cargo workspace, one binary, `phpm install` only
-- [ ] Lockfile parse and diff against `vendor/composer/installed.json`
-- [ ] Parallel dist download into the store, GitHub top-dir strip, exec bits kept
-- [ ] Per-package clone into `vendor/`
-- [ ] `installed.json`, `installed.php`, `InstalledVersions.php` byte-identical
-- [ ] Autoload family (non-optimised) byte-identical
-- [ ] Bin proxies byte-identical
-- [ ] No-op fast path
-- [ ] Diff harness: phpm vs Composer `vendor/` on every fixture
-- [ ] hyperfine harness: Composer vs riff vs vivace vs phpm, cold, warm, no-op
+- [x] Competitors measured: riff, viv, vivacity ([competitors](phases/phase-01-spike/competitors.md))
+- [x] Fixtures, hyperfine harness, `diffvendor`
+- [x] PHP writers: `json_encode`, `var_export`, `dumpToPhpCode` (#12, #16)
+- [x] Version normalisation port (#13)
+- [x] `installed.json`, `installed.php`, `InstalledVersions.php` byte-identical on 5/5 fixtures (#14)
+- [x] Fetch, global store, extraction, clonefile placement, pruning (#17)
+- [x] Autoload files without class scanning (#18)
+- [ ] Class scanning for `-o` and classmap autoloads
+- [ ] `phpm install`, bin proxies, no-op fast path
 - [ ] **Gate: write `gate.md` with the table and the call**
 
 ## Phase 02 and beyond
 
-Outlined, not tasked. What Phase 02 contains depends on which files the diff
-harness shows are hard to match, and which plugins the fixtures actually hit.
-See [phases/README.md](phases/README.md).
+Outlined, not tasked. Phase 02's order depends on what the gate and the diff
+harness show. See [phases/README.md](phases/README.md).
