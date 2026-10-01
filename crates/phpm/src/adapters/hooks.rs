@@ -9,7 +9,10 @@ use serde_json::{Map, Value};
 use crate::error::Error;
 use crate::fsutil::write_if_changed;
 
-use super::{Paths, Role, dealerdirect_phpcs, phpstan_extension_installer, symfony_runtime};
+use super::{
+    Paths, Role, dealerdirect_phpcs, drupal_scaffold, php_http_discovery,
+    phpstan_extension_installer, symfony_runtime,
+};
 
 /// The install as the plugins' listeners see it.
 #[derive(Debug, Clone, Copy)]
@@ -19,6 +22,7 @@ pub(crate) struct Installed<'a> {
     /// `config.vendor-dir`, absolute.
     pub(crate) vendor: &'a str,
     pub(crate) composer: &'a ComposerJson,
+    pub(crate) root_version: &'a phpm_lock::RootVersion,
     /// The local repository in `installed.json`'s order.
     pub(crate) packages: &'a [&'a Map<String, Value>],
     /// Where composer/installers chose to put packages, if it ran too.
@@ -33,6 +37,15 @@ impl Installed<'_> {
     fn root_type(&self) -> Option<&str> {
         self.composer.data().get("type").and_then(Value::as_str)
     }
+
+    fn root_name(&self) -> String {
+        self.composer
+            .data()
+            .get("name")
+            .and_then(Value::as_str)
+            .unwrap_or("__root__")
+            .to_ascii_lowercase()
+    }
 }
 
 /// Listeners of the covered plugins, in the order Composer activates them.
@@ -41,12 +54,60 @@ pub(crate) struct Hooks {
     pub(crate) roles: Vec<Role>,
 }
 
+// Composer: Util/Filesystem::ensureDirectoryExists, called by every writer
+// (ReplaceOp, the various GeneratedConfig/autoload_runtime writers) before
+// it touches its destination.
 fn write(path: &Path, bytes: &[u8]) -> Result<PathBuf, Error> {
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| Error::io(parent, &e))?;
+    }
     write_if_changed(path, bytes).map_err(|e| Error::io(path, &e))?;
     Ok(path.to_path_buf())
 }
 
+/// What `pre-autoload-dump` adds, so the native autoload generator sees it
+/// before it runs.
+#[derive(Debug, Default)]
+pub(crate) struct PreAutoload {
+    pub(crate) written: Vec<PathBuf>,
+    pub(crate) extra_root_classmap: Vec<String>,
+}
+
 impl Hooks {
+    /// `pre-autoload-dump` listeners; must run before the autoload itself
+    /// is generated.
+    pub(crate) fn pre_autoload(&self, at: Installed<'_>) -> Result<PreAutoload, Error> {
+        let mut out = PreAutoload::default();
+        for role in &self.roles {
+            match role {
+                Role::DrupalScaffold => {
+                    let generated = drupal_scaffold::pre_autoload(
+                        at.packages,
+                        &at.root_name(),
+                        &at.root_version.normalized,
+                        at.root_version.reference.as_deref(),
+                        at.vendor,
+                    )
+                    .map_err(Error::install)?;
+                    out.written.push(write(
+                        &generated.drupal_installed.path,
+                        &generated.drupal_installed.bytes,
+                    )?);
+                    out.extra_root_classmap
+                        .extend(generated.extra_root_classmap);
+                }
+                Role::PhpHttpDiscovery => {
+                    let file = php_http_discovery::stale_file(at.vendor);
+                    if file.exists() {
+                        std::fs::remove_file(&file).map_err(|e| Error::io(&file, &e))?;
+                    }
+                }
+                _ => {}
+            }
+        }
+        Ok(out)
+    }
+
     /// `post-autoload-dump` listeners; returns the files they wrote.
     pub(crate) fn post_autoload(&self, at: Installed<'_>) -> Result<Vec<PathBuf>, Error> {
         let mut written = Vec::new();
@@ -57,7 +118,10 @@ impl Hooks {
                 Role::Installers
                 | Role::WordPressCore
                 | Role::PhpstanExtensionInstaller
-                | Role::DealerdirectPhpcs => {}
+                | Role::DealerdirectPhpcs
+                | Role::DrupalScaffold
+                | Role::PhpHttpDiscovery
+                | Role::NoOp => {}
             }
         }
         Ok(written)
@@ -70,7 +134,13 @@ impl Hooks {
             match role {
                 Role::PhpstanExtensionInstaller => written.push(phpstan(at)?),
                 Role::DealerdirectPhpcs => written.extend(dealerdirect(at)?),
-                Role::Installers | Role::WordPressCore | Role::Pest | Role::SymfonyRuntime => {}
+                Role::DrupalScaffold => written.extend(drupal(at)?),
+                Role::Installers
+                | Role::WordPressCore
+                | Role::Pest
+                | Role::SymfonyRuntime
+                | Role::PhpHttpDiscovery
+                | Role::NoOp => {}
             }
         }
         Ok(written)
@@ -217,6 +287,37 @@ fn dealerdirect(at: Installed<'_>) -> Result<Option<PathBuf>, Error> {
     write(&Path::new(&phpcs_path).join("CodeSniffer.conf"), &bytes).map(Some)
 }
 
+/// Whether phpm reproduces the scaffold files and reference files exactly.
+/// The real file reads and the web-root directory this needs are not there
+/// yet before packages are placed, so this only validates the shape of the
+/// `drupal-scaffold` config (file-mapping, locations tokens, the
+/// `.gitignore` gate), deferring the rest to the real hook.
+pub(crate) fn drupal_scaffold_check(
+    packages: &[&Map<String, Value>],
+    root_extra: Option<&Map<String, Value>>,
+    root: &str,
+) -> Result<(), String> {
+    drupal_scaffold::check(packages, root_extra, &Paths::default(), root)
+}
+
+/// Whether phpm reproduces php-http/discovery's `pre-autoload-dump` effect:
+/// only when nothing is pinned in `extra.discovery`.
+pub(crate) fn php_http_discovery_check(
+    root_extra: Option<&Map<String, Value>>,
+) -> Result<(), String> {
+    php_http_discovery::check(root_extra)
+}
+
+fn drupal(at: Installed<'_>) -> Result<Vec<PathBuf>, Error> {
+    let files =
+        drupal_scaffold::post_install(at.packages, at.root_extra(), at.paths, at.root, at.vendor)
+            .map_err(Error::install)?;
+    files
+        .into_iter()
+        .map(|f| write(&f.path, &f.bytes))
+        .collect()
+}
+
 /// What a covered plugin's `uninstall()` removes when its package goes.
 // Composer: symfony/runtime Internal/ComposerPlugin::uninstall (always
 // unlinks); pestphp/pest-plugin Manager::uninstall (always unlinks).
@@ -229,7 +330,10 @@ pub(crate) fn uninstalled(role: Role, vendor: &str) -> Option<PathBuf> {
         Role::Installers
         | Role::WordPressCore
         | Role::PhpstanExtensionInstaller
-        | Role::DealerdirectPhpcs => None,
+        | Role::DealerdirectPhpcs
+        | Role::DrupalScaffold
+        | Role::PhpHttpDiscovery
+        | Role::NoOp => None,
     }
 }
 
@@ -237,13 +341,21 @@ pub(crate) fn uninstalled(role: Role, vendor: &str) -> Option<PathBuf> {
 mod tests {
     use super::{Hooks, Installed, pest_check, symfony_runtime_check, uninstalled};
     use crate::adapters::{Paths, Role};
-    use phpm_lock::ComposerJson;
+    use phpm_lock::{ComposerJson, RootVersion};
     use serde_json::{Map, Value, json};
 
     fn obj(v: Value) -> Map<String, Value> {
         match v {
             Value::Object(m) => m,
             _ => unreachable!(),
+        }
+    }
+
+    fn no_version() -> RootVersion {
+        RootVersion {
+            pretty: "1.0.0".into(),
+            normalized: "1.0.0.0".into(),
+            reference: None,
         }
     }
 
@@ -273,6 +385,7 @@ mod tests {
                 root: "/p",
                 vendor: &vendor,
                 composer: &composer,
+                root_version: &no_version(),
                 packages: &refs,
                 paths: &Paths::default(),
             })
@@ -288,6 +401,7 @@ mod tests {
                 root: "/p",
                 vendor: &vendor,
                 composer: &none,
+                root_version: &no_version(),
                 packages: &[],
                 paths: &Paths::default(),
             })
@@ -336,6 +450,7 @@ mod tests {
                 root: &root,
                 vendor: &vendor,
                 composer: &composer,
+                root_version: &no_version(),
                 packages: &[],
                 paths: &Paths::default(),
             })
@@ -353,6 +468,7 @@ mod tests {
                 root: &root,
                 vendor: &vendor,
                 composer: &off,
+                root_version: &no_version(),
                 packages: &[],
                 paths: &Paths::default(),
             })

@@ -43,22 +43,48 @@ with `phpm-diffvendor`, 0 differences) and the app smoke checks
 - [x] roots/wordpress-core-installer (1.100.0 to 4.0.0, identical sources):
   `wordpress-install-dir` for `wordpress-core` packages. johnpbloch's
   stays on fallback.
-- [ ] Bedrock's `web/` identical; `install-path` in `installed.*` matches.
+- [x] Bedrock's `web/` identical; `install-path` in `installed.*` matches.
+  Confirmed via `e2e_app_bedrock` with `native: true`: no step hands off to
+  Composer, `vendor/` and `web/` byte-identical, `$wp_version` reads back.
 
 ## drupal/core-composer-scaffold
 
-- [ ] File mappings from allowed packages (implicit `drupal/core` and
-  `drupal/legacy-scaffold-assets`, root `allowed-packages`, recursive),
-  `replace`/`append`/`prepend`/`default`/`skip`, `overwrite`,
-  `force-append`, overrides between packages, unchanged files left alone.
-- [ ] `locations` (`web-root`, `project-root`), `[web-root]/autoload.php`
-  and `autoload_runtime.php` unless committed, `.gitignore` management
-  through the same git commands the plugin runs, `symlink` mode.
-- [ ] `preAutoloadDump`: the root classmap additions and
-  `vendor/drupal/DrupalInstalled.php` with its xxh3 versions hash.
-- [ ] drupal/core-project-message (prints only) and
-  drupal/core-recipe-unpack (no install-time hook) handled natively.
+- [x] File mappings from allowed packages (implicit `drupal/core` and
+  `drupal/legacy-scaffold-assets`, root `allowed-packages`, recursive).
+  Only the plain `replace` shape (a string, or `{path, overwrite}`) is
+  reproduced; `append`/`prepend`/`mode` and `overwrite: false` decline
+  rather than guess, as does a root package with its own
+  `drupal-scaffold.file-mapping`. Later packages override earlier ones for
+  the same destination, matching `ScaffoldFileCollection`. `symlink` mode
+  is a Windows-only Composer concern and out of scope.
+- [x] `locations` (`web-root`, `project-root`) and the interpolator;
+  `[web-root]/autoload.php` and `autoload_runtime.php` regenerated from the
+  real plugin templates (not "unless committed" — Composer's own plugin
+  always overwrites them). `.gitignore` management: phpm shells to
+  `git rev-parse --show-toplevel` and `git check-ignore vendor` and only
+  goes native when management would stay disabled (no committed
+  `.gitignore` ignoring `vendor`), the real drupal-recommended fixture's
+  case; declines rather than reproduce the gitignore-writing path.
+- [x] `preAutoloadDump`: the root classmap additions (conditional
+  symfony/http-foundation, symfony/http-kernel, symfony/dependency-injection
+  and psr/container files) and `vendor/drupal/DrupalInstalled.php` with its
+  xxh3 versions hash (`twox-hash`, verified byte-for-byte against PHP's
+  `hash('xxh3', ...)`). Threaded into `phpm-autoload` as
+  `Options.extra_root_classmap`, appended to the root package's `classmap`
+  exactly as Composer's `AutoloadGenerator` does for an absolute path on
+  the root (empty `install_path`, so no path rewriting).
+  Pinned to the exact commit drupal-recommended's lock locks
+  (`Versions::Reference`), since it is a dev-branch package with no tagged
+  release and the version string alone cannot distinguish one commit from
+  another.
+- [x] drupal/core-project-message (prints only, verified it writes nothing)
+  and drupal/core-recipe-unpack (`postUpdate`/`postCreateProject` hooks,
+  neither of which `composer install` fires) are `Role::NoOp`.
   drupal/core-vendor-hardening is not in the fixture; it stays on fallback.
+- [x] Scaffold destinations can be in directories placement never creates
+  (`recipes/README.txt`, `web/sites/default/...`); the shared adapter
+  `write()` helper now `create_dir_all`s the parent first, matching
+  Composer's `Filesystem::ensureDirectoryExists` before every write.
 
 ## symfony/runtime
 
@@ -87,10 +113,15 @@ with `phpm-diffvendor`, 0 differences) and the app smoke checks
 
 ## php-http/discovery
 
-- [ ] Install time is `preAutoloadDump` only: with no `extra.discovery` it
-  removes a stale `GeneratedDiscoveryStrategy.php` and does nothing else.
-  Pinned implementations change the root classmap; decide native or
-  fallback by fidelity.
+- [x] Verified against the real `src/Composer/Plugin.php` (1.20.0, the
+  version drupal-recommended locks): `postUpdate` binds to
+  `post-update-cmd`, which `composer install` never runs, so only
+  `preAutoloadDump` matters. With `extra.discovery` empty or unset (the
+  common case, true for drupal-recommended) its only effect is removing a
+  stale `vendor/composer/GeneratedDiscoveryStrategy.php` from an earlier
+  run; phpm reproduces exactly that. A pinned `extra.discovery` would
+  generate and classmap a candidate-strategy class; phpm declines rather
+  than reproduce that generation.
 
 ## dealerdirect/phpcodesniffer-composer-installer
 
@@ -114,8 +145,16 @@ with `phpm-diffvendor`, 0 differences) and the app smoke checks
 
 ## Exit
 
-- [ ] Bedrock and drupal-recommended install with no Composer at all,
-  identical trees, working apps.
+- [x] Bedrock and drupal-recommended install with no Composer at all,
+  identical trees, working apps. `e2e_app_bedrock` and
+  `e2e_app_drupal_recommended` both run with `native: true`: every active
+  plugin (composer/installers, drupal/core-composer-scaffold,
+  drupal/core-project-message, drupal/core-recipe-unpack, symfony/runtime,
+  dealerdirect/phpcodesniffer-composer-installer, php-http/discovery,
+  phpstan/extension-installer for drupal-recommended;
+  composer/installers, roots/wordpress-core-installer for bedrock) is
+  native, no step hands off to Composer, `vendor/`/`web/`/`recipes/`
+  byte-identical, and `Drupal::VERSION`/`$wp_version` read back.
 - [ ] Warm benchmarks for both against Composer under
   `bench/results/<date>-phase-04/`.
 - [ ] `progress.md`, README numbers and roadmap, WORKLIST.

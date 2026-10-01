@@ -1104,19 +1104,30 @@ fn install(
         root: &root_dir,
         vendor: &vendor,
         composer: &composer,
+        root_version: &root_version,
         packages: &local_repo,
         paths,
     };
     match &plan.autoload {
         Step::Native(_) => {
             steps.event(req, &plan.pre_autoload, scripts::PRE_AUTOLOAD, false, out)?;
+            let pre_autoload = if req.no_scripts {
+                adapters::PreAutoload::default()
+            } else {
+                let pre_autoload = covered.hooks.pre_autoload(at)?;
+                written.extend(pre_autoload.written.clone());
+                pre_autoload
+            };
             written.extend(native_autoload(
                 req,
-                &composer,
-                &lock,
-                &root_dir,
-                &paths.normalized,
+                &phpm_autoload::Project {
+                    composer_json: &composer,
+                    lock: &lock,
+                    root_dir: &root_dir,
+                    install_paths: &paths.normalized,
+                },
                 &class_trees(&store, &placements, &vendor_real, &vendor),
+                &pre_autoload.extra_root_classmap,
                 out,
             )?);
             if !req.no_scripts {
@@ -1263,11 +1274,9 @@ impl Steps<'_> {
 /// phpm's own autoloader, byte-identical to Composer's; returns what it wrote.
 fn native_autoload(
     req: &Request,
-    composer: &ComposerJson,
-    lock: &Lock,
-    root_dir: &str,
-    install_paths: &phpm_lock::InstallPaths,
+    project: &phpm_autoload::Project<'_>,
     trees: &[Tree],
+    extra_root_classmap: &[String],
     out: &mut Out<'_>,
 ) -> Result<Vec<PathBuf>, Error> {
     let started = Instant::now();
@@ -1276,9 +1285,10 @@ fn native_autoload(
         optimize: req.optimize,
         classmap_authoritative: req.classmap_authoritative,
         platform: req.platform(),
+        extra_root_classmap: extra_root_classmap.to_vec(),
         ..phpm_autoload::Options::default()
     }
-    .with_config(composer);
+    .with_config(project.composer_json);
     if options.optimize {
         options.known_classes = Some(Arc::new(known_classes(trees)));
         out.detail(&format!(
@@ -1287,15 +1297,7 @@ fn native_autoload(
             started.elapsed()
         ));
     }
-    let autoload = phpm_autoload::generate(
-        &phpm_autoload::Project {
-            composer_json: composer,
-            lock,
-            root_dir,
-            install_paths,
-        },
-        &options,
-    )?;
+    let autoload = phpm_autoload::generate(project, &options)?;
     autoload
         .write()
         .map_err(|e| Error::install(format!("writing the autoloader: {e}")))?;

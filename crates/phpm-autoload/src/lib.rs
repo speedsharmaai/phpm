@@ -17,7 +17,7 @@ use crate::package::Package;
 use crate::paths::{Code, Dirs, find_shortest_path_code, real_path};
 use crate::static_file::{Loader, static_file};
 use phpm_lock::{CLASS_LOADER_PHP, COMPOSER_LICENSE, ComposerJson, Lock, normalize_path};
-use phpm_php::{PhpKey, is_absolute_path, var_export_str};
+use phpm_php::{PhpKey, PhpValue, is_absolute_path, var_export_str};
 use serde_json::Value;
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::fmt;
@@ -85,6 +85,9 @@ pub struct Options {
     /// [`scan::file_classes`] results the caller already has, keyed by real
     /// path; those files are not read again.
     pub known_classes: Option<Arc<HashMap<String, Vec<String>>>>,
+    /// Absolute paths a plugin's `pre-autoload-dump` listener added to the
+    /// root package's `classmap`, in the order it added them.
+    pub extra_root_classmap: Vec<String>,
 }
 
 /// PHP truthiness of a JSON config value.
@@ -232,7 +235,7 @@ fn export_key(key: &PhpKey) -> String {
 
 // Composer: Autoload/AutoloadGenerator.php validatePackage
 fn validate(package: &Package) -> Result<(), Error> {
-    let Some(phpm_php::PhpValue::Array(psr4)) = package.autoload.get(&PhpKey::from("psr-4")) else {
+    let Some(PhpValue::Array(psr4)) = package.autoload.get(&PhpKey::from("psr-4")) else {
         return Ok(());
     };
     if psr4.is_empty() {
@@ -324,7 +327,19 @@ pub fn generate(project: &Project<'_>, options: &Options) -> Result<Output, Erro
         vendor: vendor.clone(),
     };
 
-    let root = Package::from_config(project.composer_json.data(), "__root__");
+    let mut root = Package::from_config(project.composer_json.data(), "__root__");
+    if !options.extra_root_classmap.is_empty() {
+        let slot = root
+            .autoload
+            .entry(PhpKey::from("classmap"))
+            .or_insert_with(|| PhpValue::Array(phpm_php::PhpArray::new()));
+        if let PhpValue::Array(list) = slot {
+            for path in &options.extra_root_classmap {
+                let next = i64::try_from(list.len()).unwrap_or(i64::MAX);
+                list.insert(PhpKey::Int(next), PhpValue::from(path.clone()));
+            }
+        }
+    }
     let packages = installed_packages(project.lock, options.dev_mode)?;
     let dev_names: BTreeSet<String> = project
         .lock
@@ -382,7 +397,7 @@ pub fn generate(project: &Project<'_>, options: &Options) -> Result<Output, Erro
     let autoloads = parse_autoloads(&sorted, options.dev_mode, &base);
 
     if root.target_dir.is_some()
-        && matches!(root.autoload.get(&PhpKey::from("psr-0")), Some(phpm_php::PhpValue::Array(a)) if !a.is_empty())
+        && matches!(root.autoload.get(&PhpKey::from("psr-0")), Some(PhpValue::Array(a)) if !a.is_empty())
     {
         return Err(Error::Unsupported(
             "a root package with target-dir and psr-0".into(),
@@ -867,6 +882,39 @@ mod tests {
         assert!(
             files.contains("$baseDir . '/web/app/themes/theme/boot.php',"),
             "{files}"
+        );
+    }
+
+    #[test]
+    fn extra_root_classmap_paths_are_appended_and_scanned() {
+        let (dir, root) = project_dir();
+        std::fs::write(
+            dir.path().join("DrupalInstalled.php"),
+            "<?php\nnamespace Drupal;\nclass DrupalInstalled {}\n",
+        )
+        .unwrap();
+        let composer = ComposerJson::from_value(json!({})).unwrap();
+        let lock = Lock::from_value(json!({"packages": []})).unwrap();
+        let out = generate(
+            &Project {
+                composer_json: &composer,
+                lock: &lock,
+                root_dir: &root,
+                install_paths: &phpm_lock::InstallPaths::new(),
+            },
+            &Options {
+                optimize: true,
+                extra_root_classmap: vec![format!("{root}/DrupalInstalled.php")],
+                ..Options::default()
+            },
+        )
+        .unwrap();
+        let classmap =
+            String::from_utf8(out.file("composer/autoload_classmap.php").unwrap().to_vec())
+                .unwrap();
+        assert!(
+            classmap.contains("'Drupal\\\\DrupalInstalled' => $baseDir . '/DrupalInstalled.php',"),
+            "{classmap}"
         );
     }
 

@@ -261,7 +261,7 @@ e2e_app_tests! {
     e2e_app_symfony_demo: "symfony-demo", [], ["vendor", "config", "public"], ["php", "bin/console", "about"], false;
     e2e_app_monica: "monica", ["--ignore-platform-reqs"], ["vendor", "bootstrap"], ["php", "artisan", "--version"], false;
     e2e_app_drupal_recommended: "drupal-recommended", [], ["vendor", "web", "recipes"],
-        ["php", "-r", "require 'vendor/autoload.php'; echo Drupal::VERSION;"], false;
+        ["php", "-r", "require 'vendor/autoload.php'; echo Drupal::VERSION;"], true;
     e2e_app_bedrock: "bedrock", [], ["vendor", "web"],
-        ["php", "-r", "require 'vendor/autoload.php'; require 'web/wp/wp-includes/version.php'; echo $wp_version;"], false;
+        ["php", "-r", "require 'vendor/autoload.php'; require 'web/wp/wp-includes/version.php'; echo $wp_version;"], true;
 }
