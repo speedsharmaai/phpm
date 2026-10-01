@@ -44,6 +44,7 @@ name = "tombi format"
 language = "system"
 entry = "tombi format"
 types = ["toml"]
+exclude = "^Cargo\\.lock$"
 
 [[repos.hooks]]
 id = "typos"
