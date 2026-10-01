@@ -1,0 +1,2663 @@
+{
+  "taken": "2026-10-01",
+  "projects": [
+    {
+      "repo": "laravel/laravel",
+      "commit": "06d016a364a37430eec9cbc52209adce3d7667ce",
+      "stars": 85049,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": "no committed lock; installs fixtures/laravel-skeleton in this repository",
+      "fixture": "laravel-skeleton"
+    },
+    {
+      "repo": "coollabsio/coolify",
+      "commit": "ec373d651c17f2b27d6cefc32fd1f633f8b4840b",
+      "stars": 62455,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": ""
+    },
+    {
+      "repo": "appwrite/appwrite",
+      "commit": "27d5e8c4e498c2cd9f62ea163749a5fd4f557c9d",
+      "stars": 57528,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:>=10000 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "nextcloud/server",
+      "commit": "74bafed8ad63f45d3c00730440c6f456308efd23",
+      "stars": 36965,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": ""
+    },
+    {
+      "repo": "filamentphp/filament",
+      "commit": "42a972ccc1c5cfe23c3d9faf6b74152a229513fb",
+      "stars": 32159,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:>=10000 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "composer/composer",
+      "commit": "6712f83974b4469f764963f3a65852496f254350",
+      "stars": 29537,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:>=10000 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "bagisto/bagisto",
+      "commit": "17b8bbfc5cc81852c39144004d444a1cd9bd20fc",
+      "stars": 28196,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": ""
+    },
+    {
+      "repo": "monicahq/monica",
+      "commit": "6e6ec217457e946e330ba7cd3b28107f4332c7b1",
+      "stars": 25388,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": ""
+    },
+    {
+      "repo": "firefly-iii/firefly-iii",
+      "commit": "7879e01a0f6aab52e9b5ae00d04b3f7e4c912079",
+      "stars": 24786,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": ""
+    },
+    {
+      "repo": "krayin/laravel-crm",
+      "commit": "ffbc57244d59d6da0da34a6ff5fcc25c3a461585",
+      "stars": 23965,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:>=10000 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "DesignPatternsPHP/DesignPatternsPHP",
+      "commit": "54254e0f2a59e27280f81304bce9218e12f97a03",
+      "stars": 22192,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:>=10000 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "matomo-org/matomo",
+      "commit": "521acf30acc963e99f60e417ad126bd0346c4ce2",
+      "stars": 21916,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": ""
+    },
+    {
+      "repo": "sebastianbergmann/phpunit",
+      "commit": "7312309778cbcaf12bb54c45128011c0afa5db97",
+      "stars": 20061,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:>=10000 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "BookStackApp/BookStack",
+      "commit": "f585a7d9100a99cba8479c1ef5fd56e05562daea",
+      "stars": 19066,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": ""
+    },
+    {
+      "repo": "koel/koel",
+      "commit": "295d8c1b7986b4f4e2565a7b8eab929c37863457",
+      "stars": 17267,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": ""
+    },
+    {
+      "repo": "FreshRSS/FreshRSS",
+      "commit": "1f6d7853b3b9b21b75b6c382a14822fb8a2602a9",
+      "stars": 16194,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:>=10000 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "getgrav/grav",
+      "commit": "dfa4e32e713a017d335a291117c80d7113361078",
+      "stars": 15672,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": ""
+    },
+    {
+      "repo": "cachethq/cachet",
+      "commit": "28ff732b68fc3374868695ce00226a276de24539",
+      "stars": 15252,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": ""
+    },
+    {
+      "repo": "grokability/snipe-it",
+      "commit": "5d7fe00370813649d6b535a43d3a47ec51adbab2",
+      "stars": 14990,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": ""
+    },
+    {
+      "repo": "yiisoft/yii2",
+      "commit": "5c8df0e02afe0a72849851f227c35debcbdbd916",
+      "stars": 14286,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:>=10000 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "PHPOffice/PhpSpreadsheet",
+      "commit": "850b5091a18a3e6850b46f05cf91490f5a4ed8ea",
+      "stars": 13996,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:>=10000 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "wallabag/wallabag",
+      "commit": "a5be36bf74b6d77307bf923beb6cbc185c849d56",
+      "stars": 12994,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:>=10000 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "star7th/showdoc",
+      "commit": "3ab425794ac2a7309d856f82213b2d5ae8964318",
+      "stars": 12873,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:>=10000 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "SpartnerNL/Laravel-Excel",
+      "commit": "050985813424582bf084b93eb8c3fee0fb12c6c4",
+      "stars": 12703,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:>=10000 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "ramsey/uuid",
+      "commit": "dc681915388ca5fd55a7fcb7c85bd9202f20fd4a",
+      "stars": 12633,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:>=10000 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "YOURLS/YOURLS",
+      "commit": "cf398be1f84f26f9a17da1f03f73424009df9851",
+      "stars": 12249,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:>=10000 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "magento/magento2",
+      "commit": "ddbeae880cb333c3ca7efb65a1212cf258dc6914",
+      "stars": 12196,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": ""
+    },
+    {
+      "repo": "aureuserp/aureuserp",
+      "commit": "070cacc4ec39939ac3ddbf3f62cbad8bbd0000a9",
+      "stars": 12012,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:>=10000 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Leantime/leantime",
+      "commit": "d147c3a3ce3037c35fa9cfc4e43069e3c55ed31c",
+      "stars": 11689,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:>=10000 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "unopim/unopim",
+      "commit": "6a35666490ff0deb37bc317fd33045e557a573a4",
+      "stars": 11016,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:>=10000 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "phalcon/cphalcon",
+      "commit": "6bcbc2156566b9e7a16033352f5e8902ff7f5cc5",
+      "stars": 10821,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:>=10000 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "mockery/mockery",
+      "commit": "ac940d7c4bbe4f6566c22386688c3079bad601a4",
+      "stars": 10724,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:>=10000 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "mautic/mautic",
+      "commit": "9b35bfd3f73da17546d8314b10d281d2ce4a7683",
+      "stars": 10642,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:>=10000 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Anankke/SSPanel-UIM",
+      "commit": "c2ab3003cc4bf70237eb6ae82b3c65f31fb1f051",
+      "stars": 10432,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:>=10000 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "invoiceninja/invoiceninja",
+      "commit": "f1ffa5f9989afbed4e7dc80b5c0cc18944335ffc",
+      "stars": 10181,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": ""
+    },
+    {
+      "repo": "akaunting/akaunting",
+      "commit": "edde6b54f27ee0635b9a5dbde52117d441a18195",
+      "stars": 10154,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": ""
+    },
+    {
+      "repo": "guyueyingmu/avbook",
+      "commit": "d3780741288c68da826fc2bb0df542caa8d91fb5",
+      "stars": 10069,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:>=10000 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "kanboard/kanboard",
+      "commit": "cf53b54597b67b60140586c09c2fe6132ead013c",
+      "stars": 9893,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "DenverCoder1/readme-typing-svg",
+      "commit": "d6509f04777899a54f33c6d5d930afd20ecee769",
+      "stars": 9380,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "phpDocumentor/ReflectionDocBlock",
+      "commit": "b4206928e89352bfbab176cd12bcd3e4e942c104",
+      "stars": 9358,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "linuxserver/Heimdall",
+      "commit": "9ad5864a80d7025db1e6eab8eb2981c165b0ddff",
+      "stars": 9341,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "pterodactyl/panel",
+      "commit": "113ea43d0d48f48d567c9d91e4a7d5b5bb8876e3",
+      "stars": 9275,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "RSS-Bridge/rss-bridge",
+      "commit": "e8c526c03f9764d871e37689c1178d87f2ba9e04",
+      "stars": 9260,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "PrestaShop/PrestaShop",
+      "commit": "dec15c65a3f3a0c27cfd1dc221a7b89bff036fa2",
+      "stars": 9225,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "phpDocumentor/TypeResolver",
+      "commit": "dbe2133bb23e2e33a6834f4ed417f24a1b167769",
+      "stars": 9156,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "phpDocumentor/ReflectionCommon",
+      "commit": "ee15a5a2022c8383906b225055e9496a6a5e6e3b",
+      "stars": 9033,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "solidtime-io/solidtime",
+      "commit": "349623d5376d76467b54ae9f081b0f6883738fe4",
+      "stars": 8952,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "owncloud/core",
+      "commit": "8db5941d837921b282c9b934ad2f87506aaf67b2",
+      "stars": 8833,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "PrivateBin/PrivateBin",
+      "commit": "10c6ba07e936a0758f242190c01f5744f18ac029",
+      "stars": 8638,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "crater-invoice-inc/crater",
+      "commit": "05d5ce26fdd8d9466009163444e944259bc0cc2a",
+      "stars": 8350,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "opencart/opencart",
+      "commit": "178a5bb12ebb3bcc8a4d000b3211f8111ffa6bb8",
+      "stars": 8204,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "phpmyadmin/phpmyadmin",
+      "commit": "34eb83949a4a615470aa21d46e07d87f90a7ffea",
+      "stars": 7944,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": ""
+    },
+    {
+      "repo": "lcobucci/jwt",
+      "commit": "f543e7a1abea77587f6c89580ef20535c73872ab",
+      "stars": 7479,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "phar-io/manifest",
+      "commit": "c581d4941e196459bf76c945a8ca922963a66708",
+      "stars": 7476,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "moodle/moodle",
+      "commit": "85af0b5dc354bf03c73db60079c232f004e01433",
+      "stars": 7452,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "DenverCoder1/github-readme-streak-stats",
+      "commit": "d855de1a23fe45bdda5ffbc28a6d4b80b0f107e1",
+      "stars": 7155,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "pixelfed/pixelfed",
+      "commit": "c7dc513189f63d1bd3154667b4f62af08bb05ddc",
+      "stars": 7116,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": ""
+    },
+    {
+      "repo": "elementor/elementor",
+      "commit": "571293a4ea231f79c52cd6f31ae85193ae2c2267",
+      "stars": 7083,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "humhub/humhub",
+      "commit": "80b5cb881253da959e16396101f5837fa0e1823c",
+      "stars": 6746,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "roots/bedrock",
+      "commit": "b905a0a21a71e51524760e7839d7908e023ce618",
+      "stars": 6575,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": "no committed lock; installs fixtures/bedrock in this repository",
+      "fixture": "bedrock"
+    },
+    {
+      "repo": "glpi-project/glpi",
+      "commit": "4c24c75f872987374a30b25ea2a6059bc5d1c505",
+      "stars": 6414,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "mledoze/countries",
+      "commit": "c2ac0049c14edcf2436c7aa1b2493222a020b462",
+      "stars": 6264,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "passbolt/passbolt_api",
+      "commit": "8ff0944c9b6c4020204d60e776d0eb53dcbe8a3a",
+      "stars": 6144,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Respect/Validation",
+      "commit": "ecccef1c62712d7700ee912247d1f56666ececc6",
+      "stars": 6031,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "alexjustesen/speedtest-tracker",
+      "commit": "7ab10330f131a1841f7ed21917a56222365ec8a8",
+      "stars": 6002,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Zizaco/entrust",
+      "commit": "7937e4e274ff8cc561c3c671d23cd16082cb813e",
+      "stars": 6000,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "SuiteCRM/SuiteCRM",
+      "commit": "62effd0ceb767ed3b634ade585b19a6633eb4fcb",
+      "stars": 5778,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "pfsense/pfsense",
+      "commit": "9363ac5b8651a1c7a333180425ce7719070f95f9",
+      "stars": 5746,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "lizhipay/acg-faka",
+      "commit": "ee99530a66a0874c07f9e67eb1ae6085cde72c04",
+      "stars": 5721,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "phan/phan",
+      "commit": "7b493cdae12f4664cba3e9a34cc2e72c321fac87",
+      "stars": 5625,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "kuaifan/dootask",
+      "commit": "4c357ef36f2f58e1ec27028ec4aa602e077d896f",
+      "stars": 5587,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "openemr/openemr",
+      "commit": "118ae22f885bcb13b3fb9ad03c1b6c7264e5e608",
+      "stars": 5487,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "nikic/FastRoute",
+      "commit": "1c961398bef1ff6ecd8b273bef651d7afe90312b",
+      "stars": 5269,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "theseer/tokenizer",
+      "commit": "52a7b89c4aa776e5dfbb1ae05d29495d55dbea6e",
+      "stars": 5193,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "joomla/joomla-cms",
+      "commit": "076bbc0087f0ab478e2a3569ff10c1b4ca321e3b",
+      "stars": 5144,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "cydrobolt/polr",
+      "commit": "677080f318c2131c2bd69998d0770a10dd8a3de1",
+      "stars": 5093,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "kimai/kimai",
+      "commit": "8528bb174469f0dcc0c4efb5bd18971460d74c78",
+      "stars": 5054,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": ""
+    },
+    {
+      "repo": "antonkomarev/github-profile-views-counter",
+      "commit": "605c409deff5ac602ef3582bfc8a593426e5e511",
+      "stars": 5036,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:5000..9999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Ocramius/ProxyManager",
+      "commit": "04e124d526b8c513ec7afa0e8b063984a719d20b",
+      "stars": 4943,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "librenms/librenms",
+      "commit": "e490aaea1150e7c879c6b22d1a04304f8a3687d6",
+      "stars": 4917,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "anonaddy/anonaddy",
+      "commit": "69485d34599544e9cbfd41199abec0d2d026a1b8",
+      "stars": 4873,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "corcel/corcel",
+      "commit": "83506aa195ddaa4a404ac12a56dbc51b906505fc",
+      "stars": 4777,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "cedar2025/Xboard",
+      "commit": "4f48e61a2cbc6db5338872b6bdb45ef954ec1256",
+      "stars": 4742,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "dokuwiki/dokuwiki",
+      "commit": "ab1349690553fb0c339a042c6b4e12c7607334c4",
+      "stars": 4725,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "freescout-help-desk/freescout",
+      "commit": "684f81409a66651577c65aa7fff77b8109c114e6",
+      "stars": 4576,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "opensourcepos/opensourcepos",
+      "commit": "89c6d5a3e95d31a463dc607ab6d688da0d6d9710",
+      "stars": 4410,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "alextselegidis/easyappointments",
+      "commit": "450ba15db5e734503274ade049d7bb9bebd2ad33",
+      "stars": 4398,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "phpDocumentor/phpDocumentor",
+      "commit": "771caf328ca51417005cf9fe31e8823d4088b969",
+      "stars": 4348,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "phpro/grumphp",
+      "commit": "8abcadb4eb39a2c0124b9a220de12f8cf268e4c4",
+      "stars": 4316,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "LycheeOrg/Lychee",
+      "commit": "cea5c7251de4ee7ae2a2a7c9509d65e31d5f46f3",
+      "stars": 4307,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "abraham/twitteroauth",
+      "commit": "6902ad498516c35f9a2ebeaa11c7f5e68e4e74ce",
+      "stars": 4299,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "drupal/drupal",
+      "commit": "d29add7ebc18954dcb88877ed38b5bd88cdbf967",
+      "stars": 4289,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Attendize/Attendize",
+      "commit": "9289acbab1583898fd85aeee66c7b613d8971deb",
+      "stars": 4279,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "andersao/l5-repository",
+      "commit": "1a296887db2ec0b1f83c5a0a04ed40a192af8c4c",
+      "stars": 4196,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Bubka/2FAuth",
+      "commit": "2023d6873eafa89d50cc331ca02c4d46acd60913",
+      "stars": 4172,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Volmarg/personal-management-system",
+      "commit": "166b51a1a9aea8058b967b19ce95202b464d06c3",
+      "stars": 4168,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "interconnectit/Search-Replace-DB",
+      "commit": "8d074a725d4558b5c0ecfde1c23ebc4b9a44d5e4",
+      "stars": 4111,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "AzuraCast/AzuraCast",
+      "commit": "c5f03c75e9bea8c603dad2651ed183e1331d3f47",
+      "stars": 4052,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "shaarli/Shaarli",
+      "commit": "030fe09b87cb6fbfe5097f21d3f041db92afed75",
+      "stars": 3903,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "LinkStackOrg/LinkStack",
+      "commit": "7bd6cea5d942944e14ca0dbd0a9e6b78b1f4041a",
+      "stars": 3890,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "pulsejet/memories",
+      "commit": "0e6ab54900b9513b6b70cf735d9489e17b142ced",
+      "stars": 3848,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "ampache/ampache",
+      "commit": "a94dbb1144eba7f12b3bf7bda14f9b10eed4e1e9",
+      "stars": 3831,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "mevdschee/php-crud-api",
+      "commit": "399a398749ab687a68286260023bd73d79da5f26",
+      "stars": 3736,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "yaojingang/GEOFlow",
+      "commit": "15dedd533baca25622e8ac48cbb3293ca0231808",
+      "stars": 3735,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "craftcms/cms",
+      "commit": "b6045c27737b62586604637605bc3396d63180a8",
+      "stars": 3610,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "orvice/ss-panel",
+      "commit": "e33533bc6eaa6db7226d19a19f66657f26778329",
+      "stars": 3599,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "astralapp/astral",
+      "commit": "d8f24046235d479a8c2803e2ebdf49f0aba48e27",
+      "stars": 3586,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "google/recaptcha",
+      "commit": "05a576b66e1a356c7a3ad8a3beff09ff91b50961",
+      "stars": 3577,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "johnlui/Learn-Laravel-5",
+      "commit": "276cb05854ebb282fe81152874d9233a5d0c5689",
+      "stars": 3454,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "espocrm/espocrm",
+      "commit": "ae137320c3965eed3fefd4c2ebe7b7ea01e61047",
+      "stars": 3431,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "chrisboulton/php-resque",
+      "commit": "968b7e6a307a2079051dfc571d2fc2be0546209f",
+      "stars": 3411,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "zephir-lang/zephir",
+      "commit": "080ac1024dccc5fa21802bdfa1609de378a74694",
+      "stars": 3385,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "austintoddj/canvas",
+      "commit": "93b091c00ab73b11265e0798e4378a95b2656c68",
+      "stars": 3355,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Kovah/LinkAce",
+      "commit": "d6821661fb5878850738dc5f3d3593799d89445f",
+      "stars": 3341,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "luolongfei/freenom",
+      "commit": "0f9aeec416e0de01f0322a5325b71cf69b80f96f",
+      "stars": 3338,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "afragen/git-updater",
+      "commit": "7db840de536c863b8c42b607871e2251bbbb5865",
+      "stars": 3319,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "wp-bootstrap/wp-bootstrap-navwalker",
+      "commit": "11791945df1eeea3c125524d594051d73e3599f4",
+      "stars": 3317,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "composer/satis",
+      "commit": "d5d8ae7b50aaa6f5e81178ae3fa8e6fc3a07154d",
+      "stars": 3306,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "catchpoint/WebPageTest",
+      "commit": "4e157836cdfb51eb7db93fc7b2488a0582ad1a6c",
+      "stars": 3295,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "vitodeploy/vito",
+      "commit": "661e497c9b9a7f355aaa5691d6f17b4197511ae9",
+      "stars": 3247,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "erikdubbelboer/phpRedisAdmin",
+      "commit": "91d0101e5e3a08f9aa22d27aab66c17eb36ce5e1",
+      "stars": 3182,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "pyrocms/pyrocms",
+      "commit": "8d8851775b9546083c95fd19d15c3cc9efcb3692",
+      "stars": 3175,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "laravel/pint",
+      "commit": "006bd7825eb01daf92959d060b89cd9514fe4253",
+      "stars": 3170,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Ocramius/PackageVersions",
+      "commit": "602a1458703e1dd373c707f3d7a424e3a4b8a9d4",
+      "stars": 3168,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "CodelyTV/php-ddd-example",
+      "commit": "9271c467943f835ab3b6e5ba30bdbd710aca9d73",
+      "stars": 3151,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "InvoicePlane/InvoicePlane",
+      "commit": "cbc3df6dfabf7156893194d810754eb429a335a9",
+      "stars": 3147,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "filegator/filegator",
+      "commit": "967618f7dc4af195b449aebe7dc735675f4d6193",
+      "stars": 3080,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Tai7sy/card-system",
+      "commit": "4e908dd55f50f1cb6d70eba0d34efb1ec7d74ea3",
+      "stars": 3033,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "deptrac/deptrac",
+      "commit": "66595d1ca307afff492d99501ffaeba147e848b0",
+      "stars": 3025,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "cretueusebiu/laravel-vue-spa",
+      "commit": "d395d99142325298e36cf0515bb6e469062c9c04",
+      "stars": 3024,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "changeweb/Unifiedtransform",
+      "commit": "23c5a27087d3adae6237e4e15c84a168a59997eb",
+      "stars": 3002,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:3000..4999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Licoy/wordpress-theme-puock",
+      "commit": "43560985d30a8fea43fcf93e053ce08f3fb67929",
+      "stars": 2974,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "klaussilveira/gitlist",
+      "commit": "3edf34800e80666f521fd3a3eb53702cb9aa6556",
+      "stars": 2951,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "gharlan/alfred-github-workflow",
+      "commit": "520eca5d7c07fc9a162b7409f77cc566fe9c2dde",
+      "stars": 2915,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "gitscrum-core/laravel-gitscrum",
+      "commit": "a8bd5d759dbe976596aaf4a982e3afb982e3044c",
+      "stars": 2909,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "jcc/blog",
+      "commit": "89fa27963d771467655fd75aebd7be7ed1d3528e",
+      "stars": 2854,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "kint-php/kint",
+      "commit": "a05294926725dde6c41a6374e1f722f2510b9109",
+      "stars": 2817,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "mike42/escpos-php",
+      "commit": "5a835588f04a1b919c58a1cb23f4bc7fb6435e74",
+      "stars": 2795,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "consolidation/robo",
+      "commit": "f391d50a8b4f58ee8022373d9abbc62c9a4664ac",
+      "stars": 2704,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Open-Web-Analytics/Open-Web-Analytics",
+      "commit": "2640cfc9b5c85bb6082e738739b5e212f9b74023",
+      "stars": 2689,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "symfony/demo",
+      "commit": "8d2e2ef75c3e18df173d8bf2379a14abb58c4c31",
+      "stars": 2620,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": ""
+    },
+    {
+      "repo": "DirectoryLister/DirectoryLister",
+      "commit": "0cf8ee1083b0e2f771cbcf7234f616c31c8772f5",
+      "stars": 2534,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "laravelio/laravel.io",
+      "commit": "24be48939aaf4ab3a3438926ac0c55474bfb9f25",
+      "stars": 2501,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": ""
+    },
+    {
+      "repo": "David-Crty/databasement",
+      "commit": "bd4b49fed3264cbe62c27aeefbf94ae7ce492c77",
+      "stars": 2479,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "summerblue/laravel-shop",
+      "commit": "c36922b53cb23701aab12326c2e72d0a8518a139",
+      "stars": 2448,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "HDInnovations/UNIT3D",
+      "commit": "8b88f4c8182eb3d3912ffef425c3224dcfd596f4",
+      "stars": 2432,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "munafio/chatify",
+      "commit": "4a39eacb44e2405baa8c1e3bd3b4644fc5c8707d",
+      "stars": 2432,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "laracasts/Laravel-5-Generators-Extended",
+      "commit": "94d454e3b5940ec4df9e33d2e6dc44e84c4f3113",
+      "stars": 2418,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Paymenter/Paymenter",
+      "commit": "927a49a27599f144e20f6d0ffb5b49bf8db07497",
+      "stars": 2402,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "pelican/panel",
+      "commit": "e6ccc826be1c26c7db18ac89d904630d978ddca1",
+      "stars": 2339,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "inertiajs/pingcrm",
+      "commit": "59c77d038f47758417119c28d840025caa9aac6d",
+      "stars": 2324,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "zhanghuanchong/icon-workshop",
+      "commit": "ff97dfe709e4dd71d5c08c16ede35d54637a0c04",
+      "stars": 2317,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Vuedo/vuedo",
+      "commit": "0ef7e6c2e6e482e73e1f11f0e7e5530b6e433c7a",
+      "stars": 2267,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "infection/infection",
+      "commit": "c04c33aa0ece1c1687518cde49f168e2c5c4418c",
+      "stars": 2249,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Hasnayeen/invobook",
+      "commit": "e5f666cef63543beffadfcc045f6af673408a02e",
+      "stars": 2235,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "WangNingkai/OLAINDEX",
+      "commit": "4b9abd3007354f2160c699ac535d3a1093d51b3b",
+      "stars": 2210,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Imangazaliev/DiDOM",
+      "commit": "50fa6595d14f22c0c984efed5c818485cf548136",
+      "stars": 2195,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "EasyEngine/easyengine",
+      "commit": "43ec652ef5d130f1a7528175c6a1c68b6057ea8a",
+      "stars": 2175,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "vinkla/wordplate",
+      "commit": "4b85a76f938ba28344a2fad82b4325fe53cd21a0",
+      "stars": 2172,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "ApiGen/ApiGen",
+      "commit": "aa151a961053d20e46d2c7da65cbb03c130d12ff",
+      "stars": 2168,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "humanmade/S3-Uploads",
+      "commit": "c09bd3057747b181eeb9c22e380da9d904ba260a",
+      "stars": 2155,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "pablouser1/ProxiTok",
+      "commit": "ca9fcf6192b018fe0199e9e32e080fa6f8556594",
+      "stars": 2146,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "dreeveapp/dreeve",
+      "commit": "b44863a74e2158b675a3946902dbfa57f845c500",
+      "stars": 2126,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "apioo/fusio",
+      "commit": "4acff95ad952d6677b887e939d87b7ad1cf72b56",
+      "stars": 2118,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "zorlan/skycaiji",
+      "commit": "11f8cdfd3602fbe8ad27be78054014398b6ea92d",
+      "stars": 2095,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "szvone/vmqphp",
+      "commit": "d5c8c3fe6bd1c69449fc343ee6e2b275fab36da5",
+      "stars": 2066,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "movim/movim",
+      "commit": "9e33b8c1444c425907e028c3b78a00c8064540df",
+      "stars": 2059,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "php/pie",
+      "commit": "0c6124df7c207bf7346be82ccd7f1105851fb2aa",
+      "stars": 2035,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "projectsend/projectsend",
+      "commit": "a9b17ddc1e784ccb8885aecf0a29a7b13c362f72",
+      "stars": 2026,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "themsaid/ibis",
+      "commit": "6f6653f427a7246f6fdc5d112808c59ecd030f27",
+      "stars": 2008,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:2000..2999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "beikeshop/beikeshop",
+      "commit": "f41f3909c3dfbb4a8a0cfe39491dd805c7cf1f7a",
+      "stars": 1975,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "spatie/dashboard.spatie.be",
+      "commit": "6338b23375f80fe623c83b37aac3f6fdaa7338b5",
+      "stars": 1955,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "crazywhalecc/static-php-cli",
+      "commit": "932096fe288c801e9d978870de2b014414a3ccb8",
+      "stars": 1948,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "dimmas893/pos-backend",
+      "commit": "0a42266542368bda6ce803328f849a10821c7a81",
+      "stars": 1935,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "phpactor/phpactor",
+      "commit": "86547567ed0a22cd05aef8b582646aaeb5ed457a",
+      "stars": 1927,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "FGRibreau/mailchecker",
+      "commit": "99dcce60c1cea6ba905390d3dd96918688938391",
+      "stars": 1909,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "laminas/laminas-code",
+      "commit": "f49792da473891fd3dc486d243cffef1aca5be0d",
+      "stars": 1904,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Cacti/cacti",
+      "commit": "462a637367992c042d8c50b2543e3ce242d297ea",
+      "stars": 1872,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "mk-j/PHP_XLSXWriter",
+      "commit": "5b77d3d4ccb88d21294ad5f5aaa0075979233256",
+      "stars": 1866,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "edusoho/edusoho",
+      "commit": "ec046e7e6e9c0c8ef1ca97d90da4057a8a1b8505",
+      "stars": 1863,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Automattic/jetpack",
+      "commit": "f53dd5273bf735b8caa3ca4d3f1bb83839a77a7b",
+      "stars": 1848,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "InvoiceShelf/InvoiceShelf",
+      "commit": "ef9e9cbc9987fe5083867374cc46637029eff868",
+      "stars": 1843,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "nilsteampassnet/TeamPass",
+      "commit": "9b988f2ba32db45bbee99f31f383cfcc08b192bb",
+      "stars": 1830,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "gordalina/cachetool",
+      "commit": "732a831d53a4a66365c77fb95255e81a70a20160",
+      "stars": 1829,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "composer/packagist",
+      "commit": "a11d9c8e9635639b4bd769b4a53b0cec262cd850",
+      "stars": 1823,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "hashtopolis/server",
+      "commit": "21b5a530cc612451546e62316715db9a44cbeade",
+      "stars": 1812,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "ampproject/amp-wp",
+      "commit": "7783c0b7082dbf56fadb0a9d90d20da40639b7ea",
+      "stars": 1811,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "lxerxa/actionview",
+      "commit": "66002f4c13bfa59c7e42073ef74e012da13620ad",
+      "stars": 1806,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "mantisbt/mantisbt",
+      "commit": "bde5e23571cc9aeafa63a7b77bca7abf1bd9b414",
+      "stars": 1806,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "MiczFlor/RPi-Jukebox-RFID",
+      "commit": "42d5023e37dbf8de6477fef5ebcd6eae3cb5087d",
+      "stars": 1799,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "summerblue/phphub",
+      "commit": "511bc6c47c63d73f67fe3d0f82617a8fd48d2f10",
+      "stars": 1799,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "guillaumebriday/laravel-blog",
+      "commit": "c88e307c833708665b0c2d486a8fe633eb4cefd7",
+      "stars": 1797,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "wireui/wireui",
+      "commit": "ae524c388614e70072a9bf5463ac3aa300dc3e19",
+      "stars": 1790,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Part-DB/Part-DB-server",
+      "commit": "23208b111fafb485da81d0776971cdd10c0d53ef",
+      "stars": 1784,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "WordPress/mcp-adapter",
+      "commit": "f87477933b16e8308837eb3c96d91f014025ad77",
+      "stars": 1777,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "relaticle/relaticle",
+      "commit": "9cd032c6efcdc2b8bfc184fe19207b36cc92b677",
+      "stars": 1746,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "cypht-org/cypht",
+      "commit": "e6b71bf0f98eb63d5fb335ed3e10fabef45eb0c1",
+      "stars": 1745,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "cweagans/composer-patches",
+      "commit": "5dec5bb2d252cf38899af39d32bef0326b4d8f43",
+      "stars": 1733,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "mckenziearts/laravel-notify",
+      "commit": "354aa79d7cc50bf0a1a4070d37a602747de1bef9",
+      "stars": 1731,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Kunena/Kunena-Forum",
+      "commit": "2621cae2757640ab3585d2bac0f57e712cdb8d63",
+      "stars": 1729,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "FOSSBilling/FOSSBilling",
+      "commit": "912cc001cf1dd674d3fb5afc0a92245cd5db4c16",
+      "stars": 1706,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "jianyan74/rageframe2",
+      "commit": "0486026f49b46cd4871a91d80831b84ed0de98bc",
+      "stars": 1705,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "unicodeveloper/laravel-hackathon-starter",
+      "commit": "019976365262b79544b3c14a56c9e8ecfb9461a3",
+      "stars": 1687,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "danielbrendel/hortusfox-web",
+      "commit": "ef359500b9ee75d90dd4bcd27f1d92db2e2da690",
+      "stars": 1679,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Elgg/Elgg",
+      "commit": "38447104ed665631a68535f92dfcd8f2a9196a36",
+      "stars": 1678,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "jpatokal/openflights",
+      "commit": "7d1a611e070295dba776d6afb86e57d0d1aa1cef",
+      "stars": 1673,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "MarkBaker/PHPComplex",
+      "commit": "95c56caa1cf5c766ad6d65b6344b807c1e8405b9",
+      "stars": 1668,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "FriendsOfPHP/pickle",
+      "commit": "93d76e03b7beb80c22846d2533db12ddfcae57ce",
+      "stars": 1653,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "henrywhitaker3/Speedtest-Tracker",
+      "commit": "8cb2e8a3236850b4a07e887ac376c0d4d5e804f4",
+      "stars": 1651,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "jadjoubran/laravel5-angular-material-starter",
+      "commit": "a4944cc003d9f406644e50f9ee71e150ff9ec8b8",
+      "stars": 1646,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "twilio/twilio-php",
+      "commit": "f7c4bfca157c8a2de71cb1670dff9c999c469a00",
+      "stars": 1636,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "typicms/typicms",
+      "commit": "3608146e6a4e6c7e27f18dde8eeadb332159f22e",
+      "stars": 1619,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "TestLinkOpenSourceTRMS/testlink-code",
+      "commit": "444bceb5fc24d61bea0816d3011073a4c9c43a32",
+      "stars": 1618,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "gabrielrcouto/php-terminal-gameboy-emulator",
+      "commit": "e3fb698a7a1f5eb7d881ec5ac2131a162f5356b8",
+      "stars": 1612,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "sandreas/m4b-tool",
+      "commit": "68f12111e37a589b74ee1b3e2aa73248f4003da3",
+      "stars": 1574,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "arabcoders/watchstate",
+      "commit": "7034ac597fc9ec7ac83f558ea6751654c265a71b",
+      "stars": 1570,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "php-standard-library/php-standard-library",
+      "commit": "13f1ca9de56f392513b9e511357079e52eec6cec",
+      "stars": 1569,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "pinkary-project/pinkary.com",
+      "commit": "bd5f4405d599f1e9bef6cc3cba5731ef83410162",
+      "stars": 1537,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "getkirby/kirby",
+      "commit": "3647b786bfd14b99c64a3fcee8644baf88476533",
+      "stars": 1535,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "tirrenotechnologies/tirreno",
+      "commit": "c5a3679cca769b9bd938bd5fc4dc0d0bf4c44129",
+      "stars": 1532,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "CuyZ/Valinor",
+      "commit": "7d80d4e88d6537cecbd076067f737172f18798c6",
+      "stars": 1530,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "thephpleague/plates",
+      "commit": "ba16152fed0f667a0ca2f1f0c5090f71c11cb0e7",
+      "stars": 1528,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "beyondcode/writeout.ai",
+      "commit": "97d5f0ec9c87dde64c929717749b4ad4633ebc55",
+      "stars": 1527,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "MarkBaker/PHPMatrix",
+      "commit": "728434227fe21be27ff6d86621a1b13107a2562c",
+      "stars": 1519,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "fossasia/loklak_wp_plugins",
+      "commit": "c86b3fd810b328c4c6d68eeb8a400f90c0f50dd2",
+      "stars": 1505,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "revive-adserver/revive-adserver",
+      "commit": "d9da8923cebb2bf19064ea19f12968f2d1b1f944",
+      "stars": 1505,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1500..1999 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "seblucas/cops",
+      "commit": "7828cc600e904941583227071b8f4efd3b9385fb",
+      "stars": 1488,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "crivion/laranode",
+      "commit": "8a0a4b27051771be87bfc5c8fe0f283783a55e6f",
+      "stars": 1484,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "sculpin/sculpin",
+      "commit": "bff3efabbf8646151bb852f90ff435e3d55ecc5f",
+      "stars": 1484,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "robsontenorio/mary",
+      "commit": "181757e69074b5a0fc270eceefa1aeff7fb3e958",
+      "stars": 1481,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "andrewdwallo/erpsaas",
+      "commit": "565501e64ec7f59e8fbab342d4254ee6ef1202c8",
+      "stars": 1473,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "elementor/wp2static",
+      "commit": "f06790a5e65c73a7f3cc293f5652004dd21d3796",
+      "stars": 1470,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "psecio/iniscan",
+      "commit": "880dede38298adb5a23171e304fe03410260b7e3",
+      "stars": 1469,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "cashmusic/platform",
+      "commit": "4ebdf961d1d17850f166ab2864de7017abf169fc",
+      "stars": 1465,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "netcccyun/dnsmgr",
+      "commit": "b42dbcf88bccca287e9e9af53e87ba399a5ae295",
+      "stars": 1463,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "roach-php/core",
+      "commit": "725955e04cd48264fe1cbe373bf6be122ad32dec",
+      "stars": 1456,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "tailpress/tailpress",
+      "commit": "393c5e7d0da243bfcb2549287081307cdda6726d",
+      "stars": 1456,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "BadChoice/handesk",
+      "commit": "49814852fe97f524e513e1ca9d78f4c1f4a64dc3",
+      "stars": 1452,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "PeeHaa/OpCacheGUI",
+      "commit": "7de269210b596104f6cdf59f897a6a71026f0bf4",
+      "stars": 1444,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "bovigo/vfsStream",
+      "commit": "dd9277d9d27b5406f903e6b06df99825c32ea3b2",
+      "stars": 1441,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Raikia/FiercePhish",
+      "commit": "0c3780350cda2296b3ef46db6d59f2ac3258880e",
+      "stars": 1437,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "elabftw/elabftw",
+      "commit": "da223e1073e9316233a2421e2af4a0c2a0e7e48e",
+      "stars": 1433,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "banago/PHPloy",
+      "commit": "e43b92bd81b6a9c17a75f2f3b8c87afafd8f5ee9",
+      "stars": 1431,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "welaika/wordless",
+      "commit": "bbf74983ebf77946b47801dabeeee5b844c0378a",
+      "stars": 1417,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "nasirkhan/laravel-starter",
+      "commit": "568e49b3817ab3d63edb055d0f52f80649d9434d",
+      "stars": 1405,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "yii-starter-kit/yii2-starter-kit",
+      "commit": "4f019ad2bba87b6abebcb340ece6fa1475fb2f71",
+      "stars": 1396,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "JetBrains/phpstorm-stubs",
+      "commit": "e4f5f6c3de39f3bab3e9f3fca4b8cdb8b061e681",
+      "stars": 1394,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "claviska/SimpleImage",
+      "commit": "6d928c779e343100cef40f75bac3e301c32c3741",
+      "stars": 1388,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Luracast/Restler",
+      "commit": "fab0acf5bf2b1a04f6a4e813195553f751ccc225",
+      "stars": 1385,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "fukuball/jieba-php",
+      "commit": "052abb73f5f94267efd455ce5384b1c8bdd09ae2",
+      "stars": 1379,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "lixuancn/LaneWeChat",
+      "commit": "2b79fcb5cc47ed76cc4d34e6a9d426023d21bda9",
+      "stars": 1370,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "danpros/htmly",
+      "commit": "c8b7ed9af39a266b256759becf26dba6a59e11e6",
+      "stars": 1364,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "jez500/pricebuddy",
+      "commit": "602eed0eb38407cb6e39da6645c36e93c2192ffa",
+      "stars": 1358,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "benjaminjonard/koillection",
+      "commit": "b0f456d9a44a7d368b47e3ded93d3ea069cb4875",
+      "stars": 1324,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "emoncms/emoncms",
+      "commit": "7f8a5b2d4df399599bbb8026c064d956a5a85f34",
+      "stars": 1323,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "box-project/box",
+      "commit": "fd63283c242a6de1a6daffa9f0dbfcdd2b6018e3",
+      "stars": 1322,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "shopware5/shopware",
+      "commit": "63ff03085ce80e11d2cdad01b4481ba7ef39b9bd",
+      "stars": 1308,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "10up/ElasticPress",
+      "commit": "b0aaca57480f09044fd7e5bfd4f2a58f059cc903",
+      "stars": 1302,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "themeum/kirki",
+      "commit": "6e4bfb74daed9821c7a956d1c1262ed280ebaf1e",
+      "stars": 1273,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "segmentfault/HyperDown",
+      "commit": "70503992f07fb517f6f5f1e41e21fd488e8db7d1",
+      "stars": 1270,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Blair2004/NexoPOS",
+      "commit": "754b411dd72b621251d0045404397a6ff8cbe345",
+      "stars": 1266,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Art-of-WiFi/UniFi-API-browser",
+      "commit": "972f6fadc82fe3dbf40453e7b62fb66211966c72",
+      "stars": 1263,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "shopperlabs/shopper",
+      "commit": "86da81306a7f3b0f981ccd196182fb15481dea6c",
+      "stars": 1259,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "faveosuite/faveo-helpdesk",
+      "commit": "408076c7fa921133920decceec306b194affdcee",
+      "stars": 1258,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "wpmetabox/meta-box",
+      "commit": "c636121cc924ed5b01e0953d89704a669e087fd6",
+      "stars": 1250,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Setasign/FPDI",
+      "commit": "88a5f5046a193ab73521e40b55e03babd046f106",
+      "stars": 1249,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Roave/BetterReflection",
+      "commit": "f9e50b227de86c3ce12e1e1b685d53f9210ffa7f",
+      "stars": 1247,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "delight-im/PHP-Auth",
+      "commit": "cc8c212acbcfff6e86d8c05ecd45f15c34a02cdb",
+      "stars": 1246,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "mybb/mybb",
+      "commit": "f8bf4e840cd42f5d61bfb789eb3975674081d69e",
+      "stars": 1243,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "warifp/FacebookToolkit",
+      "commit": "9a7ae1219c1287691bf45cc4db2acb265997dcd6",
+      "stars": 1234,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "flyimg/flyimg",
+      "commit": "f5224c80b5947a90d60f803be15c9519bbccf379",
+      "stars": 1228,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "OpenSID/OpenSID",
+      "commit": "661a8884a8d02c26b1877d1cdddda0a06dd41361",
+      "stars": 1227,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "xiebruce/PicUploader",
+      "commit": "fcf82eacc4ad2e62b6182ca152a48bda739157be",
+      "stars": 1225,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "manualdousuario/marreta",
+      "commit": "447b29012b57b67ae3517e523670d1d0ee460765",
+      "stars": 1222,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "mineadmin/MineAdmin",
+      "commit": "955e2c7b245991cc00331745d8acc1fd38652a91",
+      "stars": 1220,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "filamentphp/demo",
+      "commit": "d5b618a1e7d50e5adf3d8faa192b08b55cc23514",
+      "stars": 1217,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": ""
+    },
+    {
+      "repo": "TYPO3/typo3",
+      "commit": "b67226ed48502d1bc114dc364b8bac8938208fed",
+      "stars": 1213,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1200..1499 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "LasseRafn/ui-avatars",
+      "commit": "369e739c1c94cf33c8630bbf581ac0c3295b0ff6",
+      "stars": 1197,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Combodo/iTop",
+      "commit": "11fba06d5846f01e49875c41f60a957081250b02",
+      "stars": 1192,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "xiaomlove/nexusphp",
+      "commit": "4393aea9c039de17dc3900e03c2c4b1199470339",
+      "stars": 1187,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "laminas/laminas-zendframework-bridge",
+      "commit": "5b92e8754c056526b7f5d743226cf98219052202",
+      "stars": 1186,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "4x99/code6",
+      "commit": "b7fe4b9f0b8769e4bd8edf7efa241ccb6317194b",
+      "stars": 1181,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Ph3nol/NotificationPusher",
+      "commit": "df1285aea6d4cf638e7ff77d3005790689fe5da2",
+      "stars": 1181,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "run-as-root/awesome-magento2",
+      "commit": "2cc6c092f7cd0888efe898e990c6d88651c0d373",
+      "stars": 1178,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "markuspoerschke/iCal",
+      "commit": "41f3b4631e74226137df07fd8ba7feecf7b670e4",
+      "stars": 1174,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "xiaochong0302/course-tencent-cloud",
+      "commit": "aadd2daa60418b6c70b5244ff14fd412db6063e5",
+      "stars": 1174,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "francescomalatesta/laravel-api-boilerplate-jwt",
+      "commit": "050a5fb6621a55b391e978243364983ba634ff92",
+      "stars": 1173,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "forkcms/forkcms",
+      "commit": "1b3f3872d6c9513ca62589b30b8890580d08bfd7",
+      "stars": 1172,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "digitoimistodude/air-light",
+      "commit": "d80c9910111aec8bd998bb55d709b2ec860c771d",
+      "stars": 1170,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "goodnesskay/Laravel-Open-Source-Projects",
+      "commit": "6dd2837aa1ddc23a45a8189dc1008b27172cc34e",
+      "stars": 1166,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "phingofficial/phing",
+      "commit": "5be91d9b6976264372fd0cc2abd56e9a894b0626",
+      "stars": 1166,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "ppy/osu-web",
+      "commit": "4c12bc9547a243e419ee785dea882b4ff08ceaa9",
+      "stars": 1159,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Herzult/SimplePHPEasyPlus",
+      "commit": "be27402d892e46c27302af6d957af485b5ee88f3",
+      "stars": 1157,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "ErugoOSS/Erugo",
+      "commit": "922c00c2beafa5b6136ff551333d52387270be49",
+      "stars": 1155,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "mdmsoft/yii2-admin",
+      "commit": "014923cfe159fcd646c03ff5d7f1f8be07836d05",
+      "stars": 1147,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "cretueusebiu/laravel-nuxt",
+      "commit": "5e11260d91c32924847fb32053ffecabe89207bd",
+      "stars": 1143,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "simplesamlphp/simplesamlphp",
+      "commit": "edf90959232eb77020fa51e9822acfd0775c1a4f",
+      "stars": 1143,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "deliciousbrains/wp-background-processing",
+      "commit": "07bd3fbb28eba7d8101dfd6b7e05deaddc531e97",
+      "stars": 1142,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "hisorange/browser-detect",
+      "commit": "6460325a81460d912131c0b943a00e76f8847cdb",
+      "stars": 1142,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "whisper-money/whisper-money",
+      "commit": "c0ae31e9187ba18c6d7a4a33984d4b1f441ee0ec",
+      "stars": 1127,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "ergebnis/composer-normalize",
+      "commit": "4f9783e22d7ab07c2045f642faf01d6984b84157",
+      "stars": 1126,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "geesondog/rhaphp",
+      "commit": "7ae639ccf8dcb627faace096d030bd4cb4cfb905",
+      "stars": 1120,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "dmstr/yii2-adminlte-asset",
+      "commit": "daa3cb27113db7858564d3c525d217982fc22a6b",
+      "stars": 1119,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "RamonSilva20/mapos",
+      "commit": "200adf4f5e40a0ff5d20261e84f00a822cc220f9",
+      "stars": 1114,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "shuchkin/simplexlsxgen",
+      "commit": "162a4a9b929611d69dbd6f1a7f42af483a87b537",
+      "stars": 1108,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "karlomikus/bar-assistant",
+      "commit": "ef64de6dc679a09b928e543d08e455efba73640a",
+      "stars": 1101,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "php/web-php",
+      "commit": "954497e55d751a2e5e781b28cbfeb07a6298cca4",
+      "stars": 1101,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "EleTeam/UniShopX",
+      "commit": "10a26416904304206a109d60baa143cb293a47d7",
+      "stars": 1097,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "laravel-enso/enso",
+      "commit": "b68c5f63119bf39ef1fd6efddf4984f5d1dae874",
+      "stars": 1093,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "brufdev/many-notes",
+      "commit": "72ce5bee7a9496c85fbb8ebebca8029718262e1d",
+      "stars": 1090,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "devaslanphp/project-management",
+      "commit": "54982160896d8371ba79c8dc20ed65936878d91b",
+      "stars": 1090,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "jorge07/symfony-7-es-cqrs-boilerplate",
+      "commit": "7dce1e52669f392903a04f397e8b4cb80465b5ff",
+      "stars": 1088,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "lkeme/BiliHelper-personal",
+      "commit": "6839dda4c27f288e1dfeb7fc044fa3517ec998eb",
+      "stars": 1086,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "minicli/minicli",
+      "commit": "81f96caba0c45a29f41b2ac7f17a3f70d8a10893",
+      "stars": 1084,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "benbalter/wordpress-static-site-exporter",
+      "commit": "dcce690a2488229b020b02a48458f09505f748df",
+      "stars": 1079,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "daviddesberg/PHPoAuthLib",
+      "commit": "ee5a83310c6014b6cc07ac0610ec9d67ba452664",
+      "stars": 1077,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "RefactoringGuru/design-patterns-php",
+      "commit": "8424aa7bc8f81ed93c4871729aad8687709b3fba",
+      "stars": 1072,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "range-of-motion/budget",
+      "commit": "d2ebb2b9f64adb0e937629e4c280dbffd1c6fac0",
+      "stars": 1067,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "gantry/gantry5",
+      "commit": "32379db04da83a39239151b95f5f64dbcbb0cdfb",
+      "stars": 1063,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "pH7Software/pH7-Social-Dating-CMS",
+      "commit": "55f4944b27a6e2ded2c172b52102e31cb3b61972",
+      "stars": 1060,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "bs-community/blessing-skin-server",
+      "commit": "52f6fefed08e091c08e409c67e31d00b00ff00ee",
+      "stars": 1051,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "akeneo/pim-community-dev",
+      "commit": "77d98c30f8af96a34c9d4056c8d78146ac03a43b",
+      "stars": 1046,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Indatus/dispatcher",
+      "commit": "9548ab90d0c1e9a2ff7239f28e470de4493c00ff",
+      "stars": 1045,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "4jean/lav_sms",
+      "commit": "10a2e962686da88bd7bc20135c75032367cc0750",
+      "stars": 1042,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "Piplin/Piplin",
+      "commit": "6edf0a0480c449b6f6fb40d1c0f458c90cef9c9a",
+      "stars": 1026,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "drehimself/laravel-ecommerce-example",
+      "commit": "983ed292933fab690c9448f5e66fb0aaa37c93c8",
+      "stars": 1019,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "woocommerce/storefront",
+      "commit": "c9e9b1675110297a806df72d99fb877893ce8f8a",
+      "stars": 1019,
+      "taken": "2026-10-01",
+      "source": "search: language:PHP stars:1000..1199 archived:false fork:false sort:stars-desc",
+      "notes": ""
+    },
+    {
+      "repo": "drupal/recommended-project",
+      "commit": "dbcffd856e8e0ea69cc30b615318899a37d2ea7d",
+      "stars": 152,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": ""
+    },
+    {
+      "repo": null,
+      "commit": null,
+      "stars": null,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": "our own app; installs fixtures/wicketyaari",
+      "fixture": "wicketyaari"
+    },
+    {
+      "repo": null,
+      "commit": null,
+      "stars": null,
+      "taken": "2026-10-01",
+      "source": "hand-picked",
+      "notes": "our own app; installs fixtures/ytmate",
+      "fixture": "ytmate"
+    }
+  ],
+  "dropped": [
+    {
+      "repo": "Sylius/Sylius-Standard",
+      "dropped": "no root composer.lock at the default branch"
+    },
+    {
+      "repo": "flarum/flarum",
+      "dropped": "no root composer.lock at the default branch"
+    },
+    {
+      "repo": "statamic/statamic",
+      "dropped": "no root composer.lock at the default branch"
+    }
+  ]
+}
