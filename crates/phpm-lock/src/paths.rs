@@ -85,6 +85,16 @@ fn basename(path: &str) -> &str {
 /// `None` when either is relative (Composer throws).
 // Composer: Util/Filesystem.php findShortestPath
 pub fn find_shortest_path(from: &str, to: &str, directories: bool) -> Option<String> {
+    find_shortest_path_with(from, to, directories, false)
+}
+
+/// `findShortestPath` with its `$preferRelative` argument.
+pub fn find_shortest_path_with(
+    from: &str,
+    to: &str,
+    directories: bool,
+    prefer_relative: bool,
+) -> Option<String> {
     if !is_absolute_path(from) || !is_absolute_path(to) {
         return None;
     }
@@ -110,7 +120,7 @@ pub fn find_shortest_path(from: &str, to: &str, directories: bool) -> Option<Str
 
     let common = format!("{}/", common.trim_end_matches('/'));
     let depth = from.get(common.len()..).unwrap_or("").matches('/').count();
-    if common == "/" && depth > 1 {
+    if !prefer_relative && common == "/" && depth > 1 {
         return Some(to);
     }
     let result = format!(
@@ -160,6 +170,18 @@ mod tests {
         assert_eq!(dirname(""), ".");
         assert_eq!(dirname("/a//b"), "/a");
         assert_eq!(basename("/a/b/"), "b");
+    }
+
+    #[test]
+    fn prefers_relative_paths_when_asked() {
+        assert_eq!(
+            super::find_shortest_path_with("/foo/a/b", "/bar/c", false, true).as_deref(),
+            Some("../../bar/c")
+        );
+        assert_eq!(
+            super::find_shortest_path_with("/foo/a/b", "/bar/c", false, false).as_deref(),
+            Some("/bar/c")
+        );
     }
 
     #[test]

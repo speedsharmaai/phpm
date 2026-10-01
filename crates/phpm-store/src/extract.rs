@@ -50,10 +50,10 @@ impl Mode {
     }
 }
 
-struct Entry {
-    index: usize,
-    rel: PathBuf,
-    is_dir: bool,
+pub(crate) struct Entry {
+    pub(crate) index: usize,
+    pub(crate) rel: PathBuf,
+    pub(crate) is_dir: bool,
 }
 
 /// Extract `bytes` into `dest`, which must not exist yet.
@@ -160,7 +160,7 @@ pub(crate) fn extract(package: &str, bytes: &[u8], dest: &Path, limits: Limits) 
 }
 
 /// Normalises a zip entry name, rejecting anything that could leave the package.
-fn safe_relative(name: &str) -> Result<PathBuf, String> {
+pub(crate) fn safe_relative(name: &str) -> Result<PathBuf, String> {
     if name.starts_with('/') || name.contains('\0') {
         return Err(format!("unsafe path {name:?}"));
     }
@@ -183,7 +183,7 @@ fn safe_relative(name: &str) -> Result<PathBuf, String> {
 }
 
 // Composer: ArchiveDownloader::install, getFolderContent() ignores .DS_Store.
-fn single_top_dir(entries: &[Entry]) -> Option<PathBuf> {
+pub(crate) fn single_top_dir(entries: &[Entry]) -> Option<PathBuf> {
     let mut tops: BTreeSet<&std::ffi::OsStr> = BTreeSet::new();
     let mut dirs: BTreeSet<&std::ffi::OsStr> = BTreeSet::new();
     for entry in entries {

@@ -18,6 +18,7 @@ use crate::classes::{Tree, cache_root, known_classes};
 use crate::error::Error;
 use crate::fsutil::{Modes, path_string, write_if_changed};
 use crate::out::Out;
+use crate::pathrepo::{self, PathDist};
 use crate::platform::{Filter, Platform, Requirements};
 use crate::project::{Env, ProjectFiles, dirs, locate, with_vendor_dir};
 use crate::state::{Inputs, State, git_fingerprint, state_path};
@@ -67,8 +68,9 @@ impl Request {
 }
 
 /// Environment variables that change phpm's output.
-const ENV_INPUTS: [&str; 6] = [
+const ENV_INPUTS: [&str; 7] = [
     "COMPOSER",
+    "COMPOSER_MIRROR_PATH_REPOS",
     "COMPOSER_VENDOR_DIR",
     "COMPOSER_BIN_DIR",
     "COMPOSER_BIN_COMPAT",
@@ -233,6 +235,8 @@ struct Locked {
     version: String,
     /// `None` for metapackages, which have nothing to place.
     package: Option<Package>,
+    /// Set for `path` repository packages, which skip the store.
+    path: Option<PathDist>,
     bins: Vec<String>,
 }
 
@@ -273,6 +277,7 @@ fn locked(entry: &Map<String, Value>, composer: &ComposerJson) -> Result<Locked,
             name,
             version,
             package: None,
+            path: None,
             bins: Vec::new(),
         });
     }
@@ -303,11 +308,13 @@ fn locked(entry: &Map<String, Value>, composer: &ComposerJson) -> Result<Locked,
         },
     );
     package.install_path = PathBuf::from(install_path);
+    let path = (package.dist.kind == "path").then(|| PathDist::from_lock(&package.dist.url, entry));
     Ok(Locked {
         name,
         version,
         bins: bins(entry),
         package: Some(package),
+        path,
     })
 }
 
@@ -353,6 +360,20 @@ fn previous(vendor: &str) -> BTreeMap<String, Previous> {
             ))
         })
         .collect()
+}
+
+/// Artifact dists are files, relative to the project like Composer's cwd.
+fn local_dist_url(url: &str, root: &Path) -> String {
+    let lower = url.to_ascii_lowercase();
+    if lower.starts_with("http://") || lower.starts_with("https://") || url.contains("://") {
+        return url.to_owned();
+    }
+    let path = Path::new(url);
+    if path.is_absolute() {
+        url.to_owned()
+    } else {
+        path_string(&root.join(path))
+    }
 }
 
 fn abs_install_path(vendor: &str, package: &Package) -> String {
@@ -456,11 +477,25 @@ fn install(
         .map(|e| locked(e, &composer))
         .collect::<Result<Vec<_>, _>>()?;
     let before = previous(&vendor);
-    let to_place: Vec<&Package> = locked
+    let changed: Vec<&Locked> = locked
         .iter()
         .filter(|l| !unchanged(before.get(&l.name), l, &vendor))
-        .filter_map(|l| l.package.as_ref())
         .collect();
+    let from_paths: Vec<&Locked> = changed
+        .iter()
+        .copied()
+        .filter(|l| l.path.is_some())
+        .collect();
+    let local: Vec<Package> = changed
+        .iter()
+        .filter(|l| l.path.is_none())
+        .filter_map(|l| l.package.clone())
+        .map(|mut p| {
+            p.dist.url = local_dist_url(&p.dist.url, &files.root);
+            p
+        })
+        .collect();
+    let to_place: Vec<&Package> = local.iter().collect();
 
     let started = Instant::now();
     let store = Store::from_env()?;
@@ -510,9 +545,17 @@ fn install(
     if used != mode {
         out.detail(&format!("{mode:?} is not available here, used {used:?}"));
     }
+    let mirror_env = env("COMPOSER_MIRROR_PATH_REPOS");
+    for l in &from_paths {
+        if let (Some(dist), Some(p)) = (&l.path, &l.package) {
+            let dest = PathBuf::from(abs_install_path(&vendor, p));
+            let how = pathrepo::install(&l.name, dist, &files.root, &dest, mirror_env.as_deref())?;
+            out.detail(&format!("{}: {how:?} from {}", l.name, dist.url));
+        }
+    }
     out.detail(&format!(
         "placed {} packages ({used:?}) in {:.1?}",
-        placements.len(),
+        placements.len() + from_paths.len(),
         started.elapsed()
     ));
 
@@ -617,7 +660,7 @@ fn install(
     }
     written.extend(wanted.iter().map(PathBuf::from));
 
-    out.info(&summary(placements.len(), removed));
+    out.info(&summary(placements.len() + from_paths.len(), removed));
     Ok(written)
 }
 

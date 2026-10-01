@@ -16,6 +16,7 @@ mod store;
 mod sys;
 #[cfg(test)]
 mod testutil;
+mod untar;
 
 use std::collections::BTreeSet;
 use std::path::PathBuf;
@@ -93,12 +94,16 @@ impl Store {
             {
                 continue;
             }
-            if package.dist.kind != "zip" {
-                return Err(Error::InvalidPackage {
-                    package: package.name.clone(),
-                    reason: format!("dist type {:?} is not supported yet", package.dist.kind),
-                });
-            }
+            let insert = match package.dist.kind.as_str() {
+                "zip" => Store::insert_zip,
+                "tar" => Store::insert_tar,
+                other => {
+                    return Err(Error::InvalidPackage {
+                        package: package.name.clone(),
+                        reason: format!("dist type {other:?} is not supported yet"),
+                    });
+                }
+            };
             let store = self.clone();
             let fetcher = fetcher.clone();
             let package = package.clone();
@@ -107,7 +112,7 @@ impl Store {
                     .fetch(&package.dist.url, package.dist.shasum.as_deref())
                     .await?;
                 let name = package.name.clone();
-                tokio::task::spawn_blocking(move || store.insert_zip(&name, &key, &bytes))
+                tokio::task::spawn_blocking(move || insert(&store, &name, &key, &bytes))
                     .await
                     .map_err(|e| Error::Task(e.to_string()))??;
                 Ok::<_, Error>(package.name)
@@ -159,10 +164,10 @@ mod tests {
         let store = Store::new(tmp.path());
         let fetcher = Fetcher::new(FetchOptions::default()).unwrap();
         let err = store
-            .fetch_missing(&fetcher, &[Package::new("a/b", dist("tar", Some("x")))])
+            .fetch_missing(&fetcher, &[Package::new("a/b", dist("rar", Some("x")))])
             .await
             .unwrap_err();
-        assert!(err.to_string().contains("dist type \"tar\""), "{err}");
+        assert!(err.to_string().contains("dist type \"rar\""), "{err}");
     }
 
     #[tokio::test]

@@ -17,5 +17,5 @@ pub use installed::{
     InstalledFiles, installed_files,
 };
 pub use manifest::{ComposerJson, InstallPreferences, Lock, LockAlias};
-pub use paths::{find_shortest_path, normalize_path};
+pub use paths::{find_shortest_path, find_shortest_path_with, normalize_path};
 pub use root::{NO_VERSION_SET, RootVersion, root_version};
