@@ -291,3 +291,75 @@ again, which is the price once per ten minutes. Raw JSON:
   4.7 ms ± 0.3 ms (Phase 01: 4.7 ms). After the state expires, the next run
   revalidates the filter summary (about 350 ms from India) and is a no-op
   again for the next ten minutes.
+
+## Track C: cold fetch and fuzzing
+
+### Cold fetch: what the profile showed
+
+Laravel skeleton (109 dists, 17.4 MB, all `api.github.com/.../zipball/<sha>`)
+from India on home broadband, about 120 ms RTT to the Packagist CDN and
+250 ms to GitHub:
+
+- **Bandwidth is the floor.** `curl` fetching all 109 archives straight from
+  codeload, 24 to 109 at a time, takes 8.0-8.9 s; one 6.9 MB archive alone
+  (aws-sdk-php, on ytmate) streams at about 1.6 MB/s.
+- **The API redirect costs a round trip per package.** Every dist URL answers
+  302 to `codeload.github.com/<owner>/<repo>/legacy.zip/<sha>`. The same 109
+  through the redirect took 10.8 s with `curl` against 8.3 s direct, and the
+  bytes are identical (SHA-1 compared on several archives, owner casing kept
+  as in the lock). Codeload builds archives on demand, so a first request can
+  wait 5 s for its first byte; more requests in flight hide that.
+- **One HTTP/2 connection is one TCP window.** reqwest multiplexes every
+  download to a host on a single connection, which caps a bandwidth-bound
+  batch on a long, lossy path.
+- **The tail after the downloads was 1.3 s**, mostly the class scan of 109
+  freshly extracted trees (525 ms) and the autoload dump reading them cold.
+- **The filter check was serial before the downloads** (0.4-0.6 s).
+- Codeload sends no `Content-Length` and ignores `Range`, so one large archive
+  cannot be split; ytmate's aws-sdk-php bounds that fixture.
+
+### What changed
+
+- Public zipballs pinned to a full commit go straight to codeload; anything
+  else (a branch, a query string, GitHub Enterprise, a project with a GitHub
+  token, which may be for a private repository) uses the lock's URL, and a
+  failed direct fetch falls back to it.
+- Dists use eight HTTP/2 connections per host, round robin, and up to 48
+  GitHub downloads in flight. Packagist hosts keep their limit of 10
+  (decision 0006); metadata requests are unchanged.
+- Each tree is class-scanned on the blocking pool as soon as it is extracted,
+  while the other downloads run; the dump then reads the cache (3-4 ms).
+- The malware check overlaps the downloads (Track B notes above).
+
+Measured with the variants interleaved (8 rounds, `--no-blocking`, network
+notifications off), Laravel cold medians: lock URLs on one connection 11.6 s,
+direct codeload 10.5 s, plus four connections 9.7 s, eight connections and 48
+in flight 9.2 s. The post-download tail went from about 1.3 s to 0.4 s.
+
+### Cold benchmark against the field
+
+`tools/bench/cold.sh 8 laravel-skeleton ytmate`: for each round every tool
+installs once from an empty cache, the order rotating per round, one
+`hyperfine --runs 1` per install, 8 rounds per fixture, all on the same
+machine in the same hour. Every tool
+with `--no-scripts --no-plugins` where it has them. The network was noisy
+(Composer ranged 11.7-42.3 s), so the median and the interquartile range are
+the honest numbers. Raw JSON: `bench/results/2026-10-01-cold-interleaved/`.
+
+| Fixture | Tool | Median | IQR | Min | Max |
+|---|---|---|---|---|---|
+| laravel-skeleton | Composer | 21.08 s | 17.76-31.41 | 16.88 | 42.34 |
+| laravel-skeleton | **phpm** | **8.67 s** | 7.91-11.36 | 7.01 | 13.73 |
+| laravel-skeleton | riff 0.0.7 | 13.17 s | 9.43-15.26 | 9.05 | 26.47 |
+| laravel-skeleton | vivacity 0.19.1 | 14.21 s | 12.29-26.57 | 9.57 | 40.49 |
+| ytmate | Composer | 17.85 s | 13.33-25.85 | 11.71 | 26.45 |
+| ytmate | **phpm** | **11.65 s** | 8.85-16.00 | 8.67 | 24.13 |
+| ytmate | riff 0.0.7 | 13.19 s | 8.73-20.57 | 7.65 | 27.75 |
+| ytmate | vivacity 0.19.1 | 11.70 s | 9.01-13.41 | 7.98 | 17.43 |
+
+Round by round, phpm beat riff in 7 of 8 Laravel rounds and in 4 of 8 ytmate
+rounds. So: cold ≤ riff on both fixtures by median; on Laravel clearly, on
+ytmate a tie within the noise, because ytmate's time is one 6.9 MB archive
+that codeload streams on one connection with no length and no ranges, and
+every tool waits for it the same way. viv was not in this run (it was not
+ahead of riff or vivacity cold at the gate).

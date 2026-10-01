@@ -19,7 +19,8 @@ mod testutil;
 mod untar;
 
 use std::collections::BTreeSet;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 use tokio::task::JoinSet;
 
@@ -95,6 +96,18 @@ impl Store {
         fetcher: &Fetcher,
         packages: &[Package],
     ) -> Result<Vec<(String, u64)>> {
+        self.fetch_missing_then(fetcher, packages, Arc::new(|_: &Path| {}))
+            .await
+    }
+
+    /// [`Store::fetch_missing_sized`], running `then` on each extracted tree
+    /// on the blocking pool while the other downloads go on.
+    pub async fn fetch_missing_then(
+        &self,
+        fetcher: &Fetcher,
+        packages: &[Package],
+        then: Arc<dyn Fn(&Path) + Send + Sync>,
+    ) -> Result<Vec<(String, u64)>> {
         let mut seen = BTreeSet::new();
         let mut tasks = JoinSet::new();
         for package in packages {
@@ -117,15 +130,20 @@ impl Store {
             let store = self.clone();
             let fetcher = fetcher.clone();
             let package = package.clone();
+            let then = Arc::clone(&then);
             tasks.spawn(async move {
                 let bytes = fetcher
                     .fetch(&package.dist.url, package.dist.shasum.as_deref())
                     .await?;
                 let name = package.name.clone();
                 let size = bytes.len() as u64;
-                tokio::task::spawn_blocking(move || insert(&store, &name, &key, &bytes))
-                    .await
-                    .map_err(|e| Error::Task(e.to_string()))??;
+                tokio::task::spawn_blocking(move || {
+                    let dir = insert(&store, &name, &key, &bytes)?;
+                    then(&dir);
+                    Ok::<_, Error>(())
+                })
+                .await
+                .map_err(|e| Error::Task(e.to_string()))??;
                 Ok::<_, Error>((package.name, size))
             });
         }
