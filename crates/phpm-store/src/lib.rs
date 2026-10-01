@@ -11,6 +11,7 @@ mod auth;
 mod error;
 mod extract;
 mod fetch;
+mod git;
 mod link;
 mod store;
 mod sys;
@@ -27,6 +28,7 @@ use tokio::task::JoinSet;
 pub use auth::{Auth, BITBUCKET_TOKEN_URL, Credential, sanitize, split_inline_credentials};
 pub use error::{Error, Result};
 pub use fetch::{FetchOptions, Fetcher, Response, USER_AGENT};
+pub use git::{GitSource, install as install_git_source};
 pub use link::{LinkMode, Placement, place, place_unshared, prune};
 pub use store::{Store, cache_dir, store_key};
 

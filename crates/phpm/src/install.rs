@@ -11,7 +11,8 @@ use std::time::Instant;
 use phpm_autoload::PlatformRequirements;
 use phpm_lock::{ComposerJson, INSTALLED_VERSIONS_PHP, InstallContext, Lock, normalize_path};
 use phpm_store::{
-    Auth, Dist, FetchOptions, Fetcher, LinkMode, Package, Placement, Store, place, place_unshared,
+    Auth, Dist, FetchOptions, Fetcher, GitSource, LinkMode, Package, Placement, Store,
+    install_git_source, place, place_unshared,
 };
 use serde_json::{Map, Value};
 
@@ -195,10 +196,14 @@ fn utf8(bytes: &[u8], path: &Path) -> Result<String, Error> {
 struct Locked {
     name: String,
     version: String,
-    /// `None` for metapackages, which have nothing to place.
+    /// `None` for metapackages and git source installs, which have nothing
+    /// for the store to fetch or place.
     package: Option<Package>,
     /// Set for `path` repository packages, which skip the store.
     path: Option<PathDist>,
+    /// Set for packages with no usable dist, which clone their git source
+    /// instead; also skips the store.
+    git: Option<GitSource>,
     bins: Vec<String>,
     plugin: bool,
     /// Where it goes: `vendor/<name>[/<target-dir>]`, or where an installer
@@ -236,6 +241,29 @@ fn bins(entry: &Map<String, Value>) -> Vec<String> {
         .collect()
 }
 
+/// Where a package goes, and whether an installer plugin claimed it for the
+/// project instead of `vendor/`.
+fn resolve_dir(
+    name: &str,
+    root: &str,
+    vendor: &str,
+    install_path: &mut String,
+    paths: &adapters::Paths,
+) -> (String, bool) {
+    let mut dir = normalize_path(&format!("{vendor}/{install_path}"));
+    let mut in_project = false;
+    if let Some((custom, relative)) = paths
+        .normalized
+        .get(&name.to_ascii_lowercase())
+        .and_then(|c| Some((c, c.strip_prefix(root)?.strip_prefix('/')?)))
+    {
+        relative.clone_into(install_path);
+        dir.clone_from(custom);
+        in_project = true;
+    }
+    (dir, in_project)
+}
+
 fn locked(
     entry: &Map<String, Value>,
     composer: &ComposerJson,
@@ -255,6 +283,7 @@ fn locked(
             version,
             package: None,
             path: None,
+            git: None,
             bins: Vec::new(),
             plugin,
             dir: String::new(),
@@ -264,13 +293,53 @@ fn locked(
     }
     let dist = entry.get("dist");
     let dist_kind = non_empty_text(dist, "type");
-    let has_source = non_empty_text(entry.get("source"), "type").is_some();
+    let source = entry.get("source");
+    let source_type = non_empty_text(source, "type");
+    let has_source = source_type.is_some();
     let is_dev = version.starts_with("dev-") || version.ends_with("-dev");
+    // Composer: Downloader/DownloadManager.php getAvailableSources; a dist-
+    // preferring package still falls back to source when it has no dist at
+    // all, since "dist" is then simply not an available source to pick.
     let wants_source = has_source
         && (dist_kind.is_none() || !composer.install_preferences().prefers_dist(&name, is_dev));
-    let Some(kind) = dist_kind.filter(|_| !wants_source) else {
+    if wants_source {
+        if source_type.as_deref() != Some("git") {
+            return Err(Error::install(format!(
+                "{name} installs from {} source, and phpm only clones git sources natively",
+                source_type.as_deref().unwrap_or("an unspecified")
+            )));
+        }
+        let url = non_empty_text(source, "url")
+            .ok_or_else(|| Error::install(format!("{name} has a git source without a url")))?;
+        let reference = non_empty_text(source, "reference").ok_or_else(|| {
+            Error::install(format!("{name} has a git source without a reference"))
+        })?;
+        let mut install_path = name.clone();
+        if let Some(target) = text(entry, "target-dir").filter(|t| !t.is_empty() && t != "0") {
+            install_path = format!("{install_path}/{target}");
+        }
+        let (dir, in_project) = resolve_dir(&name, root, vendor, &mut install_path, paths);
+        let git = GitSource {
+            url,
+            reference,
+            pretty_version: version.clone(),
+        };
+        return Ok(Locked {
+            name,
+            version,
+            bins: bins(entry),
+            package: None,
+            path: None,
+            git: Some(git),
+            plugin,
+            dir,
+            in_project,
+            abandoned: abandoned(entry),
+        });
+    }
+    let Some(kind) = dist_kind else {
         return Err(Error::install(format!(
-            "{name} installs from source, and phpm only installs dist archives so far"
+            "{name} has neither a usable dist nor a git source"
         )));
     };
     let reference = non_empty_text(dist, "reference");
@@ -294,17 +363,7 @@ fn locked(
             shasum: non_empty_text(dist, "shasum"),
         },
     );
-    let mut dir = normalize_path(&format!("{vendor}/{install_path}"));
-    let mut in_project = false;
-    if let Some((custom, relative)) = paths
-        .normalized
-        .get(&name.to_ascii_lowercase())
-        .and_then(|c| Some((c, c.strip_prefix(root)?.strip_prefix('/')?)))
-    {
-        relative.clone_into(&mut install_path);
-        dir.clone_from(custom);
-        in_project = true;
-    }
+    let (dir, in_project) = resolve_dir(&name, root, vendor, &mut install_path, paths);
     package.install_path = PathBuf::from(install_path);
     let path = (package.dist.kind == "path").then(|| PathDist::from_lock(&package.dist.url, entry));
     Ok(Locked {
@@ -313,6 +372,7 @@ fn locked(
         bins: bins(entry),
         package: Some(package),
         path,
+        git: None,
         plugin,
         dir,
         in_project,
@@ -353,6 +413,10 @@ fn dist_url(url: &str, name: &str, pretty: &str, reference: Option<&str>, kind: 
 struct Previous {
     version: String,
     reference: Option<String>,
+    /// `source.reference`, read only to compare against a git-source
+    /// install's pinned commit; a dist package's own `reference` field
+    /// above is untouched by this.
+    source_reference: Option<String>,
     source: Option<String>,
     install_path: Option<String>,
     bins: Vec<String>,
@@ -403,6 +467,7 @@ fn previous(vendor: &str) -> BTreeMap<String, Previous> {
                 Previous {
                     version: text(p, "version").unwrap_or_default(),
                     reference: non_empty_text(p.get("dist"), "reference"),
+                    source_reference: non_empty_text(p.get("source"), "reference"),
                     source: text(p, "installation-source"),
                     install_path,
                     bins: bins(p),
@@ -436,14 +501,19 @@ fn local_dist_url(url: &str, root: &Path) -> String {
 // reinstalled) if the version, dist reference, abandoned flag or suggested
 // replacement differ, on top of Composer's own already-dist/right-place check.
 fn unchanged(prev: Option<&Previous>, l: &Locked) -> bool {
-    let (Some(prev), Some(package)) = (prev, &l.package) else {
+    let Some(prev) = prev else {
         return false;
     };
     // installation-source (dist vs source) plays no part in Composer's own
     // comparison: a package it originally built from source stays that way,
     // git files and all, for as long as everything below still matches.
-    prev.version == l.version
-        && prev.reference == package.dist.reference
+    let same_reference = match (&l.package, &l.git) {
+        (Some(package), _) => prev.reference == package.dist.reference,
+        (None, Some(git)) => prev.source_reference.as_deref() == Some(git.reference.as_str()),
+        (None, None) => return false,
+    };
+    same_reference
+        && prev.version == l.version
         && prev.install_path.as_deref() == Some(l.dir.as_str())
         && Path::new(&l.dir).is_dir()
         && abandoned(&prev.raw) == l.abandoned
@@ -750,6 +820,11 @@ fn install(
         .copied()
         .filter(|l| l.path.is_some())
         .collect();
+    let from_git: Vec<&Locked> = changed
+        .iter()
+        .copied()
+        .filter(|l| l.git.is_some())
+        .collect();
     let local: Vec<Package> = changed
         .iter()
         .filter(|l| l.path.is_none())
@@ -762,7 +837,7 @@ fn install(
     let to_place: Vec<&Package> = local.iter().collect();
     let wanted: BTreeSet<String> = locked
         .iter()
-        .filter(|l| l.package.is_some())
+        .filter(|l| l.package.is_some() || l.git.is_some())
         .map(|l| l.dir.clone())
         .collect();
     let removable = [vendor.as_str(), root_dir.as_str()];
@@ -812,6 +887,7 @@ fn install(
         for l in &locked {
             let state = match (&l.package, &plan.full_install) {
                 (_, Some(_)) => "fallback, composer install places it",
+                (None, _) if l.git.is_some() => "native, cloned from its git source",
                 (None, _) => "native, metapackage, nothing to place",
                 (Some(_), _) if l.path.is_some() => "native, from a path repository",
                 (Some(p), _) if !to_place.iter().any(|t| t.name == p.name) => {
@@ -977,9 +1053,19 @@ fn install(
             out.detail(&format!("{}: {how:?} from {}", l.name, dist.url));
         }
     }
+    if !from_git.is_empty() {
+        let auth = Auth::load(Some(&files.root), config.as_ref())?;
+        for l in &from_git {
+            if let Some(git) = &l.git {
+                let dest = PathBuf::from(&l.dir);
+                install_git_source(&auth, git, &dest)?;
+                out.detail(&format!("{}: cloned from {}", l.name, git.url));
+            }
+        }
+    }
     out.detail(&format!(
         "placed {} packages ({used:?}) in {:.1?}",
-        placements.len() + from_paths.len(),
+        placements.len() + from_paths.len() + from_git.len(),
         started.elapsed()
     ));
 
@@ -1041,7 +1127,7 @@ fn install(
         modes,
     );
     for l in &locked {
-        if l.package.is_some() {
+        if l.package.is_some() || l.git.is_some() {
             let unchanged = !changed_names.contains(l.name.as_str());
             bins.install(&l.name, &l.dir, &l.bins, unchanged)
                 .map_err(|e| Error::install(format!("bin proxies for {}: {e}", l.name)))?;
@@ -1059,7 +1145,10 @@ fn install(
     written.extend(bins.written().iter().map(|n| Path::new(&dirs.bin).join(n)));
     out.detail(&format!("wrote bin proxies in {:.1?}", started.elapsed()));
 
-    out.info(&summary(placements.len() + from_paths.len(), removed));
+    out.info(&summary(
+        placements.len() + from_paths.len() + from_git.len(),
+        removed,
+    ));
     let all = lock.packages()?.into_iter().chain(lock.packages_dev()?);
     for entry in all {
         if let Some(Abandonment(replacement)) = abandoned(entry) {
@@ -1391,6 +1480,7 @@ mod tests {
     use crate::adapters::Paths;
     use phpm_autoload::PlatformRequirements;
     use phpm_lock::ComposerJson;
+    use phpm_store::GitSource;
     use serde_json::{Map, Value, json};
     use std::fs;
 
@@ -1580,15 +1670,33 @@ mod tests {
                 .contains("source")
         );
         let prefers_source = composer(json!({"config": {"preferred-install": "source"}}));
+        let from_source = locked(
+            &zip_entry("a/b"),
+            &prefers_source,
+            "/p/vendor",
+            "/p",
+            &Paths::default(),
+        )
+        .unwrap();
+        assert!(from_source.package.is_none());
+        assert_eq!(
+            from_source.git,
+            Some(GitSource {
+                url: "https://x/a.git".into(),
+                reference: "abc".into(),
+                pretty_version: "1.0.0".into(),
+            })
+        );
+        assert_eq!(from_source.dir, "/p/vendor/a/b");
+
+        let unsupported_vcs = obj(
+            json!({"name": "a/hg", "version": "1.0.0", "source": {"type": "hg", "url": "u", "reference": "r"}}),
+        );
         assert!(
-            locked(
-                &zip_entry("a/b"),
-                &prefers_source,
-                "/p/vendor",
-                "/p",
-                &Paths::default()
-            )
-            .is_err()
+            locked(&unsupported_vcs, &c, "/p/vendor", "/p", &Paths::default())
+                .unwrap_err()
+                .message
+                .contains("hg")
         );
         let no_url = obj(json!({"name": "a/u", "dist": {"type": "zip"}}));
         assert!(

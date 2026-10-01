@@ -484,6 +484,31 @@ impl Auth {
     pub fn bitbucket_exchange_header(key: &str, secret: &str) -> String {
         basic(key, secret)
     }
+
+    /// A header for a `git` clone/fetch against `url`'s origin. Unlike
+    /// `credential`, this applies to a plain host URL (`github.com`, not
+    /// only `api.github.com`): Composer's `Util\Git` embeds the same stored
+    /// credential into a git source checkout's URL.
+    pub fn git_credential(&self, url: &Url) -> Option<(String, String)> {
+        let origin = self.origin(url);
+        let (_, entry) = self.find(&origin)?;
+        Some(match &entry.kind {
+            Kind::Github => ("Authorization".to_owned(), format!("token {}", entry.user)),
+            Kind::Bearer | Kind::GitlabOauth => {
+                ("Authorization".to_owned(), format!("Bearer {}", entry.user))
+            }
+            Kind::GitlabPrivate => ("PRIVATE-TOKEN".to_owned(), entry.user.clone()),
+            Kind::CustomHeaders => {
+                let list: Vec<String> = serde_json::from_str(&entry.user).unwrap_or_default();
+                let (name, value) = list.first().and_then(|h| h.split_once(':'))?;
+                (name.trim().to_owned(), value.trim().to_owned())
+            }
+            Kind::Basic | Kind::Bitbucket(_) => {
+                let (user, pass) = entry.basic_pair();
+                ("Authorization".to_owned(), basic(user, pass))
+            }
+        })
+    }
 }
 
 fn add_domain(list: &mut Vec<String>, domain: &str) {
@@ -1047,6 +1072,30 @@ mod tests {
         assert!(Auth::load(None, None).is_ok());
         std::fs::write(project.join("auth.json"), "nope").unwrap();
         assert!(Auth::load_from(Some(&project), None, env(&[]), &|_| false).is_err());
+    }
+
+    #[test]
+    fn git_credential_applies_to_a_plain_host_unlike_credential() {
+        let a = auth(r#"{"github-oauth":{"github.com":"ghp_x"}}"#);
+        let url = Url::parse("https://github.com/a/b.git").unwrap();
+        assert_eq!(a.credential(&url, None), None, "api-only for plain fetch");
+        assert_eq!(
+            a.git_credential(&url),
+            Some(("Authorization".to_owned(), "token ghp_x".to_owned()))
+        );
+
+        let basic = auth(r#"{"http-basic":{"example.org":{"username":"u","password":"p"}}}"#);
+        let (name, value) = basic
+            .git_credential(&Url::parse("https://example.org/x.git").unwrap())
+            .unwrap();
+        assert_eq!(name, "Authorization");
+        assert!(value.starts_with("Basic "));
+
+        let none = Auth::default();
+        assert_eq!(
+            none.git_credential(&Url::parse("https://example.org/x.git").unwrap()),
+            None
+        );
     }
 
     #[cfg(unix)]
