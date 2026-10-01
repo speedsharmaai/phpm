@@ -61,7 +61,7 @@ fn matches_composer_dump_autoload() {
             continue;
         }
         let expected = std::fs::read(golden.join(name)).expect("golden file");
-        assert_bytes_eq(content.as_bytes(), &expected);
+        assert_bytes_eq(content, &expected);
     }
     assert!(out.remove.is_empty());
 
@@ -73,7 +73,7 @@ fn matches_composer_dump_autoload() {
     assert_eq!(again.suffix, out.suffix);
     again.write().unwrap();
     assert_eq!(
-        std::fs::read_to_string(vendor.join("composer/autoload_files.php")).unwrap(),
+        std::fs::read(vendor.join("composer/autoload_files.php")).unwrap(),
         out.file("composer/autoload_files.php").unwrap()
     );
 }
