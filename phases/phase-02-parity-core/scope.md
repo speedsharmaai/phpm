@@ -1,6 +1,6 @@
 # Phase 02: Parity core
 
-Outline. Tasked only after the Phase 01 gate passes.
+Gate passed 2026-10-01. Tasks: [tasks.md](tasks.md).
 
 ## Why
 
@@ -11,12 +11,8 @@ gap for everything that does not need a PHP plugin to run.
 
 ## What ships
 
-- **`-o` and `--classmap-authoritative`.** Class scanning with the
-  `mago-syntax` lexer on rayon, reproducing `PhpFileParser` semantics:
-  comments, heredoc/nowdoc, `?>` inline HTML, `__halt_compiler`, the enum
-  gate, anonymous classes, `exclude-from-classmap` patterns. Results cached
-  per file in the store. readdir-order ambiguity detected and reported.
-  Laravel sets `optimize-autoloader: true` by default, so this is not optional.
+- **`-o` and `--classmap-authoritative`.** Done in Phase 01 (class scanner
+  and per-store-tree class cache).
 - **Platform.** `php` probed once and cached; locked requirements verified;
   `config.platform`, `--ignore-platform-req(s)`; failure messages that say
   the same thing Composer says.
