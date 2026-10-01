@@ -2,12 +2,18 @@ mod bins;
 mod classes;
 mod cli;
 mod error;
+mod exec;
+mod fallback;
 mod fsutil;
 mod install;
 mod out;
 mod pathrepo;
 mod platform;
+mod plugins;
+mod prefetch;
 mod project;
+mod runner;
+mod scripts;
 mod state;
 
 use std::ffi::OsString;
@@ -51,6 +57,8 @@ fn run(args: impl IntoIterator<Item = OsString>, env: Env<'_>, out: &mut Out<'_>
         no_autoloader: args.no_autoloader,
         no_scripts: args.no_scripts,
         no_plugins: args.no_plugins,
+        explain: args.explain,
+        no_audit: args.no_audit,
         ignore_platform_reqs: args.ignore_platform_reqs,
         ignore_platform_req: args.ignore_platform_req,
     };

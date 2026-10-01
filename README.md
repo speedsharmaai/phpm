@@ -12,9 +12,10 @@ your `composer.json` and `composer.lock` unchanged and writes the same
 not bound by the network.
 
 > **Status: pre-release.** phpm passed its Phase 01 gate on 2026-10-01 and is
-> in Phase 02. `phpm install` works on plugin-free lockfiles; there is no
-> release or installer yet, so it builds from source only. Plugins and
-> scripts are refused until Phase 02 adds the Composer fallback.
+> in Phase 02. `phpm install` works on any lockfile with dist archives: string
+> scripts run natively, and plugins or PHP-callable scripts fall back to real
+> Composer for the steps that need them (`--explain` says which). There is no
+> release or installer yet, so it builds from source only.
 
 ## Numbers
 
@@ -42,7 +43,7 @@ the optimised class map.
 ```sh
 cargo build --release -p phpm
 cd /path/to/your/php/project
-/path/to/phpm/target/release/phpm install --no-scripts --no-plugins
+/path/to/phpm/target/release/phpm install --explain
 ```
 
 ## Roadmap

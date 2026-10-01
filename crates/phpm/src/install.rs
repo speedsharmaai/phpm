@@ -16,11 +16,17 @@ use serde_json::{Map, Value};
 use crate::bins::{BinInstaller, php_basename, php_dirname};
 use crate::classes::{Tree, cache_root, known_classes};
 use crate::error::Error;
+use crate::exec::{find_composer, find_php};
+use crate::fallback::{self, Composer, Plan, Step};
 use crate::fsutil::{Modes, path_string, write_if_changed};
 use crate::out::Out;
 use crate::pathrepo::{self, PathDist};
 use crate::platform::{Filter, Platform, Requirements};
+use crate::plugins::{self, Global, Plugins};
+use crate::prefetch;
 use crate::project::{Env, ProjectFiles, dirs, locate, with_vendor_dir};
+use crate::runner::{self, Runner};
+use crate::scripts::{self, Scripts};
 use crate::state::{Inputs, State, git_fingerprint, state_path};
 
 /// What the command line asked for.
@@ -37,6 +43,8 @@ pub(crate) struct Request {
     pub(crate) no_plugins: bool,
     pub(crate) ignore_platform_reqs: bool,
     pub(crate) ignore_platform_req: Vec<String>,
+    pub(crate) explain: bool,
+    pub(crate) no_audit: bool,
 }
 
 impl Request {
@@ -132,6 +140,9 @@ pub(crate) fn run(req: &Request, env: Env<'_>, out: &mut Out<'_>) -> Result<(), 
     if let Some(file) = &state_file
         && State::load(file).is_some_and(|s| s.is_current(&inputs))
     {
+        if req.explain {
+            out.info("decision install: nothing to do, composer.json, composer.lock and vendor/ are as phpm left them");
+        }
         out.info("Nothing to install, update or remove");
         out.detail(&format!(
             "vendor/ matches {} ({:.1?})",
@@ -143,6 +154,7 @@ pub(crate) fn run(req: &Request, env: Env<'_>, out: &mut Out<'_>) -> Result<(), 
 
     let written = install(req, env, &files, &json, &lock, out)?;
     if let Some(file) = state_file
+        && let Some(written) = written
         && let Some(state) = State::capture(inputs, &written)
         && let Err(e) = state.save(&file)
     {
@@ -157,77 +169,6 @@ fn utf8(bytes: &[u8], path: &Path) -> Result<String, Error> {
         .map_err(|_| Error::install(format!("{} is not valid UTF-8", path.display())))
 }
 
-// Composer: Script/ScriptEvents.php, Installer/PackageEvents.php, Installer/InstallerEvents.php
-const INSTALL_EVENTS: [&str; 15] = [
-    "pre-install-cmd",
-    "post-install-cmd",
-    "pre-autoload-dump",
-    "post-autoload-dump",
-    "pre-package-install",
-    "post-package-install",
-    "pre-package-update",
-    "post-package-update",
-    "pre-package-uninstall",
-    "post-package-uninstall",
-    "pre-operations-exec",
-    "pre-file-download",
-    "post-file-download",
-    "pre-command-run",
-    "init",
-];
-
-const FALLBACK_LATER: &str =
-    "phpm cannot run them yet; Phase 02 adds a fallback to Composer for this";
-
-fn guard(
-    req: &Request,
-    composer: &ComposerJson,
-    packages: &[&Map<String, Value>],
-) -> Result<(), Error> {
-    if !req.no_plugins {
-        let plugins: Vec<&str> = packages
-            .iter()
-            .filter(|p| {
-                p.get("type").and_then(Value::as_str).is_some_and(|t| {
-                    t.eq_ignore_ascii_case("composer-plugin")
-                        || t.eq_ignore_ascii_case("composer-installer")
-                })
-            })
-            .filter_map(|p| p.get("name").and_then(Value::as_str))
-            .collect();
-        if !plugins.is_empty() {
-            return Err(Error::install(format!(
-                "the lock file has Composer plugins ({}) and {FALLBACK_LATER}. \
-                 Run with --no-plugins to install without them, as composer install --no-plugins does",
-                plugins.join(", ")
-            )));
-        }
-    }
-    if !req.no_scripts {
-        let scripts = composer.data().get("scripts").and_then(Value::as_object);
-        let events: Vec<&str> = INSTALL_EVENTS
-            .iter()
-            .copied()
-            .filter(|e| {
-                scripts.and_then(|s| s.get(*e)).is_some_and(|v| match v {
-                    Value::String(s) => !s.is_empty(),
-                    Value::Array(a) => !a.is_empty(),
-                    Value::Null | Value::Bool(false) => false,
-                    _ => true,
-                })
-            })
-            .collect();
-        if !events.is_empty() {
-            return Err(Error::install(format!(
-                "composer.json has scripts for {} and {FALLBACK_LATER}. \
-                 Run with --no-scripts to install without them",
-                events.join(", ")
-            )));
-        }
-    }
-    Ok(())
-}
-
 /// One locked package as the install needs it.
 #[derive(Debug, Clone)]
 struct Locked {
@@ -238,6 +179,7 @@ struct Locked {
     /// Set for `path` repository packages, which skip the store.
     path: Option<PathDist>,
     bins: Vec<String>,
+    plugin: bool,
 }
 
 fn text(map: &Map<String, Value>, key: &str) -> Option<String> {
@@ -272,6 +214,8 @@ fn locked(entry: &Map<String, Value>, composer: &ComposerJson) -> Result<Locked,
         .ok_or_else(|| Error::install("composer.lock has a package without a name"))?;
     let version = text(entry, "version").unwrap_or_default();
     let kind = text(entry, "type").unwrap_or_else(|| "library".to_owned());
+    let plugin = kind.eq_ignore_ascii_case("composer-plugin")
+        || kind.eq_ignore_ascii_case("composer-installer");
     if kind.eq_ignore_ascii_case("metapackage") {
         return Ok(Locked {
             name,
@@ -279,6 +223,7 @@ fn locked(entry: &Map<String, Value>, composer: &ComposerJson) -> Result<Locked,
             package: None,
             path: None,
             bins: Vec::new(),
+            plugin,
         });
     }
     let dist = entry.get("dist");
@@ -315,6 +260,7 @@ fn locked(entry: &Map<String, Value>, composer: &ComposerJson) -> Result<Locked,
         bins: bins(entry),
         package: Some(package),
         path,
+        plugin,
     })
 }
 
@@ -444,7 +390,41 @@ fn write_file(path: &Path, content: &[u8]) -> Result<(), Error> {
     write_if_changed(path, content).map_err(|e| Error::io(path, &e))
 }
 
-/// Runs the install and returns the files whose stamps make the next run a no-op.
+/// One line per package for `--explain`.
+fn package_line(l: &Locked, state: &str, plan: &Plan, no_plugins: bool) -> String {
+    let mut line = format!("package {} {}: {state}", l.name, l.version);
+    if let Some(p) = plan.plugins.active.iter().find(|p| p.name == l.name) {
+        line.push_str(
+            if plan.full_install.is_some() || p.needs_full_install.is_some() {
+                "; plugin, loaded by composer install"
+            } else {
+                "; plugin, Composer loads it for the steps it hooks"
+            },
+        );
+    } else if let Some(s) = plan.plugins.skipped.iter().find(|s| s.name == l.name) {
+        line.push_str("; plugin, not loaded: ");
+        line.push_str(s.why);
+    } else if no_plugins && l.plugin {
+        line.push_str("; plugin, not loaded: --no-plugins");
+    }
+    line
+}
+
+/// Regular files directly in `dir`, for stamping what Composer rewrote.
+fn top_files(dir: &Path) -> Vec<PathBuf> {
+    let mut files: Vec<PathBuf> = fs::read_dir(dir)
+        .into_iter()
+        .flatten()
+        .flatten()
+        .filter(|e| e.file_type().is_ok_and(|t| t.is_file()))
+        .map(|e| e.path())
+        .collect();
+    files.sort();
+    files
+}
+
+/// Runs the install and returns the files whose stamps make the next run a
+/// no-op, or `None` when Composer ran the whole install.
 fn install(
     req: &Request,
     env: Env<'_>,
@@ -452,26 +432,19 @@ fn install(
     json: &[u8],
     lock: &[u8],
     out: &mut Out<'_>,
-) -> Result<Vec<PathBuf>, Error> {
+) -> Result<Option<Vec<PathBuf>>, Error> {
     let composer = ComposerJson::parse(&utf8(json, &files.composer_file)?)?;
     let lock = Lock::parse(&utf8(lock, &files.lock_file)?)?;
     let mut entries = lock.packages()?;
     if req.dev {
         entries.extend(lock.packages_dev()?);
     }
-    guard(req, &composer, &entries)?;
     check_platform(req, env, &composer, &lock, out)?;
     let dirs = dirs(&composer, &files.root, env)?;
     let composer = with_vendor_dir(composer, &files.root, &dirs.vendor);
     let vendor = normalize_path(&dirs.vendor);
     let root_dir = path_string(&files.root);
 
-    let root_version = {
-        let data = composer.data().clone();
-        let root = files.root.clone();
-        let from_env = env("COMPOSER_ROOT_VERSION");
-        std::thread::spawn(move || phpm_lock::root_version(&data, &root, from_env.as_deref()))
-    };
     let locked = entries
         .iter()
         .map(|e| locked(e, &composer))
@@ -496,9 +469,115 @@ fn install(
         })
         .collect();
     let to_place: Vec<&Package> = local.iter().collect();
+    let wanted: BTreeSet<String> = locked
+        .iter()
+        .filter_map(|l| l.package.as_ref())
+        .map(|p| abs_install_path(&vendor, p))
+        .collect();
+    let removing = before.values().any(|p| {
+        p.install_path
+            .as_ref()
+            .is_some_and(|path| !wanted.contains(path) && path.starts_with(&format!("{vendor}/")))
+    });
 
-    let started = Instant::now();
+    let plugins = if req.no_plugins {
+        Plugins::default()
+    } else {
+        let home = plugins::composer_home(env, plugins::system_uses_xdg(), &|d| d.is_dir());
+        plugins::detect(
+            &composer,
+            lock.plugin_api_version(),
+            &entries,
+            &Global::load(home.as_deref()),
+        )?
+    };
+    let scripts = Scripts::new(&composer, env);
+    let plan = fallback::plan(req, &scripts, plugins, !changed.is_empty(), removing);
+    let runs_scripts = !req.no_scripts
+        && [
+            scripts::PRE_INSTALL,
+            scripts::PRE_AUTOLOAD,
+            scripts::POST_AUTOLOAD,
+            scripts::POST_INSTALL,
+        ]
+        .iter()
+        .any(|e| scripts.has(e));
+    let composer_bin = if plan.uses_composer() || runs_scripts {
+        find_composer(env)
+    } else {
+        None
+    };
+    if let Some(why) = plan.needs_composer()
+        && composer_bin.is_none()
+    {
+        return Err(Error::install(format!(
+            "{why}, and composer is not on PATH (or set PHPM_COMPOSER). Nothing was changed. \
+             Install Composer, or run with --no-scripts and --no-plugins to skip what needs it"
+        )));
+    }
     let store = Store::from_env()?;
+    if req.explain {
+        for l in &locked {
+            let state = match (&l.package, &plan.full_install) {
+                (_, Some(_)) => "fallback, composer install places it",
+                (None, _) => "native, metapackage, nothing to place",
+                (Some(_), _) if l.path.is_some() => "native, from a path repository",
+                (Some(p), _) if !to_place.iter().any(|t| t.name == p.name) => {
+                    "native, already in vendor/"
+                }
+                (Some(p), _) if store.contains(&p.name, &p.key()) => {
+                    "native, placed from the store"
+                }
+                (Some(_), _) => "native, downloaded to the store, then placed",
+            };
+            out.info(&package_line(l, state, &plan, req.no_plugins));
+        }
+        for line in plan.decision_lines(req) {
+            out.info(&line);
+        }
+    }
+    let fallback = composer_bin
+        .clone()
+        .map(|bin| Composer::new(bin, &files.root, out.verbosity()));
+    if let (Some(why), Some(composer)) = (&plan.full_install, &fallback) {
+        out.info(&format!("Composer runs this install: {why}"));
+        composer.run(&fallback::install_args(req), out)?;
+        return Ok(None);
+    }
+    let runner = runs_scripts.then(|| {
+        Runner::new(
+            &scripts,
+            runner::Context {
+                root: files.root.clone(),
+                bin_dir: dirs.bin.clone(),
+                dev: req.dev,
+                composer: composer_bin.clone(),
+                php: find_php(env),
+                timeout: runner::timeout(
+                    composer
+                        .data()
+                        .get("config")
+                        .and_then(|c| c.get("process-timeout")),
+                    env,
+                ),
+            },
+            env,
+        )
+    });
+    let mut steps = Steps {
+        composer: fallback,
+        runner,
+        warmup: None,
+    };
+    steps.event(req, &plan.pre_install, scripts::PRE_INSTALL, false, out)?;
+
+    let root_version = {
+        let data = composer.data().clone();
+        let root = files.root.clone();
+        let from_env = env("COMPOSER_ROOT_VERSION");
+        std::thread::spawn(move || phpm_lock::root_version(&data, &root, from_env.as_deref()))
+    };
+    let started = Instant::now();
     let missing: Vec<Package> = to_place
         .iter()
         .filter(|p| !store.contains(&p.name, &p.key()))
@@ -520,11 +599,6 @@ fn install(
         ));
     }
 
-    let wanted: BTreeSet<String> = locked
-        .iter()
-        .filter_map(|l| l.package.as_ref())
-        .map(|p| abs_install_path(&vendor, p))
-        .collect();
     let mut removed = 0;
     for (name, prev) in &before {
         if let Some(path) = &prev.install_path
@@ -614,54 +688,173 @@ fn install(
     written.extend(bins.written().iter().map(|n| Path::new(&dirs.bin).join(n)));
     out.detail(&format!("wrote bin proxies in {:.1?}", started.elapsed()));
 
-    if !req.no_autoloader {
-        let started = Instant::now();
-        let mut options = phpm_autoload::Options {
-            dev_mode: req.dev,
-            optimize: req.optimize,
-            classmap_authoritative: req.classmap_authoritative,
-            platform: req.platform(),
-            ..phpm_autoload::Options::default()
+    out.info(&summary(placements.len() + from_paths.len(), removed));
+    if [
+        &plan.autoload,
+        &plan.pre_autoload,
+        &plan.post_autoload,
+        &plan.post_install,
+    ]
+    .iter()
+    .any(|s| s.is_composer())
+    {
+        let psr = plan.autoload.is_composer()
+            && phpm_autoload::Options {
+                optimize: req.optimize || req.classmap_authoritative,
+                ..phpm_autoload::Options::default()
+            }
+            .with_config(&composer)
+            .optimize;
+        let placed: BTreeSet<&str> = to_place.iter().map(|p| p.name.as_str()).collect();
+        let roots: Vec<PathBuf> = entries
+            .iter()
+            .zip(&locked)
+            .filter(|(_, l)| placed.contains(l.name.as_str()))
+            .filter_map(|(e, l)| l.package.as_ref().map(|p| (e, p)))
+            .flat_map(|(e, p)| {
+                prefetch::scan_roots(e, Path::new(&abs_install_path(&vendor, p)), psr)
+            })
+            .collect();
+        steps.warmup = Some((
+            Instant::now(),
+            std::thread::spawn(move || prefetch::warm(&roots)),
+        ));
+    }
+
+    match &plan.autoload {
+        Step::Native(_) => {
+            steps.event(req, &plan.pre_autoload, scripts::PRE_AUTOLOAD, false, out)?;
+            written.extend(native_autoload(
+                req,
+                &composer,
+                &lock,
+                &root_dir,
+                &class_trees(&store, &placements, &vendor_real),
+                out,
+            )?);
+            steps.event(req, &plan.post_autoload, scripts::POST_AUTOLOAD, false, out)?;
         }
-        .with_config(&composer);
-        if options.optimize {
-            let trees = class_trees(&store, &placements, &vendor_real);
-            options.known_classes = Some(Arc::new(known_classes(&trees)));
+        Step::Composer(why) => {
+            if let Some(composer) = steps.composer(out).cloned() {
+                out.info(&format!("Composer runs the autoload dump: {why}"));
+                composer.run(&fallback::dump_args(req), out)?;
+                written.extend(top_files(Path::new(&vendor)));
+                written.extend(top_files(&repo));
+            }
+        }
+        Step::Skip(_) => {}
+    }
+    steps.event(
+        req,
+        &plan.post_install,
+        scripts::POST_INSTALL,
+        plan.post_install_for_plugins && !scripts.has(scripts::POST_INSTALL),
+        out,
+    )?;
+    written.extend(wanted.iter().map(PathBuf::from));
+    Ok(Some(written))
+}
+
+/// Where the install's script events and Composer calls go.
+struct Steps<'a> {
+    composer: Option<Composer>,
+    runner: Option<Runner<'a>>,
+    warmup: Option<(Instant, std::thread::JoinHandle<usize>)>,
+}
+
+impl Steps<'_> {
+    /// Let the read-ahead finish before Composer starts scanning.
+    fn composer(&mut self, out: &mut Out<'_>) -> Option<&Composer> {
+        if let Some((started, handle)) = self.warmup.take() {
+            let read = handle.join().unwrap_or(0);
             out.detail(&format!(
-                "loaded class scans for {} packages in {:.1?}",
-                trees.len(),
+                "read {read} files ahead of Composer in {:.1?}",
                 started.elapsed()
             ));
         }
-        let autoload = phpm_autoload::generate(
-            &phpm_autoload::Project {
-                composer_json: &composer,
-                lock: &lock,
-                root_dir: &root_dir,
+        self.composer.as_ref()
+    }
+
+    /// One script event, run where the plan says.
+    fn event(
+        &mut self,
+        req: &Request,
+        step: &Step,
+        event: &str,
+        only_plugins_listen: bool,
+        out: &mut Out<'_>,
+    ) -> Result<(), Error> {
+        match step {
+            Step::Native(_) => match self.runner.as_mut() {
+                Some(runner) => runner.dispatch(event, &[], out),
+                None => Ok(()),
             },
-            &options,
-        )?;
-        autoload
-            .write()
-            .map_err(|e| Error::install(format!("writing the autoloader: {e}")))?;
-        for w in &autoload.warnings {
-            out.warn(w);
+            Step::Composer(why) => {
+                let Some(composer) = self.composer(out).cloned() else {
+                    return Ok(());
+                };
+                out.info(&format!("Composer runs {event}: {why}"));
+                let args = fallback::run_script_args(req, event);
+                if only_plugins_listen {
+                    composer.run_script_for_plugins(&args, out)
+                } else {
+                    composer.run(&args, out)
+                }
+            }
+            Step::Skip(_) => Ok(()),
         }
-        written.extend(
-            autoload
-                .files
-                .iter()
-                .map(|(name, _)| Path::new(&autoload.vendor_dir).join(name)),
-        );
+    }
+}
+
+/// phpm's own autoloader, byte-identical to Composer's; returns what it wrote.
+fn native_autoload(
+    req: &Request,
+    composer: &ComposerJson,
+    lock: &Lock,
+    root_dir: &str,
+    trees: &[Tree],
+    out: &mut Out<'_>,
+) -> Result<Vec<PathBuf>, Error> {
+    let started = Instant::now();
+    let mut options = phpm_autoload::Options {
+        dev_mode: req.dev,
+        optimize: req.optimize,
+        classmap_authoritative: req.classmap_authoritative,
+        platform: req.platform(),
+        ..phpm_autoload::Options::default()
+    }
+    .with_config(composer);
+    if options.optimize {
+        options.known_classes = Some(Arc::new(known_classes(trees)));
         out.detail(&format!(
-            "wrote the autoloader in {:.1?}",
+            "loaded class scans for {} packages in {:.1?}",
+            trees.len(),
             started.elapsed()
         ));
     }
-    written.extend(wanted.iter().map(PathBuf::from));
-
-    out.info(&summary(placements.len() + from_paths.len(), removed));
-    Ok(written)
+    let autoload = phpm_autoload::generate(
+        &phpm_autoload::Project {
+            composer_json: composer,
+            lock,
+            root_dir,
+        },
+        &options,
+    )?;
+    autoload
+        .write()
+        .map_err(|e| Error::install(format!("writing the autoloader: {e}")))?;
+    for w in &autoload.warnings {
+        out.warn(w);
+    }
+    out.detail(&format!(
+        "wrote the autoloader in {:.1?}",
+        started.elapsed()
+    ));
+    Ok(autoload
+        .files
+        .iter()
+        .map(|(name, _)| Path::new(&autoload.vendor_dir).join(name))
+        .collect())
 }
 
 // Composer: Installer.php doInstall, "Verifying lock file contents can be installed on current platform."
@@ -724,7 +917,8 @@ fn summary(placed: usize, removed: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        Previous, Request, bins, guard, locked, previous, remove_package, summary, unchanged,
+        Previous, Request, bins, locked, package_line, previous, remove_package, summary,
+        top_files, unchanged,
     };
     use phpm_autoload::PlatformRequirements;
     use phpm_lock::ComposerJson;
@@ -753,38 +947,73 @@ mod tests {
     }
 
     #[test]
-    fn refuses_plugins_and_scripts_unless_told_not_to_run_them() {
-        let plugin = obj(json!({"name": "a/plugin", "type": "composer-plugin"}));
-        let lib = obj(json!({"name": "a/lib"}));
-        let plain = composer(json!({}));
+    fn explains_each_package() {
+        use crate::fallback::plan;
+        use crate::plugins::{Plugin, Plugins, Skipped};
+        use crate::scripts::Scripts;
+        let c = composer(json!({}));
+        let mut entry = zip_entry("a/plugin");
+        entry.insert("type".into(), json!("composer-plugin"));
+        let l = locked(&entry, &c).unwrap();
+        assert!(l.plugin);
+        let scripts = Scripts::new(&c, &|_| None);
         let req = Request::default();
-        let err = guard(&req, &plain, &[&lib, &plugin]).unwrap_err();
-        assert!(err.message.contains("a/plugin"), "{err}");
-        assert!(err.message.contains("--no-plugins"));
-        assert_eq!(err.code, 1);
-        let no_plugins = Request {
-            no_plugins: true,
-            ..Request::default()
+        let active = Plugins {
+            active: vec![Plugin {
+                name: "a/plugin".into(),
+                global: false,
+                needs_full_install: None,
+            }],
+            skipped: Vec::new(),
         };
-        assert!(guard(&no_plugins, &plain, &[&lib, &plugin]).is_ok());
+        let p = plan(&req, &scripts, active, true, false);
+        assert_eq!(
+            package_line(&l, "native, placed from the store", &p, false),
+            "package a/plugin 1.0.0: native, placed from the store; plugin, Composer loads it for the steps it hooks"
+        );
+        let skipped = Plugins {
+            active: Vec::new(),
+            skipped: vec![Skipped {
+                name: "a/plugin".into(),
+                why: "not in config.allow-plugins",
+            }],
+        };
+        let p = plan(&req, &scripts, skipped, true, false);
+        assert!(
+            package_line(&l, "x", &p, false)
+                .ends_with("; plugin, not loaded: not in config.allow-plugins")
+        );
+        let p = plan(&req, &scripts, Plugins::default(), true, false);
+        assert!(package_line(&l, "x", &p, true).ends_with("not loaded: --no-plugins"));
+        assert_eq!(
+            package_line(&l, "x", &p, false),
+            "package a/plugin 1.0.0: x"
+        );
+        let full = Plugins {
+            active: vec![Plugin {
+                name: "a/plugin".into(),
+                global: false,
+                needs_full_install: Some("why".into()),
+            }],
+            skipped: Vec::new(),
+        };
+        let p = plan(&req, &scripts, full, true, false);
+        assert!(package_line(&l, "x", &p, false).ends_with("loaded by composer install"));
+    }
 
-        let scripted = composer(json!({"scripts": {
-            "post-autoload-dump": ["@php artisan package:discover"],
-            "post-update-cmd": "x",
-            "pre-install-cmd": [],
-            "post-install-cmd": null,
-        }}));
-        let err = guard(&req, &scripted, &[&lib]).unwrap_err();
-        assert!(err.message.contains("post-autoload-dump"), "{err}");
-        assert!(!err.message.contains("post-update-cmd"));
-        assert!(!err.message.contains("pre-install-cmd"));
-        let no_scripts = Request {
-            no_scripts: true,
-            ..Request::default()
-        };
-        assert!(guard(&no_scripts, &scripted, &[&lib]).is_ok());
-        let update_only = composer(json!({"scripts": {"post-update-cmd": "x", "test": "y"}}));
-        assert!(guard(&req, &update_only, &[&lib]).is_ok());
+    #[test]
+    fn lists_top_level_files_only() {
+        let tmp = tempfile::tempdir().unwrap();
+        fs::create_dir_all(tmp.path().join("sub")).unwrap();
+        fs::write(tmp.path().join("b.php"), b"").unwrap();
+        fs::write(tmp.path().join("a.php"), b"").unwrap();
+        fs::write(tmp.path().join("sub/c.php"), b"").unwrap();
+        let names: Vec<String> = top_files(tmp.path())
+            .iter()
+            .map(|p| p.file_name().unwrap().to_string_lossy().into_owned())
+            .collect();
+        assert_eq!(names, ["a.php", "b.php"]);
+        assert!(top_files(&tmp.path().join("none")).is_empty());
     }
 
     #[test]

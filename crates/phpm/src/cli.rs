@@ -66,13 +66,17 @@ pub(crate) struct InstallArgs {
     #[arg(long)]
     pub(crate) no_autoloader: bool,
 
-    /// Do not run scripts (phpm never runs them; this allows projects that have some)
+    /// Do not run scripts
     #[arg(long)]
     pub(crate) no_scripts: bool,
 
-    /// Do not load plugins (phpm never loads them; this allows lock files that have some)
+    /// Do not load plugins
     #[arg(long)]
     pub(crate) no_plugins: bool,
+
+    /// Print which path each package and step takes (native or Composer) and why
+    #[arg(long)]
+    pub(crate) explain: bool,
 
     /// Leave `platform_check.php` out
     #[arg(long)]
@@ -142,6 +146,7 @@ mod tests {
             "-a",
             "--no-scripts",
             "--no-plugins",
+            "--explain",
             "-d",
             "/tmp/x",
             "-vv",
@@ -152,7 +157,7 @@ mod tests {
         ]);
         let a = args(&cli);
         assert!(a.no_dev && a.optimize_autoloader && a.classmap_authoritative);
-        assert!(a.no_scripts && a.no_plugins);
+        assert!(a.no_scripts && a.no_plugins && a.explain);
         assert_eq!(
             cli.working_dir.as_deref(),
             Some(std::path::Path::new("/tmp/x"))
