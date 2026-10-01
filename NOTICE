@@ -11,5 +11,7 @@ copied verbatim from Composer 2.10.3:
 Composer is Copyright (c) Nils Adermann, Jordi Boggiano and is licensed under
 the MIT licence; see crates/phpm-lock/composer/LICENSE.
 
-phpm also reproduces the behaviour of Composer and composer/semver (MIT) in
-Rust. Source files that do so point to the Composer file they follow.
+phpm also reproduces the behaviour of Composer, composer/semver and
+composer/class-map-generator (MIT), and of PHP's lexer for
+php_strip_whitespace(), in Rust. Source files that do so point to the file
+they follow.

@@ -8,6 +8,7 @@ mod constraint;
 mod package;
 mod paths;
 mod platform;
+pub mod scan;
 mod sorter;
 mod static_file;
 
@@ -132,7 +133,7 @@ pub struct Project<'a> {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Output {
     pub vendor_dir: String,
-    pub files: Vec<(String, String)>,
+    pub files: Vec<(String, Vec<u8>)>,
     pub remove: Vec<String>,
     pub suffix: String,
     /// Ambiguous class warnings, in Composer's wording.
@@ -147,7 +148,7 @@ impl Output {
         std::fs::create_dir_all(vendor.join("composer"))?;
         for (name, content) in &self.files {
             let path = vendor.join(name);
-            if std::fs::read(&path).is_ok_and(|old| old == content.as_bytes()) {
+            if std::fs::read(&path).is_ok_and(|old| old == *content) {
                 continue;
             }
             std::fs::write(&path, content)?;
@@ -161,11 +162,11 @@ impl Output {
         Ok(())
     }
 
-    pub fn file(&self, name: &str) -> Option<&str> {
+    pub fn file(&self, name: &str) -> Option<&[u8]> {
         self.files
             .iter()
             .find(|(n, _)| n == name)
-            .map(|(_, c)| c.as_str())
+            .map(|(_, c)| c.as_slice())
     }
 }
 
@@ -568,7 +569,10 @@ pub fn generate(project: &Project<'_>, options: &Options) -> Result<Output, Erro
 
     Ok(Output {
         vendor_dir: vendor,
-        files,
+        files: files
+            .into_iter()
+            .map(|(name, content)| (name, scan::raw_bytes(&content)))
+            .collect(),
         remove,
         suffix,
         warnings: class_map.warnings(),
@@ -852,7 +856,7 @@ mod tests {
         };
         assert!(matches!(
             run(json!({}), scan, &dev),
-            Err(Error::Unsupported(_))
+            Err(Error::Scan { .. })
         ));
         let bad_php =
             json!({"packages": [{"name": "a/b", "version": "1.0", "require": {"php": "~>8"}}]});
@@ -874,7 +878,8 @@ mod tests {
             &Options::default(),
         )
         .unwrap();
-        let psr4 = out.file("composer/autoload_psr4.php").unwrap();
+        let psr4 =
+            String::from_utf8(out.file("composer/autoload_psr4.php").unwrap().to_vec()).unwrap();
         assert!(psr4.contains("'U\\\\'") && psr4.contains("'C\\\\'"));
         assert!(!psr4.contains("'S\\\\'"));
     }

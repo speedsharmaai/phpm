@@ -14,11 +14,13 @@ indexmap = { workspace = true }
 md5 = { workspace = true }
 phpm-lock = { path = "../phpm-lock" }
 phpm-php = { path = "../phpm-php" }
+rayon = { workspace = true }
 regex = { workspace = true }
 serde_json = { workspace = true }
 
 [dev-dependencies]
 phpm-testkit = { path = "../phpm-testkit" }
+proptest = { workspace = true }
 tempfile = { workspace = true }
 
 [lints]
