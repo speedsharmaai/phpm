@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# Composer vs phpm on a real-world project: cold, warm and no-op via
+# hyperfine, plus a diffvendor identity check and phpm's --explain fallback.
+# One JSON record per project, read by `bench-real aggregate`.
+#
+#   tools/bench-real/run <owner/name> <commit> --os NAME [--group G] [--stars N]
+#   tools/bench-real/run fixture <name> --os NAME --group G [--stars N]
+#   tools/bench-real/run batch <corpus.json> --os NAME [--shard I/N] [--out FILE]
+#
+# Binaries: COMPOSER_BIN (composer), PHPM_BIN (phpm), DIFFVENDOR_BIN
+# (diffvendor), all on PATH by default.
+# BENCH_GIT_BASE (https://github.com/), BENCH_FETCH_TRIES (3).
+set -euo pipefail
+
+here="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=tools/bench-real/lib.sh
+. "$here/lib.sh"
+
+usage() {
+  echo "usage: $0 <owner/name> <commit> --os NAME [--group G] [--stars N]" >&2
+  echo "       $0 fixture <name> --os NAME --group G [--stars N]" >&2
+  echo "       $0 batch <corpus.json> --os NAME [--shard I/N] [--out FILE]" >&2
+  exit 2
+}
+
+case "${1:-}" in
+  fixture)
+    shift
+    fixture="$1"; shift
+    os=$(opt os "" "$@"); group=$(opt group "own" "$@"); stars=$(opt stars "" "$@")
+    [ -n "$os" ] || usage
+    run_project "" "" "$fixture" "$os" "$group" "$stars"
+    ;;
+  batch)
+    shift
+    corpus="$1"; shift
+    os=$(opt os "" "$@"); out=$(opt out "" "$@"); shard=$(opt shard "1/1" "$@")
+    [ -n "$os" ] || usage
+    shard_i=${shard%/*}; shard_n=${shard#*/}
+    n=$(jq '.projects | length' "$corpus")
+    sink=/dev/stdout
+    [ -n "$out" ] && { mkdir -p "$(dirname "$out")"; sink="$out"; : >"$sink"; }
+    for ((idx = 0; idx < n; idx++)); do
+      [ $(((idx % shard_n) + 1)) -eq "$shard_i" ] || continue
+      p=$(jq ".projects[$idx]" "$corpus")
+      repo=$(echo "$p" | jq -r '.repo // ""')
+      commit=$(echo "$p" | jq -r '.commit // ""')
+      fixture=$(echo "$p" | jq -r '.fixture // ""')
+      group=$(echo "$p" | jq -r '.group // "big-apps"')
+      stars=$(echo "$p" | jq -r '.stars // "null"')
+      run_project "$repo" "$commit" "$fixture" "$os" "$group" "$stars" >>"$sink"
+    done
+    ;;
+  "" | -h | --help)
+    usage
+    ;;
+  *)
+    repo="$1"; commit="$2"; shift 2
+    os=$(opt os "" "$@"); group=$(opt group "big-apps" "$@"); stars=$(opt stars "" "$@")
+    [ -n "$os" ] || usage
+    run_project "$repo" "$commit" "" "$os" "$group" "$stars"
+    ;;
+esac
