@@ -424,7 +424,7 @@ impl BinInstaller {
             return Ok(dir.clone());
         }
         fs::create_dir_all(&self.bin_dir)?;
-        let real = fsutil::path_string(&fs::canonicalize(&self.bin_dir)?);
+        let real = fsutil::path_string(&fsutil::canonical(&self.bin_dir)?);
         self.bin_dir_real = Some(real.clone());
         Ok(real)
     }
@@ -524,8 +524,8 @@ impl BinInstaller {
 /// The bin's real path, if it resolves inside the package's real path.
 // Composer: Installer/BinaryInstaller.php isBinPathInsidePackage
 fn inside_package(install_path: &Path, bin_path: &Path) -> Option<PathBuf> {
-    let bin = fs::canonicalize(bin_path).ok()?;
-    let package = fs::canonicalize(install_path).ok()?;
+    let bin = fsutil::canonical(bin_path).ok()?;
+    let package = fsutil::canonical(install_path).ok()?;
     (bin != package && bin.starts_with(&package)).then_some(bin)
 }
 

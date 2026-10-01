@@ -2,11 +2,24 @@
 
 use std::fs;
 use std::io::{self, Read};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 /// A path as Composer prints it: forward slashes.
 pub(crate) fn path_string(path: &Path) -> String {
     path.to_string_lossy().replace('\\', "/")
+}
+
+/// `realpath()`: `canonicalize` without the `\\?\` prefix Windows adds, which
+/// PHP never shows and which breaks every path built on top of it.
+pub(crate) fn canonical(path: &Path) -> io::Result<PathBuf> {
+    fs::canonicalize(path).map(without_verbatim_prefix)
+}
+
+pub(crate) fn without_verbatim_prefix(path: PathBuf) -> PathBuf {
+    match path.to_str().and_then(|s| s.strip_prefix(r"\\?\")) {
+        Some(rest) if !rest.starts_with("UNC\\") => PathBuf::from(rest),
+        _ => path,
+    }
 }
 
 pub(crate) fn read_head(path: &Path, len: u64) -> io::Result<Vec<u8>> {
@@ -121,9 +134,23 @@ impl Modes {
 mod tests {
     #[cfg(unix)]
     use super::Modes;
-    use super::{path_string, read_head, write_if_changed};
+    use super::{canonical, path_string, read_head, without_verbatim_prefix, write_if_changed};
     use std::fs;
-    use std::path::Path;
+    use std::path::{Path, PathBuf};
+
+    #[test]
+    fn real_paths_never_start_with_the_verbatim_prefix() {
+        let plain = |s: &str| without_verbatim_prefix(PathBuf::from(s));
+        assert_eq!(plain(r"\\?\C:\proj"), PathBuf::from(r"C:\proj"));
+        assert_eq!(
+            plain(r"\\?\UNC\host\share"),
+            PathBuf::from(r"\\?\UNC\host\share")
+        );
+        assert_eq!(plain("/srv/proj"), PathBuf::from("/srv/proj"));
+        let here = canonical(Path::new(".")).unwrap();
+        assert!(!here.to_string_lossy().starts_with(r"\\?\"));
+        assert!(here.is_absolute());
+    }
 
     #[test]
     fn reads_only_the_head() {

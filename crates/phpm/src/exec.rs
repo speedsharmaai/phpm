@@ -59,7 +59,7 @@ pub(crate) fn find_composer(env: Env<'_>) -> Option<PathBuf> {
         Some(explicit) => Some(PathBuf::from(explicit)).filter(|p| is_executable(p)),
         None => which("composer", env("PATH").as_deref()),
     }?;
-    Some(std::fs::canonicalize(&found).unwrap_or(found))
+    Some(crate::fsutil::canonical(&found).unwrap_or(found))
 }
 
 /// The PHP Composer's `@php` would use: `PHP_BINARY`, else `php` on PATH.

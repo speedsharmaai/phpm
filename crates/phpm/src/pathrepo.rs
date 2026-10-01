@@ -76,7 +76,7 @@ pub(crate) fn install(
     mirror_env: Option<&str>,
 ) -> Result<Strategy, Error> {
     let source = root.join(&dist.url);
-    let real = fs::canonicalize(&source)
+    let real = crate::fsutil::canonical(&source)
         .ok()
         .filter(|p| p.is_dir())
         .ok_or_else(|| {
@@ -85,7 +85,7 @@ pub(crate) fn install(
                 dist.url
             ))
         })?;
-    if let Ok(existing) = fs::canonicalize(dest) {
+    if let Ok(existing) = crate::fsutil::canonical(dest) {
         if existing == real {
             return Ok(Strategy::Symlink);
         }
@@ -184,7 +184,7 @@ fn archivable(real: &Path) -> Result<Vec<(PathBuf, Item)>, Error> {
             if is_dir {
                 stack.push(path.clone());
             }
-            let Ok(resolved) = fs::canonicalize(&path) else {
+            let Ok(resolved) = crate::fsutil::canonical(&path) else {
                 continue;
             };
             let resolved = path_string(&resolved);
