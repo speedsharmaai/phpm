@@ -195,16 +195,20 @@ jobs:
           RUN: ${{ github.run_id }}
         run: |
           chmod +x bin/sweep
-          mkdir -p site
-          curl -fsSL "https://${OWNER}.github.io/${REPO#*/}/history.json" -o site/history.json || rm -f site/history.json
-          bin/sweep publish site "$(date -u +%F)" \
+          mkdir -p site/sweep site/bench
+          curl -fsSL "https://${OWNER}.github.io/${REPO#*/}/sweep/history.json" -o site/sweep/history.json || rm -f site/sweep/history.json
+          bin/sweep publish site/sweep "$(date -u +%F)" \
             --meta phpm="$SHA" --meta composer=2.10.3 --meta php=8.4 --meta run="$RUN" \
             records/*.jsonl | tee summary.txt
-          cp tools/sweep/page/* site/
-          mkdir -p site/bench
+          cp tools/sweep/page/* site/sweep/
           for f in index.html app.js results.json history.json badge.json; do
             curl -fsSL "https://${OWNER}.github.io/${REPO#*/}/bench/$f" -o "site/bench/$f" 2>/dev/null || rm -f "site/bench/$f"
           done
+          # sweep.yml only owns site/sweep/ now that the landing page is the
+          # Pages root (site/index.html, published by landing.yml). Fetch it
+          # back the same way the loop above fetches /bench/*, so this
+          # workflow's own deploy never wipes the landing page.
+          curl -fsSL "https://${OWNER}.github.io/${REPO#*/}/index.html" -o site/index.html 2>/dev/null || rm -f site/index.html
           {
             echo "## Compatibility sweep"
             echo
@@ -213,7 +217,7 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: results
-          path: site/results.json
+          path: site/sweep/results.json
           retention-days: 90
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
