@@ -389,6 +389,12 @@ stable (no coverage feedback) for 30-180 s each:
   prints it with `precision` 14, so `~9223372036854775807` has the upper
   bound `9.2233720368548E+18.0.0.0-dev`. Ported, with a regression test
   holding five bounds recorded from composer/semver 3.4.4.
-- A wrong assertion of mine, not a bug: `normalize` is not idempotent in
+- `version` (first CI run, coverage-guided): `version_compare` on a string
+  with a NUL recursed forever. PHP's C code stops at the first NUL; ported,
+  with PHP 8.4's answers on the input as a regression test.
+- Two wrong assertions of mine, not bugs. `strip_whitespace` can grow the
+  source: PHP adds a space after each `<?` open tag, and phpm's output was
+  byte-identical to `php_strip_whitespace` on the fuzzer's input (81 bytes in,
+  84 out). And `normalize` is not idempotent in
   composer/semver either (`2222-222222222222222` normalises to
   `2222.222222222222222`, which normalises to `2222.222222222222222.0.0`).
