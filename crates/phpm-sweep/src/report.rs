@@ -203,6 +203,7 @@ mod tests {
             compared: vec!["vendor".to_owned()],
             differences: 0,
             first_differences: vec![],
+            normalized: vec![],
             phpm_path: path,
             phpm_reasons: vec![],
             composer: None,

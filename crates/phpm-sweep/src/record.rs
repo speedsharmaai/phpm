@@ -106,6 +106,9 @@ pub struct Record {
     pub differences: usize,
     #[serde(default)]
     pub first_differences: Vec<String>,
+    /// Differences that come from Composer itself and were not counted.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub normalized: Vec<String>,
     pub phpm_path: PhpmPath,
     #[serde(default)]
     pub phpm_reasons: Vec<String>,
@@ -275,6 +278,7 @@ mod tests {
             compared: vec![],
             differences: 0,
             first_differences: vec![],
+            normalized: vec![],
             phpm_path: PhpmPath::Unknown,
             phpm_reasons: vec![],
             composer: None,
