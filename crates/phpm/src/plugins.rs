@@ -235,6 +235,40 @@ fn installs_types(plugin: &str, installed: &[&Map<String, Value>]) -> Option<Str
         .then(|| format!("it installs {kind} packages itself ({})", names.join(", ")))
 }
 
+/// The plugin API this Composer offers plugins.
+// Composer: Plugin/PluginInterface.php PLUGIN_API_VERSION (2.10.3)
+const PLUGIN_API: &str = "2.9.0";
+
+/// Why Composer skips a plugin before asking `allow-plugins` about it.
+// Composer: Plugin/PluginManager.php registerPackage
+fn incompatible(package: &Map<String, Value>, kind: &str, name: &str) -> Option<&'static str> {
+    if kind != "composer-plugin" {
+        return None;
+    }
+    let wanted = package
+        .get("require")
+        .and_then(|r| r.get("composer-plugin-api"))
+        .and_then(Value::as_str)?;
+    if wanted != PLUGIN_API {
+        let fits = phpm_lock::constraint::parse(wanted)
+            .is_ok_and(|c| c.matches_version(&format!("{PLUGIN_API}.0")));
+        if !fits {
+            return Some("needs a plugin API this Composer does not have");
+        }
+    }
+    let version = package.get("version").and_then(Value::as_str).unwrap_or("");
+    let normalized = phpm_lock::version::normalize(version).unwrap_or_default();
+    let old_flex = name == "symfony/flex"
+        && !normalized.is_empty()
+        && normalized.bytes().all(|b| b.is_ascii_digit() || b == b'.')
+        && normalized
+            .split('.')
+            .map(|n| n.parse::<u64>().unwrap_or(0))
+            .collect::<Vec<_>>()
+            < vec![1, 9, 8];
+    old_flex.then_some("not compatible with Composer 2")
+}
+
 fn collect(
     packages: &[&Map<String, Value>],
     installed: &[&Map<String, Value>],
@@ -248,6 +282,13 @@ fn collect(
             continue;
         };
         if !is_plugin_type(kind) {
+            continue;
+        }
+        if let Some(why) = incompatible(package, kind, name) {
+            into.skipped.push(Skipped {
+                name: name.to_owned(),
+                why,
+            });
             continue;
         }
         let optional =
@@ -517,6 +558,64 @@ mod tests {
         );
         let modern = Rules::parse(AllowConfig::Map(Vec::new()), Some("2.6.0"));
         assert_eq!(modern.allows("x/y", false, true), Ok(false));
+    }
+
+    #[test]
+    fn skips_plugins_composer_would_not_load_before_asking() {
+        let with = |name: &str, version: &str, api: Option<&str>| {
+            let mut p = obj(json!({"name": name, "version": version, "type": "composer-plugin"}));
+            if let Some(api) = api {
+                p.insert("require".into(), json!({"composer-plugin-api": api}));
+            }
+            p
+        };
+        let packages = [
+            with("x/old-api", "1.0.0", Some("^1.0")),
+            with("x/exact", "1.0.0", Some("2.9.0")),
+            with("x/fits", "1.0.0", Some("^2.0")),
+            with("x/none", "1.0.0", None),
+            with("symfony/flex", "v1.9.7", Some("^1.0|^2.0")),
+            with("x/garbage", "1.0.0", Some("not a constraint")),
+        ];
+        let refs: Vec<&Map<String, Value>> = packages.iter().collect();
+        let c = composer(&json!({"x/*": false}));
+        let found = detect(&c, "2.9.0", &refs, &Global::default()).unwrap();
+        let skipped: Vec<(&str, &str)> = found
+            .skipped
+            .iter()
+            .map(|s| (s.name.as_str(), s.why))
+            .collect();
+        assert_eq!(
+            skipped[..2],
+            [
+                (
+                    "x/old-api",
+                    "needs a plugin API this Composer does not have"
+                ),
+                ("x/exact", "not in config.allow-plugins"),
+            ]
+        );
+        assert!(skipped.contains(&("symfony/flex", "not compatible with Composer 2")));
+        assert!(skipped.contains(&(
+            "x/garbage",
+            "needs a plugin API this Composer does not have"
+        )));
+        let old_lock = [with("x/old-api", "1.0.0", Some("^1.0"))];
+        let refs: Vec<&Map<String, Value>> = old_lock.iter().collect();
+        assert!(
+            detect(&composer(&json!({})), "1.1.0", &refs, &Global::default()).is_ok(),
+            "a skipped plugin never reaches the allow-plugins question"
+        );
+        let newer = [with("symfony/flex", "v1.9.8", Some("^1.0|^2.0"))];
+        let refs: Vec<&Map<String, Value>> = newer.iter().collect();
+        let c = composer(&json!({"symfony/flex": true}));
+        assert_eq!(
+            detect(&c, "2.9.0", &refs, &Global::default())
+                .unwrap()
+                .active
+                .len(),
+            1
+        );
     }
 
     #[test]

@@ -16,7 +16,9 @@ otherwise.
    `PluginManager` allows them: `config.allow-plugins` merged over
    `COMPOSER_HOME/config.json` the way `Config::merge` does, `true`/`false`,
    first matching glob wins, `composer/package-versions-deprecated` off,
-   `plugin-optional` skipped quietly. A plugin nobody allowed fails the run
+   `plugin-optional` skipped quietly, and plugins needing a
+   plugin API other than 2.9.0 (or symfony/flex before 1.9.8) skipped before
+   `allow-plugins` is asked, as `registerPackage` does. A plugin nobody allowed fails the run
    with Composer's non-interactive message (phpm never prompts), and a lock
    older than plugin API 2.2 with no `allow-plugins` fails as it does in
    Composer. Global plugins use the global `composer.json` rules.
