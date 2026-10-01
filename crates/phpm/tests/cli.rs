@@ -1163,4 +1163,21 @@ fn notifies_downloads_once_per_url_for_what_was_installed() {
     ));
     std::thread::sleep(std::time::Duration::from_millis(500));
     assert_eq!(p.server.posts.lock().unwrap().len(), 2);
+
+    composer["config"] = json!({});
+    std::fs::write(p.root.join("composer.json"), composer.to_string()).unwrap();
+    std::fs::create_dir_all(&p.home).unwrap();
+    std::fs::write(
+        p.home.join("config.json"),
+        r#"{"config": {"notify-on-install": false}}"#,
+    )
+    .unwrap();
+    std::fs::remove_dir_all(p.root.join("vendor")).unwrap();
+    ok(&p.phpm(&["install"]));
+    std::thread::sleep(std::time::Duration::from_millis(500));
+    assert_eq!(
+        p.server.posts.lock().unwrap().len(),
+        2,
+        "COMPOSER_HOME/config.json turns notifications off too"
+    );
 }

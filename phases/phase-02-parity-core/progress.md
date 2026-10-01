@@ -273,7 +273,8 @@ again, which is the price once per ten minutes. Raw JSON:
 - One POST per `notification-url` with Composer's payload for the packages
   this run installed or updated; `downloaded` (bytes or `false`) only for
   packagist.org. Failures are ignored. Off with `config.notify-on-install:
-  false` or `COMPOSER_DISABLE_NETWORK`; the e2e tests set the latter.
+  false` (the project's, else `COMPOSER_HOME/config.json`'s) or
+  `COMPOSER_DISABLE_NETWORK`; the e2e tests set the latter.
 - Sent by a detached copy of phpm (`phpm __notify`, payload on stdin) that
   finishes after the install has exited; a thread is the fallback when it
   cannot start. Composer waits for the POST. Sent in-process it added

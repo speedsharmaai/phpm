@@ -488,6 +488,24 @@ fn abandoned(entry: &Map<String, Value>) -> Option<Abandonment> {
     }
 }
 
+/// `notify-on-install` from the project's config, else from
+/// `COMPOSER_HOME/config.json`, read only when the project leaves it out.
+// Composer: Factory::createConfig, the home config merged under the project's
+fn notify_on_install(
+    project: Option<&Map<String, Value>>,
+    home: impl FnOnce() -> Option<Map<String, Value>>,
+) -> bool {
+    let flag = |c: &Map<String, Value>| c.get("notify-on-install").and_then(Value::as_bool);
+    project.and_then(flag).unwrap_or_else(|| {
+        home()
+            .as_ref()
+            .and_then(|h| h.get("config"))
+            .and_then(Value::as_object)
+            .and_then(flag)
+            .unwrap_or(true)
+    })
+}
+
 /// Send download notifications for what this run installed, from a detached
 /// copy of phpm (or a thread of its own when that cannot start), so the POST
 /// never holds the install up.
@@ -506,10 +524,11 @@ fn notify_installs(
     config: Option<&Map<String, Value>>,
     env: Env<'_>,
 ) -> Option<std::thread::JoinHandle<()>> {
-    let wanted = config
-        .and_then(|c| c.get("notify-on-install"))
-        .and_then(Value::as_bool)
-        .unwrap_or(true)
+    let home_config = || {
+        plugins::composer_home(env, plugins::system_uses_xdg(), &|d| d.is_dir())
+            .and_then(|home| plugins::read_object(&home.join("config.json")))
+    };
+    let wanted = notify_on_install(config, home_config)
         && env("COMPOSER_DISABLE_NETWORK").is_none_or(|v| v.is_empty() || v == "0");
     if !wanted {
         return None;
@@ -1151,8 +1170,8 @@ fn summary(placed: usize, removed: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        Previous, Request, bins, locked, package_line, previous, remove_package, summary,
-        top_files, unchanged,
+        Previous, Request, bins, locked, notify_on_install, package_line, previous, remove_package,
+        summary, top_files, unchanged,
     };
     use phpm_autoload::PlatformRequirements;
     use phpm_lock::ComposerJson;
@@ -1164,6 +1183,19 @@ mod tests {
             Value::Object(m) => m,
             _ => unreachable!(),
         }
+    }
+
+    #[test]
+    fn notify_on_install_prefers_the_project_then_the_home_config() {
+        let off = obj(json!({"notify-on-install": false}));
+        let on = obj(json!({"notify-on-install": true}));
+        let home_off = || Some(obj(json!({"config": {"notify-on-install": false}})));
+        assert!(notify_on_install(None, || None));
+        assert!(!notify_on_install(Some(&off), || None));
+        assert!(!notify_on_install(None, home_off));
+        assert!(!notify_on_install(Some(&obj(json!({}))), home_off));
+        assert!(notify_on_install(Some(&on), home_off));
+        assert!(notify_on_install(None, || Some(obj(json!({"config": []})))));
     }
 
     fn composer(v: Value) -> ComposerJson {
