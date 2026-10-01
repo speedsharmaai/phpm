@@ -1,6 +1,6 @@
 # Phase 05: Real-world benchmarks
 
-Outline. Tasked after Phase 04 ships.
+Tasks: [tasks.md](tasks.md). Starts in parallel with Phase 03/04 once the sweep corpus exists.
 
 ## Why
 
