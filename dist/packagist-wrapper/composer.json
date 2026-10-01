@@ -1,0 +1,31 @@
+{
+  "name": "speedsharma/phpm",
+  "description": "Composer-compatible installer binary (phpm), fetched for your platform",
+  "type": "library",
+  "license": ["MIT", "Apache-2.0"],
+  "homepage": "https://speedsharmaai.github.io/phpm/",
+  "support": {
+    "issues": "https://github.com/speedsharmaai/phpm/issues",
+    "source": "https://github.com/speedsharmaai/phpm"
+  },
+  "authors": [
+    {
+      "name": "Sanjeev Sharma",
+      "email": "speedsharma.ai@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.4",
+    "composer-plugin-api": "^2.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Speedsharma\\Phpm\\": "src/"
+    }
+  },
+  "bin": ["bin/phpm"],
+  "scripts": {
+    "post-install-cmd": "Speedsharma\\Phpm\\Installer::install",
+    "post-update-cmd": "Speedsharma\\Phpm\\Installer::install"
+  }
+}

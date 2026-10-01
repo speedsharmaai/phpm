@@ -69,7 +69,11 @@ bench-real-test:
 npm-wrapper-test:
     dist/npm-wrapper/test.sh
 
-ci: fmt-check lint docs test deny shear msrv typos md actions sweep-test bench-real-test npm-wrapper-test cov
+# php -l, composer validate and the Installer unit tests for the Packagist wrapper scaffold
+packagist-wrapper-test:
+    dist/packagist-wrapper/test.sh
+
+ci: fmt-check lint docs test deny shear msrv typos md actions sweep-test bench-real-test npm-wrapper-test packagist-wrapper-test cov
 
 # warm placement time for a fixture; the first run fills the store
 place fixture="laravel-skeleton" *args="":
