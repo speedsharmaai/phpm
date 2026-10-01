@@ -6,6 +6,7 @@
 mod hooks;
 pub(crate) mod installers;
 mod php;
+mod phpstan_extension_installer;
 mod symfony_runtime;
 
 use std::collections::BTreeMap;
@@ -25,6 +26,7 @@ pub(crate) enum Role {
     WordPressCore,
     Pest,
     SymfonyRuntime,
+    PhpstanExtensionInstaller,
 }
 
 /// Versions whose plugin source was read and compared against the adapter.
@@ -59,7 +61,7 @@ struct Known {
     does: &'static str,
 }
 
-const KNOWN: [Known; 4] = [
+const KNOWN: [Known; 5] = [
     Known {
         name: "composer/installers",
         versions: Versions::Exact(&["2.3.0.0"]),
@@ -86,6 +88,13 @@ const KNOWN: [Known; 4] = [
         versions: Versions::Range("7.0.0.0", "8.1.0.0"),
         role: Role::SymfonyRuntime,
         does: "phpm writes vendor/autoload_runtime.php",
+    },
+    Known {
+        name: "phpstan/extension-installer",
+        // 1.4.0-1.4.3 are byte-identical; earlier versions were not checked.
+        versions: Versions::Exact(&["1.4.0.0", "1.4.1.0", "1.4.2.0", "1.4.3.0"]),
+        role: Role::PhpstanExtensionInstaller,
+        does: "phpm writes GeneratedConfig.php",
     },
 ];
 
@@ -215,6 +224,9 @@ fn check(role: Role, entries: &[&Map<String, Value>], ctx: Context<'_>) -> Resul
     match role {
         Role::Pest => hooks::pest_check(entries, ctx.root_extra),
         Role::SymfonyRuntime => hooks::symfony_runtime_check(ctx.root_extra, ctx.root, ctx.vendor),
+        Role::PhpstanExtensionInstaller => {
+            hooks::phpstan_check(entries, ctx.root_extra, ctx.vendor)
+        }
         Role::Installers | Role::WordPressCore => Ok(()),
     }
 }
@@ -477,6 +489,46 @@ mod tests {
         assert_eq!(
             super::known_version("composer/installers", "not a version"),
             None
+        );
+    }
+
+    #[test]
+    fn phpstan_extension_installer_runs_natively_alone_and_declines_on_a_dev_extension() {
+        let own = obj(
+            json!({"name": "phpstan/extension-installer", "version": "1.4.3", "type": "composer-plugin"}),
+        );
+        let extension = obj(json!({
+            "name": "x/ext", "version": "1.0.0",
+            "extra": {"phpstan": {"includes": ["extension.neon"]}},
+            "require": {"phpstan/phpstan": "^1.11"},
+        }));
+        let entries = [own.clone(), extension.clone()];
+        let refs: Vec<&Map<String, Value>> = entries.iter().collect();
+        let mut plugins = Plugins {
+            active: vec![plugin("phpstan/extension-installer")],
+            skipped: Vec::new(),
+        };
+        let covered = cover(&mut plugins, &refs, ctx(&Map::new()));
+        assert_eq!(covered.hooks.roles, [Role::PhpstanExtensionInstaller]);
+        assert!(matches!(
+            plugins.active[0].adapter,
+            Adapter::Native("phpm writes GeneratedConfig.php")
+        ));
+
+        let mut dev_extension = extension;
+        dev_extension.insert("version".into(), json!("dev-main"));
+        let entries = [own, dev_extension];
+        let refs: Vec<&Map<String, Value>> = entries.iter().collect();
+        let mut plugins = Plugins {
+            active: vec![plugin("phpstan/extension-installer")],
+            skipped: Vec::new(),
+        };
+        assert_eq!(
+            cover(&mut plugins, &refs, ctx(&Map::new())),
+            Covered::default()
+        );
+        assert!(
+            matches!(&plugins.active[0].adapter, Adapter::Declined(why) if why.contains("dev-main"))
         );
     }
 

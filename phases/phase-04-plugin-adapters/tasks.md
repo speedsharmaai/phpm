@@ -73,9 +73,17 @@ with `phpm-diffvendor`, 0 differences) and the app smoke checks
 
 ## phpstan/extension-installer
 
-- [ ] `GeneratedConfig.php`: extensions, `NOT_INSTALLED`, the compacted
+- [x] `GeneratedConfig.php`: extensions, `NOT_INSTALLED`, the compacted
   phpstan constraint, `ignore`; absolute install paths compared at the same
-  path.
+  path. Verified 1.4.0-1.4.3 (byte-identical sources). The compacted
+  constraint is the intersection of each qualifying package's own
+  `phpstan/phpstan` bound (`Bound::is_higher_than`/`is_lower_than`, the same
+  fold `MultiConstraint::extractBounds` does for a conjunction); declines
+  when the intersection is empty rather than guess at `Intervals`' general
+  interval algebra. `relative_install_path` and extensions' shape checked
+  against drupal-recommended's real captured `GeneratedConfig.php`.
+  Declines a dev/branch-version qualifying package (would need
+  `getFullPrettyVersion()`'s truncated-reference suffix) rather than guess.
 
 ## php-http/discovery
 
