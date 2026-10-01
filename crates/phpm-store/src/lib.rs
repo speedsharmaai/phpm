@@ -85,6 +85,16 @@ impl Store {
         fetcher: &Fetcher,
         packages: &[Package],
     ) -> Result<Vec<String>> {
+        let fetched = self.fetch_missing_sized(fetcher, packages).await?;
+        Ok(fetched.into_iter().map(|(name, _)| name).collect())
+    }
+
+    /// [`Store::fetch_missing`], with the bytes downloaded for each package.
+    pub async fn fetch_missing_sized(
+        &self,
+        fetcher: &Fetcher,
+        packages: &[Package],
+    ) -> Result<Vec<(String, u64)>> {
         let mut seen = BTreeSet::new();
         let mut tasks = JoinSet::new();
         for package in packages {
@@ -112,16 +122,17 @@ impl Store {
                     .fetch(&package.dist.url, package.dist.shasum.as_deref())
                     .await?;
                 let name = package.name.clone();
+                let size = bytes.len() as u64;
                 tokio::task::spawn_blocking(move || insert(&store, &name, &key, &bytes))
                     .await
                     .map_err(|e| Error::Task(e.to_string()))??;
-                Ok::<_, Error>(package.name)
+                Ok::<_, Error>((package.name, size))
             });
         }
         let mut fetched = Vec::new();
         while let Some(joined) = tasks.join_next().await {
             match joined {
-                Ok(Ok(name)) => fetched.push(name),
+                Ok(Ok(done)) => fetched.push(done),
                 Ok(Err(e)) => return Err(e),
                 Err(e) => return Err(Error::Task(e.to_string())),
             }

@@ -6,6 +6,7 @@ mod exec;
 mod fallback;
 mod fsutil;
 mod install;
+mod notify;
 mod out;
 mod pathrepo;
 mod platform;
