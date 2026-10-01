@@ -1,0 +1,4330 @@
+[
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "akaunting-module",
+        "path": "{cwd}/modules/MyCoolPlugin"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "akaunting-module",
+        "path": "{cwd}/modules/OcWnTiModuleXPluginModule"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "akaunting-module",
+        "path": "{cwd}/modules/GravThemeFancyThingTemplate"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "asgard-module",
+        "path": "{cwd}/Modules/MyCoolPlugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "asgard-module",
+        "path": "{cwd}/Modules/OcWnTiModuleXPlugin/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "asgard-module",
+        "path": "{cwd}/Modules/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "asgard-theme",
+        "path": "{cwd}/Themes/MyCoolPlugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "asgard-theme",
+        "path": "{cwd}/Themes/OcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "asgard-theme",
+        "path": "{cwd}/Themes/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "attogram-module",
+        "path": "{cwd}/modules/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "attogram-module",
+        "path": "{cwd}/modules/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "attogram-module",
+        "path": "{cwd}/modules/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "agl-module",
+        "path": "{cwd}/More/MyCoolPlugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "agl-module",
+        "path": "{cwd}/More/OcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "agl-module",
+        "path": "{cwd}/More/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "annotatecms-module",
+        "path": "{cwd}/addons/modules/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "annotatecms-module",
+        "path": "{cwd}/addons/modules/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "annotatecms-module",
+        "path": "{cwd}/addons/modules/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "annotatecms-component",
+        "path": "{cwd}/addons/components/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "annotatecms-component",
+        "path": "{cwd}/addons/components/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "annotatecms-component",
+        "path": "{cwd}/addons/components/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "annotatecms-service",
+        "path": "{cwd}/addons/services/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "annotatecms-service",
+        "path": "{cwd}/addons/services/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "annotatecms-service",
+        "path": "{cwd}/addons/services/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "botble-plugin",
+        "path": "{cwd}/platform/plugins/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "botble-plugin",
+        "path": "{cwd}/platform/plugins/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "botble-plugin",
+        "path": "{cwd}/platform/plugins/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "botble-theme",
+        "path": "{cwd}/platform/themes/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "botble-theme",
+        "path": "{cwd}/platform/themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "botble-theme",
+        "path": "{cwd}/platform/themes/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "bonefish-package",
+        "path": "{cwd}/Packages/acme/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "bonefish-package",
+        "path": "{cwd}/Packages/Some.Vendor/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "bonefish-package",
+        "path": "{cwd}/Packages/grav/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "chef-cookbook",
+        "path": "{cwd}/Chef/acme/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "chef-cookbook",
+        "path": "{cwd}/Chef/Some.Vendor/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "chef-cookbook",
+        "path": "{cwd}/Chef/grav/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "chef-role",
+        "path": "{cwd}/Chef/roles/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "chef-role",
+        "path": "{cwd}/Chef/roles/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "chef-role",
+        "path": "{cwd}/Chef/roles/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "civicrm-ext",
+        "path": "{cwd}/ext/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "civicrm-ext",
+        "path": "{cwd}/ext/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "civicrm-ext",
+        "path": "{cwd}/ext/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "ccframework-ship",
+        "path": "{cwd}/CCF/orbit/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "ccframework-ship",
+        "path": "{cwd}/CCF/orbit/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "ccframework-ship",
+        "path": "{cwd}/CCF/orbit/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "ccframework-theme",
+        "path": "{cwd}/CCF/app/themes/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "ccframework-theme",
+        "path": "{cwd}/CCF/app/themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "ccframework-theme",
+        "path": "{cwd}/CCF/app/themes/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "cockpit-module",
+        "path": "{cwd}/cockpit/modules/addons/My-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "cockpit-module",
+        "path": "{cwd}/cockpit/modules/addons/Oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "cockpit-module",
+        "path": "{cwd}/cockpit/modules/addons/Grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "codeigniter-library",
+        "path": "{cwd}/application/libraries/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "codeigniter-library",
+        "path": "{cwd}/application/libraries/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "codeigniter-library",
+        "path": "{cwd}/application/libraries/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "codeigniter-third-party",
+        "path": "{cwd}/application/third_party/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "codeigniter-third-party",
+        "path": "{cwd}/application/third_party/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "codeigniter-third-party",
+        "path": "{cwd}/application/third_party/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "codeigniter-module",
+        "path": "{cwd}/application/modules/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "codeigniter-module",
+        "path": "{cwd}/application/modules/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "codeigniter-module",
+        "path": "{cwd}/application/modules/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "concrete5-core",
+        "path": "{cwd}/concrete/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "concrete5-core",
+        "path": "{cwd}/concrete/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "concrete5-core",
+        "path": "{cwd}/concrete/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "concrete5-block",
+        "path": "{cwd}/application/blocks/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "concrete5-block",
+        "path": "{cwd}/application/blocks/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "concrete5-block",
+        "path": "{cwd}/application/blocks/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "concrete5-package",
+        "path": "{cwd}/packages/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "concrete5-package",
+        "path": "{cwd}/packages/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "concrete5-package",
+        "path": "{cwd}/packages/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "concrete5-theme",
+        "path": "{cwd}/application/themes/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "concrete5-theme",
+        "path": "{cwd}/application/themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "concrete5-theme",
+        "path": "{cwd}/application/themes/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "concrete5-update",
+        "path": "{cwd}/updates/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "concrete5-update",
+        "path": "{cwd}/updates/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "concrete5-update",
+        "path": "{cwd}/updates/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "concretecms-core",
+        "path": "{cwd}/concrete/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "concretecms-core",
+        "path": "{cwd}/concrete/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "concretecms-core",
+        "path": "{cwd}/concrete/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "concretecms-block",
+        "path": "{cwd}/application/blocks/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "concretecms-block",
+        "path": "{cwd}/application/blocks/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "concretecms-block",
+        "path": "{cwd}/application/blocks/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "concretecms-package",
+        "path": "{cwd}/packages/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "concretecms-package",
+        "path": "{cwd}/packages/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "concretecms-package",
+        "path": "{cwd}/packages/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "concretecms-theme",
+        "path": "{cwd}/application/themes/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "concretecms-theme",
+        "path": "{cwd}/application/themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "concretecms-theme",
+        "path": "{cwd}/application/themes/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "concretecms-update",
+        "path": "{cwd}/updates/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "concretecms-update",
+        "path": "{cwd}/updates/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "concretecms-update",
+        "path": "{cwd}/updates/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "croogo-plugin",
+        "path": "{cwd}/Plugin/MyCoolPlugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "croogo-plugin",
+        "path": "{cwd}/Plugin/OcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "croogo-plugin",
+        "path": "{cwd}/Plugin/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "croogo-theme",
+        "path": "{cwd}/View/Themed/MyCoolPlugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "croogo-theme",
+        "path": "{cwd}/View/Themed/OcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "croogo-theme",
+        "path": "{cwd}/View/Themed/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "dframe-module",
+        "path": "{cwd}/modules/acme/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "dframe-module",
+        "path": "{cwd}/modules/Some.Vendor/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "dframe-module",
+        "path": "{cwd}/modules/grav/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "dokuwiki-plugin",
+        "path": "{cwd}/lib/plugins/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "dokuwiki-plugin",
+        "path": "{cwd}/lib/plugins/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "dokuwiki-plugin",
+        "path": "{cwd}/lib/plugins/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "dokuwiki-template",
+        "path": "{cwd}/lib/tpl/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "dokuwiki-template",
+        "path": "{cwd}/lib/tpl/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "dokuwiki-template",
+        "path": "{cwd}/lib/tpl/grav-theme-Fancy-thing/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "dolibarr-module",
+        "path": "{cwd}/htdocs/custom/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "dolibarr-module",
+        "path": "{cwd}/htdocs/custom/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "dolibarr-module",
+        "path": "{cwd}/htdocs/custom/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "decibel-app",
+        "path": "{cwd}/app/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "decibel-app",
+        "path": "{cwd}/app/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "decibel-app",
+        "path": "{cwd}/app/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "drupal-core",
+        "path": "{cwd}/core/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "drupal-core",
+        "path": "{cwd}/core/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "drupal-core",
+        "path": "{cwd}/core/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "drupal-module",
+        "path": "{cwd}/modules/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "drupal-module",
+        "path": "{cwd}/modules/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "drupal-module",
+        "path": "{cwd}/modules/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "drupal-theme",
+        "path": "{cwd}/themes/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "drupal-theme",
+        "path": "{cwd}/themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "drupal-theme",
+        "path": "{cwd}/themes/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "drupal-library",
+        "path": "{cwd}/libraries/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "drupal-library",
+        "path": "{cwd}/libraries/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "drupal-library",
+        "path": "{cwd}/libraries/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "drupal-profile",
+        "path": "{cwd}/profiles/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "drupal-profile",
+        "path": "{cwd}/profiles/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "drupal-profile",
+        "path": "{cwd}/profiles/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "drupal-database-driver",
+        "path": "{cwd}/drivers/lib/Drupal/Driver/Database/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "drupal-database-driver",
+        "path": "{cwd}/drivers/lib/Drupal/Driver/Database/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "drupal-database-driver",
+        "path": "{cwd}/drivers/lib/Drupal/Driver/Database/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "drupal-drush",
+        "path": "{cwd}/drush/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "drupal-drush",
+        "path": "{cwd}/drush/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "drupal-drush",
+        "path": "{cwd}/drush/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "drupal-custom-theme",
+        "path": "{cwd}/themes/custom/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "drupal-custom-theme",
+        "path": "{cwd}/themes/custom/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "drupal-custom-theme",
+        "path": "{cwd}/themes/custom/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "drupal-custom-module",
+        "path": "{cwd}/modules/custom/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "drupal-custom-module",
+        "path": "{cwd}/modules/custom/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "drupal-custom-module",
+        "path": "{cwd}/modules/custom/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "drupal-custom-profile",
+        "path": "{cwd}/profiles/custom/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "drupal-custom-profile",
+        "path": "{cwd}/profiles/custom/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "drupal-custom-profile",
+        "path": "{cwd}/profiles/custom/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "drupal-drupal-multisite",
+        "path": "{cwd}/sites/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "drupal-drupal-multisite",
+        "path": "{cwd}/sites/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "drupal-drupal-multisite",
+        "path": "{cwd}/sites/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "drupal-console",
+        "path": "{cwd}/console/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "drupal-console",
+        "path": "{cwd}/console/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "drupal-console",
+        "path": "{cwd}/console/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "drupal-console-language",
+        "path": "{cwd}/console/language/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "drupal-console-language",
+        "path": "{cwd}/console/language/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "drupal-console-language",
+        "path": "{cwd}/console/language/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "drupal-config",
+        "path": "{cwd}/config/sync/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "drupal-config",
+        "path": "{cwd}/config/sync/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "drupal-config",
+        "path": "{cwd}/config/sync/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "drupal-recipe",
+        "path": "{cwd}/recipes/my-cool_Plugin"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "drupal-recipe",
+        "path": "{cwd}/recipes/oc-wn-ti-module-x-plugin-module"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "drupal-recipe",
+        "path": "{cwd}/recipes/grav-theme-Fancy-thing-template"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "elgg-plugin",
+        "path": "{cwd}/mod/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "elgg-plugin",
+        "path": "{cwd}/mod/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "elgg-plugin",
+        "path": "{cwd}/mod/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "eliasis-component",
+        "path": "{cwd}/components/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "eliasis-component",
+        "path": "{cwd}/components/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "eliasis-component",
+        "path": "{cwd}/components/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "eliasis-module",
+        "path": "{cwd}/modules/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "eliasis-module",
+        "path": "{cwd}/modules/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "eliasis-module",
+        "path": "{cwd}/modules/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "eliasis-plugin",
+        "path": "{cwd}/plugins/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "eliasis-plugin",
+        "path": "{cwd}/plugins/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "eliasis-plugin",
+        "path": "{cwd}/plugins/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "eliasis-template",
+        "path": "{cwd}/templates/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "eliasis-template",
+        "path": "{cwd}/templates/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "eliasis-template",
+        "path": "{cwd}/templates/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "ee3-addon",
+        "path": "{cwd}/system/user/addons/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "ee3-addon",
+        "path": "{cwd}/system/user/addons/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "ee3-addon",
+        "path": "{cwd}/system/user/addons/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "ee3-theme",
+        "path": "{cwd}/themes/user/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "ee3-theme",
+        "path": "{cwd}/themes/user/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "ee3-theme",
+        "path": "{cwd}/themes/user/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "ee2-addon",
+        "path": "{cwd}/system/expressionengine/third_party/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "ee2-addon",
+        "path": "{cwd}/system/expressionengine/third_party/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "ee2-addon",
+        "path": "{cwd}/system/expressionengine/third_party/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "ee2-theme",
+        "path": "{cwd}/themes/third_party/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "ee2-theme",
+        "path": "{cwd}/themes/third_party/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "ee2-theme",
+        "path": "{cwd}/themes/third_party/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "ezplatform-meta-assets",
+        "path": "{cwd}/web/assets/ezplatform/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "ezplatform-meta-assets",
+        "path": "{cwd}/web/assets/ezplatform/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "ezplatform-meta-assets",
+        "path": "{cwd}/web/assets/ezplatform/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "ezplatform-assets",
+        "path": "{cwd}/web/assets/ezplatform/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "ezplatform-assets",
+        "path": "{cwd}/web/assets/ezplatform/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "ezplatform-assets",
+        "path": "{cwd}/web/assets/ezplatform/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "fork-module",
+        "path": "{cwd}/src/Modules/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "fork-module",
+        "path": "{cwd}/src/Modules/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "fork-module",
+        "path": "{cwd}/src/Modules/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "fork-theme",
+        "path": "{cwd}/src/Themes/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "fork-theme",
+        "path": "{cwd}/src/Themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "fork-theme",
+        "path": "{cwd}/src/Themes/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "fuel-module",
+        "path": "{cwd}/fuel/app/modules/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "fuel-module",
+        "path": "{cwd}/fuel/app/modules/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "fuel-module",
+        "path": "{cwd}/fuel/app/modules/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "fuel-package",
+        "path": "{cwd}/fuel/packages/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "fuel-package",
+        "path": "{cwd}/fuel/packages/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "fuel-package",
+        "path": "{cwd}/fuel/packages/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "fuel-theme",
+        "path": "{cwd}/fuel/app/themes/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "fuel-theme",
+        "path": "{cwd}/fuel/app/themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "fuel-theme",
+        "path": "{cwd}/fuel/app/themes/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "fuelphp-component",
+        "path": "{cwd}/components/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "fuelphp-component",
+        "path": "{cwd}/components/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "fuelphp-component",
+        "path": "{cwd}/components/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "grav-plugin",
+        "path": "{cwd}/user/plugins/my-cool_plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "grav-plugin",
+        "path": "{cwd}/user/plugins/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "grav-plugin",
+        "path": "{cwd}/user/plugins/fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "grav-theme",
+        "path": "{cwd}/user/themes/my-cool_plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "grav-theme",
+        "path": "{cwd}/user/themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "grav-theme",
+        "path": "{cwd}/user/themes/fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "hurad-plugin",
+        "path": "{cwd}/plugins/MyCoolPlugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "hurad-plugin",
+        "path": "{cwd}/plugins/OcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "hurad-plugin",
+        "path": "{cwd}/plugins/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "hurad-theme",
+        "path": "{cwd}/plugins/MyCoolPlugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "hurad-theme",
+        "path": "{cwd}/plugins/OcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "hurad-theme",
+        "path": "{cwd}/plugins/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "tastyigniter-module",
+        "path": "{cwd}/app/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "tastyigniter-module",
+        "path": "{cwd}/app/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "tastyigniter-module",
+        "path": "{cwd}/app/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "tastyigniter-extension",
+        "path": "{cwd}/extensions/acme/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "tastyigniter-extension",
+        "path": "{cwd}/extensions/SomeVendor/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "tastyigniter-extension",
+        "path": "{cwd}/extensions/grav/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "tastyigniter-theme",
+        "path": "{cwd}/themes/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "tastyigniter-theme",
+        "path": "{cwd}/themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "tastyigniter-theme",
+        "path": "{cwd}/themes/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "imagecms-template",
+        "path": "{cwd}/templates/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "imagecms-template",
+        "path": "{cwd}/templates/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "imagecms-template",
+        "path": "{cwd}/templates/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "imagecms-module",
+        "path": "{cwd}/application/modules/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "imagecms-module",
+        "path": "{cwd}/application/modules/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "imagecms-module",
+        "path": "{cwd}/application/modules/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "imagecms-library",
+        "path": "{cwd}/application/libraries/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "imagecms-library",
+        "path": "{cwd}/application/libraries/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "imagecms-library",
+        "path": "{cwd}/application/libraries/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "itop-extension",
+        "path": "{cwd}/extensions/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "itop-extension",
+        "path": "{cwd}/extensions/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "itop-extension",
+        "path": "{cwd}/extensions/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "kanboard-plugin",
+        "path": "{cwd}/plugins/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "kanboard-plugin",
+        "path": "{cwd}/plugins/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "kanboard-plugin",
+        "path": "{cwd}/plugins/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "known-plugin",
+        "path": "{cwd}/IdnoPlugins/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "known-plugin",
+        "path": "{cwd}/IdnoPlugins/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "known-plugin",
+        "path": "{cwd}/IdnoPlugins/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "known-theme",
+        "path": "{cwd}/Themes/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "known-theme",
+        "path": "{cwd}/Themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "known-theme",
+        "path": "{cwd}/Themes/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "known-console",
+        "path": "{cwd}/ConsolePlugins/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "known-console",
+        "path": "{cwd}/ConsolePlugins/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "known-console",
+        "path": "{cwd}/ConsolePlugins/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "kodicms-plugin",
+        "path": "{cwd}/cms/plugins/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "kodicms-plugin",
+        "path": "{cwd}/cms/plugins/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "kodicms-plugin",
+        "path": "{cwd}/cms/plugins/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "kodicms-media",
+        "path": "{cwd}/cms/media/vendor/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "kodicms-media",
+        "path": "{cwd}/cms/media/vendor/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "kodicms-media",
+        "path": "{cwd}/cms/media/vendor/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "kohana-module",
+        "path": "{cwd}/modules/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "kohana-module",
+        "path": "{cwd}/modules/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "kohana-module",
+        "path": "{cwd}/modules/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "lms-plugin",
+        "path": "{cwd}/plugins/MyCoolPlugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "lms-plugin",
+        "path": "{cwd}/plugins/OcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "lms-plugin",
+        "path": "{cwd}/plugins/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "lms-template",
+        "path": "{cwd}/templates/MyCoolPlugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "lms-template",
+        "path": "{cwd}/templates/OcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "lms-template",
+        "path": "{cwd}/templates/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "lms-document-template",
+        "path": "{cwd}/documents/templates/MyCoolPlugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "lms-document-template",
+        "path": "{cwd}/documents/templates/OcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "lms-document-template",
+        "path": "{cwd}/documents/templates/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "lms-userpanel-module",
+        "path": "{cwd}/userpanel/modules/MyCoolPlugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "lms-userpanel-module",
+        "path": "{cwd}/userpanel/modules/OcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "lms-userpanel-module",
+        "path": "{cwd}/userpanel/modules/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "laravel-library",
+        "path": "{cwd}/libraries/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "laravel-library",
+        "path": "{cwd}/libraries/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "laravel-library",
+        "path": "{cwd}/libraries/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "lavalite-package",
+        "path": "{cwd}/packages/acme/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "lavalite-package",
+        "path": "{cwd}/packages/Some.Vendor/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "lavalite-package",
+        "path": "{cwd}/packages/grav/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "lavalite-theme",
+        "path": "{cwd}/public/themes/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "lavalite-theme",
+        "path": "{cwd}/public/themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "lavalite-theme",
+        "path": "{cwd}/public/themes/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "lithium-library",
+        "path": "{cwd}/libraries/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "lithium-library",
+        "path": "{cwd}/libraries/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "lithium-library",
+        "path": "{cwd}/libraries/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "lithium-source",
+        "path": "{cwd}/libraries/_source/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "lithium-source",
+        "path": "{cwd}/libraries/_source/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "lithium-source",
+        "path": "{cwd}/libraries/_source/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "magento-theme",
+        "path": "{cwd}/app/design/frontend/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "magento-theme",
+        "path": "{cwd}/app/design/frontend/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "magento-theme",
+        "path": "{cwd}/app/design/frontend/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "magento-skin",
+        "path": "{cwd}/skin/frontend/default/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "magento-skin",
+        "path": "{cwd}/skin/frontend/default/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "magento-skin",
+        "path": "{cwd}/skin/frontend/default/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "magento-library",
+        "path": "{cwd}/lib/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "magento-library",
+        "path": "{cwd}/lib/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "magento-library",
+        "path": "{cwd}/lib/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "majima-plugin",
+        "path": "{cwd}/plugins/MyCool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "majima-plugin",
+        "path": "{cwd}/plugins/OcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "majima-plugin",
+        "path": "{cwd}/plugins/GravTheme-FancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "mantisbt-plugin",
+        "path": "{cwd}/plugins/MyCoolPlugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "mantisbt-plugin",
+        "path": "{cwd}/plugins/OcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "mantisbt-plugin",
+        "path": "{cwd}/plugins/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "mako-package",
+        "path": "{cwd}/app/packages/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "mako-package",
+        "path": "{cwd}/app/packages/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "mako-package",
+        "path": "{cwd}/app/packages/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "matomo-plugin",
+        "path": "{cwd}/plugins/MyCoolPlugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "matomo-plugin",
+        "path": "{cwd}/plugins/OcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "matomo-plugin",
+        "path": "{cwd}/plugins/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "maya-module",
+        "path": "{cwd}/modules/MyCoolPlugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "maya-module",
+        "path": "{cwd}/modules/OcWnTiModuleXPlugin/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "maya-module",
+        "path": "{cwd}/modules/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "mautic-plugin",
+        "path": "{cwd}/plugins/MyCool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "mautic-plugin",
+        "path": "{cwd}/plugins/OcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "mautic-plugin",
+        "path": "{cwd}/plugins/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "mautic-theme",
+        "path": "{cwd}/themes/MyCool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "mautic-theme",
+        "path": "{cwd}/themes/OcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "mautic-theme",
+        "path": "{cwd}/themes/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "mautic-core",
+        "path": "{cwd}/app/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "mautic-core",
+        "path": "{cwd}/app/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "mautic-core",
+        "path": "{cwd}/app/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "mediawiki-core",
+        "path": "{cwd}/core/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "mediawiki-core",
+        "path": "{cwd}/core/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "mediawiki-core",
+        "path": "{cwd}/core/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "mediawiki-extension",
+        "path": "{cwd}/extensions/MyCool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "mediawiki-extension",
+        "path": "{cwd}/extensions/OcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "mediawiki-extension",
+        "path": "{cwd}/extensions/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "mediawiki-skin",
+        "path": "{cwd}/skins/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "mediawiki-skin",
+        "path": "{cwd}/skins/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "mediawiki-skin",
+        "path": "{cwd}/skins/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "miaoxing-plugin",
+        "path": "{cwd}/plugins/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "miaoxing-plugin",
+        "path": "{cwd}/plugins/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "miaoxing-plugin",
+        "path": "{cwd}/plugins/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "microweber-module",
+        "path": "{cwd}/userfiles/modules/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "microweber-module",
+        "path": "{cwd}/userfiles/modules/oc-wn-ti-module-x-plugin/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "microweber-module",
+        "path": "{cwd}/userfiles/modules/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "microweber-module-skin",
+        "path": "{cwd}/userfiles/modules/my-cool_Plugin/templates/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "microweber-module-skin",
+        "path": "{cwd}/userfiles/modules/oc-wn-ti-module-x-plugin-module/templates/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "microweber-module-skin",
+        "path": "{cwd}/userfiles/modules/grav-theme-Fancy-thing-template/templates/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "microweber-template",
+        "path": "{cwd}/userfiles/templates/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "microweber-template",
+        "path": "{cwd}/userfiles/templates/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "microweber-template",
+        "path": "{cwd}/userfiles/templates/grav-theme-Fancy-thing/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "microweber-element",
+        "path": "{cwd}/userfiles/elements/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "microweber-element",
+        "path": "{cwd}/userfiles/elements/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "microweber-element",
+        "path": "{cwd}/userfiles/elements/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "microweber-vendor",
+        "path": "{cwd}/vendor/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "microweber-vendor",
+        "path": "{cwd}/vendor/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "microweber-vendor",
+        "path": "{cwd}/vendor/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "microweber-components",
+        "path": "{cwd}/components/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "microweber-components",
+        "path": "{cwd}/components/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "microweber-components",
+        "path": "{cwd}/components/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "modulework-module",
+        "path": "{cwd}/modules/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "modulework-module",
+        "path": "{cwd}/modules/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "modulework-module",
+        "path": "{cwd}/modules/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "modx-extra",
+        "path": "{cwd}/core/packages/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "modx-extra",
+        "path": "{cwd}/core/packages/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "modx-extra",
+        "path": "{cwd}/core/packages/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "modxevo-snippet",
+        "path": "{cwd}/assets/snippets/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "modxevo-snippet",
+        "path": "{cwd}/assets/snippets/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "modxevo-snippet",
+        "path": "{cwd}/assets/snippets/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "modxevo-plugin",
+        "path": "{cwd}/assets/plugins/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "modxevo-plugin",
+        "path": "{cwd}/assets/plugins/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "modxevo-plugin",
+        "path": "{cwd}/assets/plugins/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "modxevo-module",
+        "path": "{cwd}/assets/modules/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "modxevo-module",
+        "path": "{cwd}/assets/modules/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "modxevo-module",
+        "path": "{cwd}/assets/modules/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "modxevo-template",
+        "path": "{cwd}/assets/templates/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "modxevo-template",
+        "path": "{cwd}/assets/templates/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "modxevo-template",
+        "path": "{cwd}/assets/templates/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "modxevo-lib",
+        "path": "{cwd}/assets/lib/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "modxevo-lib",
+        "path": "{cwd}/assets/lib/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "modxevo-lib",
+        "path": "{cwd}/assets/lib/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-mod",
+        "path": "{cwd}/mod/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-mod",
+        "path": "{cwd}/mod/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-mod",
+        "path": "{cwd}/mod/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-admin_report",
+        "path": "{cwd}/admin/report/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-admin_report",
+        "path": "{cwd}/admin/report/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-admin_report",
+        "path": "{cwd}/admin/report/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-atto",
+        "path": "{cwd}/lib/editor/atto/plugins/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-atto",
+        "path": "{cwd}/lib/editor/atto/plugins/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-atto",
+        "path": "{cwd}/lib/editor/atto/plugins/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-tool",
+        "path": "{cwd}/admin/tool/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-tool",
+        "path": "{cwd}/admin/tool/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-tool",
+        "path": "{cwd}/admin/tool/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-assignment",
+        "path": "{cwd}/mod/assignment/type/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-assignment",
+        "path": "{cwd}/mod/assignment/type/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-assignment",
+        "path": "{cwd}/mod/assignment/type/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-assignsubmission",
+        "path": "{cwd}/mod/assign/submission/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-assignsubmission",
+        "path": "{cwd}/mod/assign/submission/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-assignsubmission",
+        "path": "{cwd}/mod/assign/submission/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-assignfeedback",
+        "path": "{cwd}/mod/assign/feedback/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-assignfeedback",
+        "path": "{cwd}/mod/assign/feedback/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-assignfeedback",
+        "path": "{cwd}/mod/assign/feedback/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-antivirus",
+        "path": "{cwd}/lib/antivirus/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-antivirus",
+        "path": "{cwd}/lib/antivirus/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-antivirus",
+        "path": "{cwd}/lib/antivirus/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-auth",
+        "path": "{cwd}/auth/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-auth",
+        "path": "{cwd}/auth/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-auth",
+        "path": "{cwd}/auth/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-availability",
+        "path": "{cwd}/availability/condition/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-availability",
+        "path": "{cwd}/availability/condition/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-availability",
+        "path": "{cwd}/availability/condition/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-block",
+        "path": "{cwd}/blocks/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-block",
+        "path": "{cwd}/blocks/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-block",
+        "path": "{cwd}/blocks/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-booktool",
+        "path": "{cwd}/mod/book/tool/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-booktool",
+        "path": "{cwd}/mod/book/tool/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-booktool",
+        "path": "{cwd}/mod/book/tool/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-cachestore",
+        "path": "{cwd}/cache/stores/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-cachestore",
+        "path": "{cwd}/cache/stores/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-cachestore",
+        "path": "{cwd}/cache/stores/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-cachelock",
+        "path": "{cwd}/cache/locks/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-cachelock",
+        "path": "{cwd}/cache/locks/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-cachelock",
+        "path": "{cwd}/cache/locks/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-calendartype",
+        "path": "{cwd}/calendar/type/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-calendartype",
+        "path": "{cwd}/calendar/type/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-calendartype",
+        "path": "{cwd}/calendar/type/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-communication",
+        "path": "{cwd}/communication/provider/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-communication",
+        "path": "{cwd}/communication/provider/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-communication",
+        "path": "{cwd}/communication/provider/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-customfield",
+        "path": "{cwd}/customfield/field/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-customfield",
+        "path": "{cwd}/customfield/field/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-customfield",
+        "path": "{cwd}/customfield/field/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-fileconverter",
+        "path": "{cwd}/files/converter/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-fileconverter",
+        "path": "{cwd}/files/converter/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-fileconverter",
+        "path": "{cwd}/files/converter/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-format",
+        "path": "{cwd}/course/format/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-format",
+        "path": "{cwd}/course/format/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-format",
+        "path": "{cwd}/course/format/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-coursereport",
+        "path": "{cwd}/course/report/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-coursereport",
+        "path": "{cwd}/course/report/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-coursereport",
+        "path": "{cwd}/course/report/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-contenttype",
+        "path": "{cwd}/contentbank/contenttype/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-contenttype",
+        "path": "{cwd}/contentbank/contenttype/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-contenttype",
+        "path": "{cwd}/contentbank/contenttype/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-customcertelement",
+        "path": "{cwd}/mod/customcert/element/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-customcertelement",
+        "path": "{cwd}/mod/customcert/element/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-customcertelement",
+        "path": "{cwd}/mod/customcert/element/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-datafield",
+        "path": "{cwd}/mod/data/field/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-datafield",
+        "path": "{cwd}/mod/data/field/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-datafield",
+        "path": "{cwd}/mod/data/field/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-dataformat",
+        "path": "{cwd}/dataformat/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-dataformat",
+        "path": "{cwd}/dataformat/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-dataformat",
+        "path": "{cwd}/dataformat/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-datapreset",
+        "path": "{cwd}/mod/data/preset/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-datapreset",
+        "path": "{cwd}/mod/data/preset/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-datapreset",
+        "path": "{cwd}/mod/data/preset/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-editor",
+        "path": "{cwd}/lib/editor/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-editor",
+        "path": "{cwd}/lib/editor/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-editor",
+        "path": "{cwd}/lib/editor/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-enrol",
+        "path": "{cwd}/enrol/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-enrol",
+        "path": "{cwd}/enrol/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-enrol",
+        "path": "{cwd}/enrol/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-filter",
+        "path": "{cwd}/filter/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-filter",
+        "path": "{cwd}/filter/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-filter",
+        "path": "{cwd}/filter/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-forumreport",
+        "path": "{cwd}/mod/forum/report/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-forumreport",
+        "path": "{cwd}/mod/forum/report/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-forumreport",
+        "path": "{cwd}/mod/forum/report/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-gradeexport",
+        "path": "{cwd}/grade/export/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-gradeexport",
+        "path": "{cwd}/grade/export/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-gradeexport",
+        "path": "{cwd}/grade/export/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-gradeimport",
+        "path": "{cwd}/grade/import/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-gradeimport",
+        "path": "{cwd}/grade/import/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-gradeimport",
+        "path": "{cwd}/grade/import/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-gradereport",
+        "path": "{cwd}/grade/report/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-gradereport",
+        "path": "{cwd}/grade/report/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-gradereport",
+        "path": "{cwd}/grade/report/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-gradingform",
+        "path": "{cwd}/grade/grading/form/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-gradingform",
+        "path": "{cwd}/grade/grading/form/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-gradingform",
+        "path": "{cwd}/grade/grading/form/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-h5plib",
+        "path": "{cwd}/h5p/h5plib/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-h5plib",
+        "path": "{cwd}/h5p/h5plib/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-h5plib",
+        "path": "{cwd}/h5p/h5plib/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-local",
+        "path": "{cwd}/local/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-local",
+        "path": "{cwd}/local/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-local",
+        "path": "{cwd}/local/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-logstore",
+        "path": "{cwd}/admin/tool/log/store/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-logstore",
+        "path": "{cwd}/admin/tool/log/store/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-logstore",
+        "path": "{cwd}/admin/tool/log/store/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-ltisource",
+        "path": "{cwd}/mod/lti/source/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-ltisource",
+        "path": "{cwd}/mod/lti/source/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-ltisource",
+        "path": "{cwd}/mod/lti/source/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-ltiservice",
+        "path": "{cwd}/mod/lti/service/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-ltiservice",
+        "path": "{cwd}/mod/lti/service/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-ltiservice",
+        "path": "{cwd}/mod/lti/service/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-media",
+        "path": "{cwd}/media/player/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-media",
+        "path": "{cwd}/media/player/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-media",
+        "path": "{cwd}/media/player/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-message",
+        "path": "{cwd}/message/output/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-message",
+        "path": "{cwd}/message/output/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-message",
+        "path": "{cwd}/message/output/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-mlbackend",
+        "path": "{cwd}/lib/mlbackend/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-mlbackend",
+        "path": "{cwd}/lib/mlbackend/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-mlbackend",
+        "path": "{cwd}/lib/mlbackend/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-mnetservice",
+        "path": "{cwd}/mnet/service/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-mnetservice",
+        "path": "{cwd}/mnet/service/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-mnetservice",
+        "path": "{cwd}/mnet/service/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-paygw",
+        "path": "{cwd}/payment/gateway/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-paygw",
+        "path": "{cwd}/payment/gateway/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-paygw",
+        "path": "{cwd}/payment/gateway/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-plagiarism",
+        "path": "{cwd}/plagiarism/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-plagiarism",
+        "path": "{cwd}/plagiarism/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-plagiarism",
+        "path": "{cwd}/plagiarism/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-portfolio",
+        "path": "{cwd}/portfolio/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-portfolio",
+        "path": "{cwd}/portfolio/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-portfolio",
+        "path": "{cwd}/portfolio/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-qbank",
+        "path": "{cwd}/question/bank/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-qbank",
+        "path": "{cwd}/question/bank/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-qbank",
+        "path": "{cwd}/question/bank/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-qbehaviour",
+        "path": "{cwd}/question/behaviour/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-qbehaviour",
+        "path": "{cwd}/question/behaviour/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-qbehaviour",
+        "path": "{cwd}/question/behaviour/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-qformat",
+        "path": "{cwd}/question/format/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-qformat",
+        "path": "{cwd}/question/format/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-qformat",
+        "path": "{cwd}/question/format/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-qtype",
+        "path": "{cwd}/question/type/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-qtype",
+        "path": "{cwd}/question/type/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-qtype",
+        "path": "{cwd}/question/type/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-quizaccess",
+        "path": "{cwd}/mod/quiz/accessrule/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-quizaccess",
+        "path": "{cwd}/mod/quiz/accessrule/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-quizaccess",
+        "path": "{cwd}/mod/quiz/accessrule/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-quiz",
+        "path": "{cwd}/mod/quiz/report/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-quiz",
+        "path": "{cwd}/mod/quiz/report/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-quiz",
+        "path": "{cwd}/mod/quiz/report/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-report",
+        "path": "{cwd}/report/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-report",
+        "path": "{cwd}/report/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-report",
+        "path": "{cwd}/report/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-repository",
+        "path": "{cwd}/repository/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-repository",
+        "path": "{cwd}/repository/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-repository",
+        "path": "{cwd}/repository/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-scormreport",
+        "path": "{cwd}/mod/scorm/report/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-scormreport",
+        "path": "{cwd}/mod/scorm/report/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-scormreport",
+        "path": "{cwd}/mod/scorm/report/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-search",
+        "path": "{cwd}/search/engine/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-search",
+        "path": "{cwd}/search/engine/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-search",
+        "path": "{cwd}/search/engine/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-theme",
+        "path": "{cwd}/theme/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-theme",
+        "path": "{cwd}/theme/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-theme",
+        "path": "{cwd}/theme/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-tiny",
+        "path": "{cwd}/lib/editor/tiny/plugins/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-tiny",
+        "path": "{cwd}/lib/editor/tiny/plugins/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-tiny",
+        "path": "{cwd}/lib/editor/tiny/plugins/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-tinymce",
+        "path": "{cwd}/lib/editor/tinymce/plugins/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-tinymce",
+        "path": "{cwd}/lib/editor/tinymce/plugins/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-tinymce",
+        "path": "{cwd}/lib/editor/tinymce/plugins/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-profilefield",
+        "path": "{cwd}/user/profile/field/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-profilefield",
+        "path": "{cwd}/user/profile/field/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-profilefield",
+        "path": "{cwd}/user/profile/field/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-webservice",
+        "path": "{cwd}/webservice/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-webservice",
+        "path": "{cwd}/webservice/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-webservice",
+        "path": "{cwd}/webservice/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-workshopallocation",
+        "path": "{cwd}/mod/workshop/allocation/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-workshopallocation",
+        "path": "{cwd}/mod/workshop/allocation/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-workshopallocation",
+        "path": "{cwd}/mod/workshop/allocation/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-workshopeval",
+        "path": "{cwd}/mod/workshop/eval/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-workshopeval",
+        "path": "{cwd}/mod/workshop/eval/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-workshopeval",
+        "path": "{cwd}/mod/workshop/eval/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "moodle-workshopform",
+        "path": "{cwd}/mod/workshop/form/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "moodle-workshopform",
+        "path": "{cwd}/mod/workshop/form/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "moodle-workshopform",
+        "path": "{cwd}/mod/workshop/form/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "october-module",
+        "path": "{cwd}/modules/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "october-module",
+        "path": "{cwd}/modules/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "october-module",
+        "path": "{cwd}/modules/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "october-plugin",
+        "path": "{cwd}/plugins/acme/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "october-plugin",
+        "path": "{cwd}/plugins/SomeVendor/wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "october-plugin",
+        "path": "{cwd}/plugins/grav/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "october-theme",
+        "path": "{cwd}/themes/acme-my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "october-theme",
+        "path": "{cwd}/themes/SomeVendor-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "october-theme",
+        "path": "{cwd}/themes/grav-grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "ontowiki-extension",
+        "path": "{cwd}/extensions/my-cool_plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "ontowiki-extension",
+        "path": "{cwd}/extensions/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "ontowiki-extension",
+        "path": "{cwd}/extensions/grav-theme-fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "ontowiki-theme",
+        "path": "{cwd}/extensions/themes/my-cool_plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "ontowiki-theme",
+        "path": "{cwd}/extensions/themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "ontowiki-theme",
+        "path": "{cwd}/extensions/themes/grav-theme-fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "ontowiki-translation",
+        "path": "{cwd}/extensions/translations/my-cool_plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "ontowiki-translation",
+        "path": "{cwd}/extensions/translations/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "ontowiki-translation",
+        "path": "{cwd}/extensions/translations/grav-theme-fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "oxid-theme",
+        "path": "{cwd}/application/views/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "oxid-theme",
+        "path": "{cwd}/application/views/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "oxid-theme",
+        "path": "{cwd}/application/views/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "oxid-out",
+        "path": "{cwd}/out/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "oxid-out",
+        "path": "{cwd}/out/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "oxid-out",
+        "path": "{cwd}/out/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "osclass-plugin",
+        "path": "{cwd}/oc-content/plugins/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "osclass-plugin",
+        "path": "{cwd}/oc-content/plugins/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "osclass-plugin",
+        "path": "{cwd}/oc-content/plugins/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "osclass-theme",
+        "path": "{cwd}/oc-content/themes/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "osclass-theme",
+        "path": "{cwd}/oc-content/themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "osclass-theme",
+        "path": "{cwd}/oc-content/themes/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "osclass-language",
+        "path": "{cwd}/oc-content/languages/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "osclass-language",
+        "path": "{cwd}/oc-content/languages/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "osclass-language",
+        "path": "{cwd}/oc-content/languages/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "pxcms-module",
+        "path": "{cwd}/app/Modules/My_cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "pxcms-module",
+        "path": "{cwd}/app/Modules/Oc_wn_ti_x_plugin/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "pxcms-module",
+        "path": "{cwd}/app/Modules/Grav_theme_Fancy_thing_template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "pxcms-theme",
+        "path": "{cwd}/themes/My_cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "pxcms-theme",
+        "path": "{cwd}/themes/Oc_wn_ti_module_x_plugin_module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "pxcms-theme",
+        "path": "{cwd}/themes/Grav_Fancy_thing_template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "phpbb-extension",
+        "path": "{cwd}/ext/acme/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "phpbb-extension",
+        "path": "{cwd}/ext/Some.Vendor/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "phpbb-extension",
+        "path": "{cwd}/ext/grav/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "phpbb-language",
+        "path": "{cwd}/language/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "phpbb-language",
+        "path": "{cwd}/language/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "phpbb-language",
+        "path": "{cwd}/language/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "phpbb-style",
+        "path": "{cwd}/styles/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "phpbb-style",
+        "path": "{cwd}/styles/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "phpbb-style",
+        "path": "{cwd}/styles/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "piwik-plugin",
+        "path": "{cwd}/plugins/MyCoolPlugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "piwik-plugin",
+        "path": "{cwd}/plugins/OcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "piwik-plugin",
+        "path": "{cwd}/plugins/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "plentymarkets-plugin",
+        "path": "{cwd}/MyCool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "plentymarkets-plugin",
+        "path": "{cwd}/OcWnTiModuleXModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "plentymarkets-plugin",
+        "path": "{cwd}/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "ppi-module",
+        "path": "{cwd}/modules/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "ppi-module",
+        "path": "{cwd}/modules/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "ppi-module",
+        "path": "{cwd}/modules/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "puppet-module",
+        "path": "{cwd}/modules/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "puppet-module",
+        "path": "{cwd}/modules/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "puppet-module",
+        "path": "{cwd}/modules/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "radphp-bundle",
+        "path": "{cwd}/src/MyCoolPlugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "radphp-bundle",
+        "path": "{cwd}/src/OcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "radphp-bundle",
+        "path": "{cwd}/src/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "phifty-bundle",
+        "path": "{cwd}/bundles/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "phifty-bundle",
+        "path": "{cwd}/bundles/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "phifty-bundle",
+        "path": "{cwd}/bundles/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "phifty-library",
+        "path": "{cwd}/libraries/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "phifty-library",
+        "path": "{cwd}/libraries/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "phifty-library",
+        "path": "{cwd}/libraries/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "phifty-framework",
+        "path": "{cwd}/frameworks/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "phifty-framework",
+        "path": "{cwd}/frameworks/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "phifty-framework",
+        "path": "{cwd}/frameworks/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "porto-container",
+        "path": "{cwd}/app/Containers/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "porto-container",
+        "path": "{cwd}/app/Containers/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "porto-container",
+        "path": "{cwd}/app/Containers/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "processwire-module",
+        "path": "{cwd}/site/modules/MyCoolPlugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "processwire-module",
+        "path": "{cwd}/site/modules/OcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "processwire-module",
+        "path": "{cwd}/site/modules/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "quicksilver-script",
+        "path": "{cwd}/web/private/scripts/quicksilver/my-cool_Plugin"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "quicksilver-script",
+        "path": "{cwd}/web/private/scripts/quicksilver/oc-wn-ti-module-x-plugin-module"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "quicksilver-script",
+        "path": "{cwd}/web/private/scripts/quicksilver/grav-theme-Fancy-thing-template"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "quicksilver-module",
+        "path": "{cwd}/web/private/scripts/quicksilver/my-cool_Plugin"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "quicksilver-module",
+        "path": "{cwd}/web/private/scripts/quicksilver/oc-wn-ti-module-x-plugin-module"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "quicksilver-module",
+        "path": "{cwd}/web/private/scripts/quicksilver/grav-theme-Fancy-thing-template"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "redaxo-addon",
+        "path": "{cwd}/redaxo/include/addons/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "redaxo-addon",
+        "path": "{cwd}/redaxo/include/addons/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "redaxo-addon",
+        "path": "{cwd}/redaxo/include/addons/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "redaxo-bestyle-plugin",
+        "path": "{cwd}/redaxo/include/addons/be_style/plugins/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "redaxo-bestyle-plugin",
+        "path": "{cwd}/redaxo/include/addons/be_style/plugins/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "redaxo-bestyle-plugin",
+        "path": "{cwd}/redaxo/include/addons/be_style/plugins/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "redaxo5-addon",
+        "path": "{cwd}/redaxo/src/addons/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "redaxo5-addon",
+        "path": "{cwd}/redaxo/src/addons/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "redaxo5-addon",
+        "path": "{cwd}/redaxo/src/addons/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "redaxo5-bestyle-plugin",
+        "path": "{cwd}/redaxo/src/addons/be_style/plugins/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "redaxo5-bestyle-plugin",
+        "path": "{cwd}/redaxo/src/addons/be_style/plugins/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "redaxo5-bestyle-plugin",
+        "path": "{cwd}/redaxo/src/addons/be_style/plugins/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "reindex-theme",
+        "path": "{cwd}/themes/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "reindex-theme",
+        "path": "{cwd}/themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "reindex-theme",
+        "path": "{cwd}/themes/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "reindex-plugin",
+        "path": "{cwd}/plugins/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "reindex-plugin",
+        "path": "{cwd}/plugins/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "reindex-plugin",
+        "path": "{cwd}/plugins/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "roundcube-plugin",
+        "path": "{cwd}/plugins/my_cool_plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "roundcube-plugin",
+        "path": "{cwd}/plugins/oc_wn_ti_module_x_plugin_module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "roundcube-plugin",
+        "path": "{cwd}/plugins/grav_theme_fancy_thing_template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "shopware-backend-plugin",
+        "path": "{cwd}/engine/Shopware/Plugins/Local/Backend/AcmeMyCool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "shopware-backend-plugin",
+        "path": "{cwd}/engine/Shopware/Plugins/Local/Backend/Some.VendorOcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "shopware-backend-plugin",
+        "path": "{cwd}/engine/Shopware/Plugins/Local/Backend/GravGravTheme-FancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "shopware-core-plugin",
+        "path": "{cwd}/engine/Shopware/Plugins/Local/Core/AcmeMyCool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "shopware-core-plugin",
+        "path": "{cwd}/engine/Shopware/Plugins/Local/Core/Some.VendorOcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "shopware-core-plugin",
+        "path": "{cwd}/engine/Shopware/Plugins/Local/Core/GravGravTheme-FancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "shopware-frontend-plugin",
+        "path": "{cwd}/engine/Shopware/Plugins/Local/Frontend/AcmeMyCool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "shopware-frontend-plugin",
+        "path": "{cwd}/engine/Shopware/Plugins/Local/Frontend/Some.VendorOcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "shopware-frontend-plugin",
+        "path": "{cwd}/engine/Shopware/Plugins/Local/Frontend/GravGravTheme-FancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "shopware-theme",
+        "path": "{cwd}/templates/my_cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "shopware-theme",
+        "path": "{cwd}/templates/oc_wn_ti_module_x_plugin_module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "shopware-theme",
+        "path": "{cwd}/templates/grav_theme_Fancy_thing_template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "shopware-plugin",
+        "path": "{cwd}/custom/plugins/AcmeMyCool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "shopware-plugin",
+        "path": "{cwd}/custom/plugins/Some.VendorOcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "shopware-plugin",
+        "path": "{cwd}/custom/plugins/GravGravTheme-FancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "shopware-frontend-theme",
+        "path": "{cwd}/themes/Frontend/AcmeMyCool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "shopware-frontend-theme",
+        "path": "{cwd}/themes/Frontend/Some.VendorOcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "shopware-frontend-theme",
+        "path": "{cwd}/themes/Frontend/GravGravTheme-FancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "sitedirect-module",
+        "path": "{cwd}/modules/acme/MyCoolPlugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "sitedirect-module",
+        "path": "{cwd}/modules/Some.Vendor/OcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "sitedirect-module",
+        "path": "{cwd}/modules/grav/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "sitedirect-plugin",
+        "path": "{cwd}/plugins/acme/MyCoolPlugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "sitedirect-plugin",
+        "path": "{cwd}/plugins/Some.Vendor/OcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "sitedirect-plugin",
+        "path": "{cwd}/plugins/grav/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "silverstripe-module",
+        "path": "{cwd}/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "silverstripe-module",
+        "path": "{cwd}/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "silverstripe-module",
+        "path": "{cwd}/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "silverstripe-theme",
+        "path": "{cwd}/themes/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "silverstripe-theme",
+        "path": "{cwd}/themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "silverstripe-theme",
+        "path": "{cwd}/themes/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "smf-module",
+        "path": "{cwd}/Sources/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "smf-module",
+        "path": "{cwd}/Sources/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "smf-module",
+        "path": "{cwd}/Sources/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "smf-theme",
+        "path": "{cwd}/Themes/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "smf-theme",
+        "path": "{cwd}/Themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "smf-theme",
+        "path": "{cwd}/Themes/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "starbug-module",
+        "path": "{cwd}/modules/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "starbug-module",
+        "path": "{cwd}/modules/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "starbug-module",
+        "path": "{cwd}/modules/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "starbug-theme",
+        "path": "{cwd}/themes/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "starbug-theme",
+        "path": "{cwd}/themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "starbug-theme",
+        "path": "{cwd}/themes/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "starbug-custom-module",
+        "path": "{cwd}/app/modules/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "starbug-custom-module",
+        "path": "{cwd}/app/modules/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "starbug-custom-module",
+        "path": "{cwd}/app/modules/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "starbug-custom-theme",
+        "path": "{cwd}/app/themes/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "starbug-custom-theme",
+        "path": "{cwd}/app/themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "starbug-custom-theme",
+        "path": "{cwd}/app/themes/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "sydes-module",
+        "path": "{cwd}/app/modules/MyCoolPlugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "sydes-module",
+        "path": "{cwd}/app/modules/OcWnTiModuleXPlugin/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "sydes-module",
+        "path": "{cwd}/app/modules/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "sydes-theme",
+        "path": "{cwd}/themes/my-cool_plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "sydes-theme",
+        "path": "{cwd}/themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "sydes-theme",
+        "path": "{cwd}/themes/grav-theme-fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "sylius-theme",
+        "path": "{cwd}/themes/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "sylius-theme",
+        "path": "{cwd}/themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "sylius-theme",
+        "path": "{cwd}/themes/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "tao-extension",
+        "path": "{cwd}/myCool_Plugin"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "tao-extension",
+        "path": "{cwd}/ocWnTiModuleXPluginModule"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "tao-extension",
+        "path": "{cwd}/gravThemeFancyThingTemplate"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "thelia-module",
+        "path": "{cwd}/local/modules/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "thelia-module",
+        "path": "{cwd}/local/modules/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "thelia-module",
+        "path": "{cwd}/local/modules/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "thelia-frontoffice-template",
+        "path": "{cwd}/templates/frontOffice/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "thelia-frontoffice-template",
+        "path": "{cwd}/templates/frontOffice/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "thelia-frontoffice-template",
+        "path": "{cwd}/templates/frontOffice/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "thelia-backoffice-template",
+        "path": "{cwd}/templates/backOffice/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "thelia-backoffice-template",
+        "path": "{cwd}/templates/backOffice/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "thelia-backoffice-template",
+        "path": "{cwd}/templates/backOffice/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "thelia-email-template",
+        "path": "{cwd}/templates/email/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "thelia-email-template",
+        "path": "{cwd}/templates/email/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "thelia-email-template",
+        "path": "{cwd}/templates/email/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "tusk-task",
+        "path": "{cwd}/.tusk/tasks/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "tusk-task",
+        "path": "{cwd}/.tusk/tasks/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "tusk-task",
+        "path": "{cwd}/.tusk/tasks/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "tusk-command",
+        "path": "{cwd}/.tusk/commands/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "tusk-command",
+        "path": "{cwd}/.tusk/commands/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "tusk-command",
+        "path": "{cwd}/.tusk/commands/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "tusk-asset",
+        "path": "{cwd}/assets/tusk/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "tusk-asset",
+        "path": "{cwd}/assets/tusk/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "tusk-asset",
+        "path": "{cwd}/assets/tusk/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "userfrosting-sprinkle",
+        "path": "{cwd}/app/sprinkles/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "userfrosting-sprinkle",
+        "path": "{cwd}/app/sprinkles/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "userfrosting-sprinkle",
+        "path": "{cwd}/app/sprinkles/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "vanilla-plugin",
+        "path": "{cwd}/plugins/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "vanilla-plugin",
+        "path": "{cwd}/plugins/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "vanilla-plugin",
+        "path": "{cwd}/plugins/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "vanilla-theme",
+        "path": "{cwd}/themes/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "vanilla-theme",
+        "path": "{cwd}/themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "vanilla-theme",
+        "path": "{cwd}/themes/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "whmcs-addons",
+        "path": "{cwd}/modules/addons/acme_my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "whmcs-addons",
+        "path": "{cwd}/modules/addons/Some.Vendor_oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "whmcs-addons",
+        "path": "{cwd}/modules/addons/grav_grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "whmcs-fraud",
+        "path": "{cwd}/modules/fraud/acme_my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "whmcs-fraud",
+        "path": "{cwd}/modules/fraud/Some.Vendor_oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "whmcs-fraud",
+        "path": "{cwd}/modules/fraud/grav_grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "whmcs-gateways",
+        "path": "{cwd}/modules/gateways/acme_my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "whmcs-gateways",
+        "path": "{cwd}/modules/gateways/Some.Vendor_oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "whmcs-gateways",
+        "path": "{cwd}/modules/gateways/grav_grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "whmcs-notifications",
+        "path": "{cwd}/modules/notifications/acme_my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "whmcs-notifications",
+        "path": "{cwd}/modules/notifications/Some.Vendor_oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "whmcs-notifications",
+        "path": "{cwd}/modules/notifications/grav_grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "whmcs-registrars",
+        "path": "{cwd}/modules/registrars/acme_my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "whmcs-registrars",
+        "path": "{cwd}/modules/registrars/Some.Vendor_oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "whmcs-registrars",
+        "path": "{cwd}/modules/registrars/grav_grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "whmcs-reports",
+        "path": "{cwd}/modules/reports/acme_my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "whmcs-reports",
+        "path": "{cwd}/modules/reports/Some.Vendor_oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "whmcs-reports",
+        "path": "{cwd}/modules/reports/grav_grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "whmcs-security",
+        "path": "{cwd}/modules/security/acme_my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "whmcs-security",
+        "path": "{cwd}/modules/security/Some.Vendor_oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "whmcs-security",
+        "path": "{cwd}/modules/security/grav_grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "whmcs-servers",
+        "path": "{cwd}/modules/servers/acme_my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "whmcs-servers",
+        "path": "{cwd}/modules/servers/Some.Vendor_oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "whmcs-servers",
+        "path": "{cwd}/modules/servers/grav_grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "whmcs-social",
+        "path": "{cwd}/modules/social/acme_my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "whmcs-social",
+        "path": "{cwd}/modules/social/Some.Vendor_oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "whmcs-social",
+        "path": "{cwd}/modules/social/grav_grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "whmcs-support",
+        "path": "{cwd}/modules/support/acme_my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "whmcs-support",
+        "path": "{cwd}/modules/support/Some.Vendor_oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "whmcs-support",
+        "path": "{cwd}/modules/support/grav_grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "whmcs-templates",
+        "path": "{cwd}/templates/acme_my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "whmcs-templates",
+        "path": "{cwd}/templates/Some.Vendor_oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "whmcs-templates",
+        "path": "{cwd}/templates/grav_grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "whmcs-includes",
+        "path": "{cwd}/includes/acme_my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "whmcs-includes",
+        "path": "{cwd}/includes/Some.Vendor_oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "whmcs-includes",
+        "path": "{cwd}/includes/grav_grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "winter-module",
+        "path": "{cwd}/modules/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "winter-module",
+        "path": "{cwd}/modules/oc-wn-ti-module-x-plugin/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "winter-module",
+        "path": "{cwd}/modules/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "winter-plugin",
+        "path": "{cwd}/plugins/acme/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "winter-plugin",
+        "path": "{cwd}/plugins/SomeVendor/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "winter-plugin",
+        "path": "{cwd}/plugins/grav/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "winter-theme",
+        "path": "{cwd}/themes/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "winter-theme",
+        "path": "{cwd}/themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "winter-theme",
+        "path": "{cwd}/themes/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "wolfcms-plugin",
+        "path": "{cwd}/wolf/plugins/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "wolfcms-plugin",
+        "path": "{cwd}/wolf/plugins/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "wolfcms-plugin",
+        "path": "{cwd}/wolf/plugins/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "wordpress-plugin",
+        "path": "{cwd}/wp-content/plugins/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "wordpress-plugin",
+        "path": "{cwd}/wp-content/plugins/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "wordpress-plugin",
+        "path": "{cwd}/wp-content/plugins/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "wordpress-theme",
+        "path": "{cwd}/wp-content/themes/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "wordpress-theme",
+        "path": "{cwd}/wp-content/themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "wordpress-theme",
+        "path": "{cwd}/wp-content/themes/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "wordpress-muplugin",
+        "path": "{cwd}/wp-content/mu-plugins/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "wordpress-muplugin",
+        "path": "{cwd}/wp-content/mu-plugins/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "wordpress-muplugin",
+        "path": "{cwd}/wp-content/mu-plugins/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "wordpress-dropin",
+        "path": "{cwd}/wp-content/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "wordpress-dropin",
+        "path": "{cwd}/wp-content/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "wordpress-dropin",
+        "path": "{cwd}/wp-content/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "yawik-module",
+        "path": "{cwd}/module/MyCoolPlugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "yawik-module",
+        "path": "{cwd}/module/OcWnTiModuleXPluginModule/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "yawik-module",
+        "path": "{cwd}/module/GravThemeFancyThingTemplate/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "zend-library",
+        "path": "{cwd}/library/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "zend-library",
+        "path": "{cwd}/library/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "zend-library",
+        "path": "{cwd}/library/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "zend-extra",
+        "path": "{cwd}/extras/library/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "zend-extra",
+        "path": "{cwd}/extras/library/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "zend-extra",
+        "path": "{cwd}/extras/library/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "zend-module",
+        "path": "{cwd}/module/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "zend-module",
+        "path": "{cwd}/module/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "zend-module",
+        "path": "{cwd}/module/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "zikula-module",
+        "path": "{cwd}/modules/acme-my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "zikula-module",
+        "path": "{cwd}/modules/Some.Vendor-oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "zikula-module",
+        "path": "{cwd}/modules/grav-grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "zikula-theme",
+        "path": "{cwd}/themes/acme-my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "zikula-theme",
+        "path": "{cwd}/themes/Some.Vendor-oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "zikula-theme",
+        "path": "{cwd}/themes/grav-grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "prestashop-module",
+        "path": "{cwd}/modules/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "prestashop-module",
+        "path": "{cwd}/modules/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "prestashop-module",
+        "path": "{cwd}/modules/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "acme/my-cool_Plugin",
+        "type": "prestashop-theme",
+        "path": "{cwd}/themes/my-cool_Plugin/"
+    },
+    {
+        "name": "Some.Vendor/oc-wn-ti-module-x-plugin-module",
+        "type": "prestashop-theme",
+        "path": "{cwd}/themes/oc-wn-ti-module-x-plugin-module/"
+    },
+    {
+        "name": "grav/grav-theme-Fancy-thing-template",
+        "type": "prestashop-theme",
+        "path": "{cwd}/themes/grav-theme-Fancy-thing-template/"
+    },
+    {
+        "name": "a/x",
+        "type": "drupal-module",
+        "root_extra": {
+            "installer-paths": {
+                "web/m/{$vendor}/{$name}/": [
+                    "type:drupal-module"
+                ]
+            }
+        },
+        "path": "{cwd}/web/m/a/x/"
+    },
+    {
+        "name": "A/X",
+        "type": "drupal-module",
+        "root_extra": {
+            "installer-paths": {
+                "by-name/{$name}": "A/X",
+                "by-type/{$name}": [
+                    "type:drupal-module"
+                ]
+            }
+        },
+        "path": "{cwd}/by-name/X"
+    },
+    {
+        "name": "v/x",
+        "type": "wordpress-plugin",
+        "root_extra": {
+            "installer-paths": {
+                "/abs/{$type}/{$name}": [
+                    "vendor:v"
+                ]
+            }
+        },
+        "path": "/abs/wordpress-plugin/x"
+    },
+    {
+        "name": "a/my-plugin",
+        "type": "matomo-plugin",
+        "extra": {
+            "installer-name": "Named"
+        },
+        "path": "{cwd}/plugins/Named/"
+    },
+    {
+        "name": "a/x",
+        "type": "drupal-module",
+        "root_extra": {
+            "installer-disable": [
+                "drupal"
+            ]
+        },
+        "path": null
+    },
+    {
+        "name": "a/x",
+        "type": "drupal-module",
+        "root_extra": {
+            "installer-disable": true
+        },
+        "path": null
+    },
+    {
+        "name": "a/x",
+        "type": "tao-extension",
+        "extra": {
+            "tao-extension-name": "taoX"
+        },
+        "path": "{cwd}/taoX"
+    },
+    {
+        "name": "a/x",
+        "type": "mautic-plugin",
+        "extra": {
+            "install-directory-name": "Dir"
+        },
+        "path": "{cwd}/plugins/Dir/"
+    },
+    {
+        "name": "a/x",
+        "type": "tastyigniter-extension",
+        "extra": {
+            "tastyigniter-extension": {
+                "code": "igniter.cart"
+            }
+        },
+        "path": "{cwd}/extensions/igniter/cart/"
+    },
+    {
+        "name": "a/x",
+        "type": "tastyigniter-theme",
+        "extra": {
+            "tastyigniter-theme": {
+                "code": "ti-theme-orange"
+            }
+        },
+        "path": "{cwd}/themes/orange/"
+    },
+    {
+        "name": "silverstripe/framework",
+        "type": "silverstripe-module",
+        "version": "2.4.7",
+        "path": "{cwd}/sapphire/"
+    },
+    {
+        "name": "silverstripe/framework",
+        "type": "silverstripe-module",
+        "version": "3.1.0",
+        "path": "{cwd}/framework/"
+    },
+    {
+        "name": "a/x",
+        "type": "wordpress-plugin-extra",
+        "path": {
+            "error": "InvalidArgumentException"
+        }
+    },
+    {
+        "name": "a/x",
+        "type": "fork-cms-module",
+        "path": null
+    },
+    {
+        "name": "a/x",
+        "type": "library",
+        "path": null
+    }
+]

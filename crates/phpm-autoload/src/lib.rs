@@ -129,6 +129,8 @@ pub struct Project<'a> {
     pub lock: &'a Lock,
     /// `realpath(getcwd())`, forward slashes.
     pub root_dir: &'a str,
+    /// Where plugins installed packages instead of `vendor/<name>`.
+    pub install_paths: &'a phpm_lock::InstallPaths,
 }
 
 /// Every file Composer writes for the autoloader, as paths relative to the
@@ -340,6 +342,9 @@ pub fn generate(project: &Project<'_>, options: &Options) -> Result<Output, Erro
     for package in &packages {
         validate(package)?;
         let install_path = (package.kind != "metapackage").then(|| {
+            if let Some(path) = project.install_paths.get(&package.name) {
+                return path.clone();
+            }
             let mut path = format!("{vendor}/{}", package.pretty_name);
             if let Some(t) = package
                 .target_dir
@@ -753,6 +758,7 @@ mod tests {
                 composer_json: &composer,
                 lock: &lock,
                 root_dir: &root,
+                install_paths: &phpm_lock::InstallPaths::new(),
             },
             options,
         )
@@ -823,6 +829,48 @@ mod tests {
     }
 
     #[test]
+    fn plugin_install_paths_move_package_autoloads() {
+        let (_dir, root) = project_dir();
+        let composer = ComposerJson::from_value(json!({})).unwrap();
+        let lock = Lock::from_value(json!({"packages": [
+            {"name": "a/theme", "version": "1.0", "type": "wordpress-theme", "autoload": {"psr-4": {"Theme\\": "src/"}, "files": ["boot.php"]}},
+            {"name": "a/lib", "version": "1.0", "autoload": {"psr-4": {"Lib\\": "src/"}}},
+        ]}))
+        .unwrap();
+        let paths: phpm_lock::InstallPaths =
+            [("a/theme".to_owned(), format!("{root}/web/app/themes/theme"))].into();
+        let out = generate(
+            &Project {
+                composer_json: &composer,
+                lock: &lock,
+                root_dir: &root,
+                install_paths: &paths,
+            },
+            &Options {
+                dev_mode: true,
+                ..Options::default()
+            },
+        )
+        .unwrap();
+        let psr4 =
+            String::from_utf8(out.file("composer/autoload_psr4.php").unwrap().to_vec()).unwrap();
+        assert!(
+            psr4.contains("'Theme\\\\' => array($baseDir . '/web/app/themes/theme/src'),"),
+            "{psr4}"
+        );
+        assert!(
+            psr4.contains("'Lib\\\\' => array($vendorDir . '/a/lib/src'),"),
+            "{psr4}"
+        );
+        let files =
+            String::from_utf8(out.file("composer/autoload_files.php").unwrap().to_vec()).unwrap();
+        assert!(
+            files.contains("$baseDir . '/web/app/themes/theme/boot.php',"),
+            "{files}"
+        );
+    }
+
+    #[test]
     fn keeps_suffix_of_existing_autoloader() {
         let (dir, root) = project_dir();
         std::fs::create_dir(dir.path().join("vendor")).unwrap();
@@ -837,6 +885,7 @@ mod tests {
             composer_json: &composer,
             lock: &lock,
             root_dir: &root,
+            install_paths: &phpm_lock::InstallPaths::new(),
         };
         assert_eq!(
             generate(&project, &Options::default()).unwrap().suffix,

@@ -30,6 +30,7 @@ fn check(fixture: &str, dev_mode: bool) {
         root_version: &version,
         root_dir: "/project",
         dev_mode,
+        install_paths: &phpm_lock::InstallPaths::new(),
     };
     let files = phpm_lock::installed_files(&ctx).expect("golden test setup");
 

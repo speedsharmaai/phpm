@@ -147,6 +147,18 @@ fn older_than_2_2(version: &str) -> bool {
     parts.as_slice() < [2, 2, 0].as_slice()
 }
 
+/// Whether phpm reproduces a plugin's effect itself.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub(crate) enum Adapter {
+    /// phpm has no adapter for this plugin.
+    #[default]
+    Missing,
+    /// An adapter covers it; what it does.
+    Native(&'static str),
+    /// An adapter exists, but not for this install; why.
+    Declined(String),
+}
+
 /// A plugin Composer would load for this install.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct Plugin {
@@ -154,6 +166,7 @@ pub(crate) struct Plugin {
     pub(crate) global: bool,
     /// Why only a full `composer install` gets this plugin's effect right.
     pub(crate) needs_full_install: Option<String>,
+    pub(crate) adapter: Adapter,
 }
 
 /// A plugin package Composer would not load, and why.
@@ -297,6 +310,7 @@ fn collect(
             into.active.push(Plugin {
                 name: name.to_owned(),
                 global,
+                adapter: Adapter::Missing,
                 needs_full_install: needs_full_install(package, name)
                     .map(str::to_owned)
                     .or_else(|| installs_types(name, installed)),

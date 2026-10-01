@@ -29,6 +29,7 @@ fn matches_composer_dump_autoload() {
         composer_json: &composer,
         lock: &lock,
         root_dir: &root,
+        install_paths: &phpm_lock::InstallPaths::new(),
     };
     let options = Options {
         dev_mode: true,

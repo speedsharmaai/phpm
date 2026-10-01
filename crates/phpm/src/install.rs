@@ -15,6 +15,7 @@ use phpm_store::{
 };
 use serde_json::{Map, Value};
 
+use crate::adapters;
 use crate::bins::{BinInstaller, php_basename, php_dirname};
 use crate::classes::{Tree, cache_root, known_classes};
 use crate::error::Error;
@@ -25,7 +26,7 @@ use crate::notify::{self, Download};
 use crate::out::Out;
 use crate::pathrepo::{self, PathDist};
 use crate::platform::{Filter, Platform, Requirements};
-use crate::plugins::{self, Global, Plugins};
+use crate::plugins::{self, Adapter, Global, Plugins};
 use crate::policy::{
     self, Abandonment, AuditFormat, Audited, Locked as PolicyLocked, Pending, Policy,
 };
@@ -200,6 +201,11 @@ struct Locked {
     path: Option<PathDist>,
     bins: Vec<String>,
     plugin: bool,
+    /// Where it goes: `vendor/<name>[/<target-dir>]`, or where an installer
+    /// plugin puts it. Absolute, normalised.
+    dir: String,
+    /// Placed relative to the project rather than to `vendor/`.
+    in_project: bool,
 }
 
 fn text(map: &Map<String, Value>, key: &str) -> Option<String> {
@@ -229,7 +235,13 @@ fn bins(entry: &Map<String, Value>) -> Vec<String> {
         .collect()
 }
 
-fn locked(entry: &Map<String, Value>, composer: &ComposerJson) -> Result<Locked, Error> {
+fn locked(
+    entry: &Map<String, Value>,
+    composer: &ComposerJson,
+    vendor: &str,
+    root: &str,
+    paths: &adapters::Paths,
+) -> Result<Locked, Error> {
     let name = text(entry, "name")
         .ok_or_else(|| Error::install("composer.lock has a package without a name"))?;
     let version = text(entry, "version").unwrap_or_default();
@@ -244,6 +256,8 @@ fn locked(entry: &Map<String, Value>, composer: &ComposerJson) -> Result<Locked,
             path: None,
             bins: Vec::new(),
             plugin,
+            dir: String::new(),
+            in_project: false,
         });
     }
     let dist = entry.get("dist");
@@ -278,6 +292,17 @@ fn locked(entry: &Map<String, Value>, composer: &ComposerJson) -> Result<Locked,
             shasum: non_empty_text(dist, "shasum"),
         },
     );
+    let mut dir = normalize_path(&format!("{vendor}/{install_path}"));
+    let mut in_project = false;
+    if let Some((custom, relative)) = paths
+        .normalized
+        .get(&name.to_ascii_lowercase())
+        .and_then(|c| Some((c, c.strip_prefix(root)?.strip_prefix('/')?)))
+    {
+        relative.clone_into(&mut install_path);
+        dir.clone_from(custom);
+        in_project = true;
+    }
     package.install_path = PathBuf::from(install_path);
     let path = (package.dist.kind == "path").then(|| PathDist::from_lock(&package.dist.url, entry));
     Ok(Locked {
@@ -287,6 +312,8 @@ fn locked(entry: &Map<String, Value>, composer: &ComposerJson) -> Result<Locked,
         package: Some(package),
         path,
         plugin,
+        dir,
+        in_project,
     })
 }
 
@@ -376,25 +403,22 @@ fn local_dist_url(url: &str, root: &Path) -> String {
     }
 }
 
-fn abs_install_path(vendor: &str, package: &Package) -> String {
-    normalize_path(&format!("{vendor}/{}", path_string(&package.install_path)))
-}
-
-fn unchanged(prev: Option<&Previous>, l: &Locked, vendor: &str) -> bool {
+fn unchanged(prev: Option<&Previous>, l: &Locked) -> bool {
     let (Some(prev), Some(package)) = (prev, &l.package) else {
         return false;
     };
-    let path = abs_install_path(vendor, package);
     prev.version == l.version
         && prev.reference == package.dist.reference
         && prev.source.as_deref() == Some("dist")
-        && prev.install_path.as_deref() == Some(path.as_str())
-        && Path::new(&path).is_dir()
+        && prev.install_path.as_deref() == Some(l.dir.as_str())
+        && Path::new(&l.dir).is_dir()
 }
 
+/// Composer removes a package from wherever its installer put it; phpm
+/// only from inside `vendor/` or the project.
 // Composer: Installer/LibraryInstaller.php uninstall
-fn remove_package(vendor: &str, name: &str, path: &str) -> Result<bool, Error> {
-    if !path.starts_with(&format!("{vendor}/")) {
+fn remove_package(roots: &[&str], name: &str, path: &str) -> Result<bool, Error> {
+    if !roots.iter().any(|r| path.starts_with(&format!("{r}/"))) {
         return Ok(false);
     }
     let dir = Path::new(path);
@@ -415,19 +439,28 @@ fn remove_package(vendor: &str, name: &str, path: &str) -> Result<bool, Error> {
 
 /// Class scan caches for the packages placed this run; packages left in
 /// place may have been edited in `vendor/`, so the autoloader reads those.
-fn class_trees(store: &Store, placements: &[Placement], vendor_real: &str) -> Vec<Tree> {
+fn class_trees(
+    store: &Store,
+    placements: &[(Placement, String)],
+    vendor_real: &str,
+    vendor: &str,
+) -> Vec<Tree> {
     let Ok(cache) = phpm_store::cache_dir() else {
         return Vec::new();
     };
     let root = cache_root(&cache);
     placements
         .iter()
-        .filter_map(|p| {
+        .filter_map(|(p, dir)| {
             let rel = p.source.strip_prefix(store.root()).ok()?;
+            let vendor_dir = match dir.strip_prefix(vendor) {
+                Some(rest) if rest.starts_with('/') => format!("{vendor_real}{rest}"),
+                _ => dir.clone(),
+            };
             Some(Tree {
                 store_dir: p.source.clone(),
                 cache_file: root.join(rel),
-                vendor_dir: format!("{vendor_real}/{}", path_string(&p.install_path)),
+                vendor_dir,
             })
         })
         .collect()
@@ -448,6 +481,11 @@ fn write_file(path: &Path, content: &[u8]) -> Result<(), Error> {
 fn package_line(l: &Locked, state: &str, plan: &Plan, no_plugins: bool) -> String {
     let mut line = format!("package {} {}: {state}", l.name, l.version);
     if let Some(p) = plan.plugins.active.iter().find(|p| p.name == l.name) {
+        if let (Adapter::Native(does), None) = (&p.adapter, &plan.full_install) {
+            line.push_str("; plugin, native: ");
+            line.push_str(does);
+            return line;
+        }
         line.push_str(
             if plan.full_install.is_some() || p.needs_full_install.is_some() {
                 "; plugin, loaded by composer install"
@@ -638,14 +676,36 @@ fn install(
     let vendor = normalize_path(&dirs.vendor);
     let root_dir = path_string(&files.root);
 
+    let mut plugins = if req.no_plugins {
+        Plugins::default()
+    } else {
+        let home = plugins::composer_home(env, plugins::system_uses_xdg(), &|d| d.is_dir());
+        plugins::detect(
+            &composer,
+            lock.plugin_api_version(),
+            &entries,
+            &Global::load(home.as_deref()),
+        )?
+    };
+    let root_extra = composer.data().get("extra").and_then(Value::as_object);
+    let paths = adapters::cover(
+        &mut plugins,
+        &entries,
+        adapters::Context {
+            root_extra,
+            root: &root_dir,
+            vendor: &vendor,
+            vendor_relative: &dirs.vendor_relative,
+        },
+    );
     let locked = entries
         .iter()
-        .map(|e| locked(e, &composer))
+        .map(|e| locked(e, &composer, &vendor, &root_dir, &paths))
         .collect::<Result<Vec<_>, _>>()?;
     let before = previous(&vendor);
     let changed: Vec<&Locked> = locked
         .iter()
-        .filter(|l| !unchanged(before.get(&l.name), l, &vendor))
+        .filter(|l| !unchanged(before.get(&l.name), l))
         .collect();
     let from_paths: Vec<&Locked> = changed
         .iter()
@@ -664,26 +724,15 @@ fn install(
     let to_place: Vec<&Package> = local.iter().collect();
     let wanted: BTreeSet<String> = locked
         .iter()
-        .filter_map(|l| l.package.as_ref())
-        .map(|p| abs_install_path(&vendor, p))
+        .filter(|l| l.package.is_some())
+        .map(|l| l.dir.clone())
         .collect();
+    let removable = [vendor.as_str(), root_dir.as_str()];
     let removing = before.values().any(|p| {
-        p.install_path
-            .as_ref()
-            .is_some_and(|path| !wanted.contains(path) && path.starts_with(&format!("{vendor}/")))
+        p.install_path.as_ref().is_some_and(|path| {
+            !wanted.contains(path) && removable.iter().any(|r| path.starts_with(&format!("{r}/")))
+        })
     });
-
-    let plugins = if req.no_plugins {
-        Plugins::default()
-    } else {
-        let home = plugins::composer_home(env, plugins::system_uses_xdg(), &|d| d.is_dir());
-        plugins::detect(
-            &composer,
-            lock.plugin_api_version(),
-            &entries,
-            &Global::load(home.as_deref()),
-        )?
-    };
     let scripts = Scripts::new(&composer, env);
     let plan = fallback::plan(req, &scripts, plugins, !changed.is_empty(), removing);
     let runs_scripts = !req.no_scripts
@@ -814,7 +863,7 @@ fn install(
     for (name, prev) in &before {
         if let Some(path) = &prev.install_path
             && !wanted.contains(path)
-            && remove_package(&vendor, name, path)?
+            && remove_package(&removable, name, path)?
         {
             removed += 1;
         }
@@ -823,7 +872,12 @@ fn install(
     let started = Instant::now();
     let placements = to_place
         .iter()
-        .map(|p| store.placement(p))
+        .map(|p| {
+            let l = locked.iter().find(|l| l.name == p.name);
+            let (dir, in_project) =
+                l.map_or_else(|| (String::new(), false), |l| (l.dir.clone(), l.in_project));
+            Ok::<_, Error>((store.placement(p)?, dir, in_project))
+        })
         .collect::<Result<Vec<_>, _>>()?;
     // Scripts and Composer steps write into vendor/; through a hard link that
     // write would land in the store and in every project placed from it.
@@ -833,14 +887,28 @@ fn install(
         None if !shared_ok && LinkMode::platform_default() == LinkMode::Hardlink => LinkMode::Copy,
         None => LinkMode::platform_default(),
     };
-    let used = if shared_ok {
-        place(Path::new(&vendor), &placements, mode)?
-    } else {
-        place_unshared(Path::new(&vendor), &placements, mode)?
-    };
+    let (in_project, in_vendor): (Vec<_>, Vec<_>) =
+        placements.into_iter().partition(|(_, _, project)| *project);
+    let mut used = mode;
+    for (base, group) in [
+        (vendor.as_str(), &in_vendor),
+        (root_dir.as_str(), &in_project),
+    ] {
+        if group.is_empty() {
+            continue;
+        }
+        let list: Vec<Placement> = group.iter().map(|(p, _, _)| p.clone()).collect();
+        let place_fn = if shared_ok { place } else { place_unshared };
+        used = used.max(place_fn(Path::new(base), &list, mode)?);
+    }
     if used != mode {
         out.detail(&format!("{mode:?} is not available here, used {used:?}"));
     }
+    let placements: Vec<(Placement, String)> = in_vendor
+        .into_iter()
+        .chain(in_project)
+        .map(|(p, dir, _)| (p, dir))
+        .collect();
     let notifier = notify_installs(
         &entries,
         &locked,
@@ -853,8 +921,8 @@ fn install(
     );
     let mirror_env = env("COMPOSER_MIRROR_PATH_REPOS");
     for l in &from_paths {
-        if let (Some(dist), Some(p)) = (&l.path, &l.package) {
-            let dest = PathBuf::from(abs_install_path(&vendor, p));
+        if let (Some(dist), Some(_)) = (&l.path, &l.package) {
+            let dest = PathBuf::from(&l.dir);
             let how = pathrepo::install(&l.name, dist, &files.root, &dest, mirror_env.as_deref())?;
             out.detail(&format!("{}: {how:?} from {}", l.name, dist.url));
         }
@@ -879,6 +947,7 @@ fn install(
         root_version: &root_version,
         root_dir: &root_dir,
         dev_mode: req.dev,
+        install_paths: &paths.normalized,
     })?;
     let mut written = vec![
         repo.join("installed.json"),
@@ -903,8 +972,8 @@ fn install(
         modes,
     );
     for l in &locked {
-        if let Some(p) = &l.package {
-            bins.install(&l.name, &abs_install_path(&vendor, p), &l.bins)
+        if l.package.is_some() {
+            bins.install(&l.name, &l.dir, &l.bins)
                 .map_err(|e| Error::install(format!("bin proxies for {}: {e}", l.name)))?;
         }
     }
@@ -956,10 +1025,8 @@ fn install(
             .iter()
             .zip(&locked)
             .filter(|(_, l)| placed.contains(l.name.as_str()))
-            .filter_map(|(e, l)| l.package.as_ref().map(|p| (e, p)))
-            .flat_map(|(e, p)| {
-                prefetch::scan_roots(e, Path::new(&abs_install_path(&vendor, p)), psr)
-            })
+            .filter(|(_, l)| l.package.is_some())
+            .flat_map(|(e, l)| prefetch::scan_roots(e, Path::new(&l.dir), psr))
             .collect();
         steps.warmup = Some((
             Instant::now(),
@@ -975,7 +1042,8 @@ fn install(
                 &composer,
                 &lock,
                 &root_dir,
-                &class_trees(&store, &placements, &vendor_real),
+                &paths.normalized,
+                &class_trees(&store, &placements, &vendor_real, &vendor),
                 out,
             )?);
             steps.event(req, &plan.post_autoload, scripts::POST_AUTOLOAD, false, out)?;
@@ -1119,6 +1187,7 @@ fn native_autoload(
     composer: &ComposerJson,
     lock: &Lock,
     root_dir: &str,
+    install_paths: &phpm_lock::InstallPaths,
     trees: &[Tree],
     out: &mut Out<'_>,
 ) -> Result<Vec<PathBuf>, Error> {
@@ -1144,6 +1213,7 @@ fn native_autoload(
             composer_json: composer,
             lock,
             root_dir,
+            install_paths,
         },
         &options,
     )?;
@@ -1227,6 +1297,7 @@ mod tests {
         Previous, Request, bins, dist_url, locked, notify_on_install, package_line, previous,
         remove_package, summary, top_files, unchanged,
     };
+    use crate::adapters::Paths;
     use phpm_autoload::PlatformRequirements;
     use phpm_lock::ComposerJson;
     use serde_json::{Map, Value, json};
@@ -1308,23 +1379,30 @@ mod tests {
     #[test]
     fn explains_each_package() {
         use crate::fallback::plan;
-        use crate::plugins::{Plugin, Plugins, Skipped};
+        use crate::plugins::{Adapter, Plugin, Plugins, Skipped};
         use crate::scripts::Scripts;
         let c = composer(json!({}));
         let mut entry = zip_entry("a/plugin");
         entry.insert("type".into(), json!("composer-plugin"));
-        let l = locked(&entry, &c).unwrap();
+        let l = locked(&entry, &c, "/p/vendor", "/p", &Paths::default()).unwrap();
         assert!(l.plugin);
         let scripts = Scripts::new(&c, &|_| None);
         let req = Request::default();
-        let active = Plugins {
+        let mut active = Plugins {
             active: vec![Plugin {
                 name: "a/plugin".into(),
                 global: false,
                 needs_full_install: None,
+                adapter: Adapter::Native("phpm computes its install paths"),
             }],
             skipped: Vec::new(),
         };
+        let p = plan(&req, &scripts, active.clone(), true, false);
+        assert_eq!(
+            package_line(&l, "native, placed from the store", &p, false),
+            "package a/plugin 1.0.0: native, placed from the store; plugin, native: phpm computes its install paths"
+        );
+        active.active[0].adapter = Adapter::Missing;
         let p = plan(&req, &scripts, active, true, false);
         assert_eq!(
             package_line(&l, "native, placed from the store", &p, false),
@@ -1353,6 +1431,7 @@ mod tests {
                 name: "a/plugin".into(),
                 global: false,
                 needs_full_install: Some("why".into()),
+                adapter: Adapter::Missing,
             }],
             skipped: Vec::new(),
         };
@@ -1378,7 +1457,7 @@ mod tests {
     #[test]
     fn reads_locked_packages() {
         let c = composer(json!({}));
-        let l = locked(&zip_entry("a/b"), &c).unwrap();
+        let l = locked(&zip_entry("a/b"), &c, "/p/vendor", "/p", &Paths::default()).unwrap();
         let p = l.package.unwrap();
         assert_eq!(p.dist.reference.as_deref(), Some("abc"));
         assert_eq!(p.dist.shasum, None);
@@ -1387,26 +1466,48 @@ mod tests {
 
         let mut target = zip_entry("a/b");
         target.insert("target-dir".into(), json!("Sub/Dir"));
-        let p = locked(&target, &c).unwrap().package.unwrap();
+        let p = locked(&target, &c, "/p/vendor", "/p", &Paths::default())
+            .unwrap()
+            .package
+            .unwrap();
         assert_eq!(p.install_path, std::path::Path::new("a/b/Sub/Dir"));
 
         let meta = obj(json!({"name": "a/m", "type": "metapackage"}));
-        assert!(locked(&meta, &c).unwrap().package.is_none());
+        assert!(
+            locked(&meta, &c, "/p/vendor", "/p", &Paths::default())
+                .unwrap()
+                .package
+                .is_none()
+        );
 
         let source_only =
             obj(json!({"name": "a/s", "version": "1.0.0", "source": {"type": "git"}}));
         assert!(
-            locked(&source_only, &c)
+            locked(&source_only, &c, "/p/vendor", "/p", &Paths::default())
                 .unwrap_err()
                 .message
                 .contains("source")
         );
         let prefers_source = composer(json!({"config": {"preferred-install": "source"}}));
-        assert!(locked(&zip_entry("a/b"), &prefers_source).is_err());
+        assert!(
+            locked(
+                &zip_entry("a/b"),
+                &prefers_source,
+                "/p/vendor",
+                "/p",
+                &Paths::default()
+            )
+            .is_err()
+        );
         let no_url = obj(json!({"name": "a/u", "dist": {"type": "zip"}}));
-        assert!(locked(&no_url, &c).unwrap_err().message.contains("url"));
+        assert!(
+            locked(&no_url, &c, "/p/vendor", "/p", &Paths::default())
+                .unwrap_err()
+                .message
+                .contains("url")
+        );
         let nameless = obj(json!({"version": "1"}));
-        assert!(locked(&nameless, &c).is_err());
+        assert!(locked(&nameless, &c, "/p/vendor", "/p", &Paths::default()).is_err());
     }
 
     #[test]
@@ -1447,11 +1548,11 @@ mod tests {
         assert_eq!(before["a/m"].install_path, None);
 
         let c = composer(json!({}));
-        let l = locked(&zip_entry("a/b"), &c).unwrap();
-        assert!(!unchanged(before.get("a/b"), &l, &vendor));
+        let l = locked(&zip_entry("a/b"), &c, &vendor, "/p", &Paths::default()).unwrap();
+        assert!(!unchanged(before.get("a/b"), &l));
         fs::create_dir_all(tmp.path().join("a/b")).unwrap();
-        assert!(unchanged(before.get("a/b"), &l, &vendor));
-        assert!(!unchanged(None, &l, &vendor));
+        assert!(unchanged(before.get("a/b"), &l));
+        assert!(!unchanged(None, &l));
 
         fs::write(
             tmp.path().join("composer/installed.json"),
@@ -1467,14 +1568,14 @@ mod tests {
         let vendor = tmp.path().to_string_lossy().replace('\\', "/");
         fs::create_dir_all(tmp.path().join("a/b/src")).unwrap();
         fs::create_dir_all(tmp.path().join("a/c")).unwrap();
-        assert!(remove_package(&vendor, "a/b", &format!("{vendor}/a/b")).unwrap());
+        assert!(remove_package(&[&vendor], "a/b", &format!("{vendor}/a/b")).unwrap());
         assert!(tmp.path().join("a").exists());
-        assert!(remove_package(&vendor, "a/c", &format!("{vendor}/a/c")).unwrap());
+        assert!(remove_package(&[&vendor], "a/c", &format!("{vendor}/a/c")).unwrap());
         assert!(!tmp.path().join("a").exists());
-        assert!(!remove_package(&vendor, "a/c", &format!("{vendor}/a/c")).unwrap());
-        assert!(!remove_package(&vendor, "x/y", "/etc").unwrap());
+        assert!(!remove_package(&[&vendor], "a/c", &format!("{vendor}/a/c")).unwrap());
+        assert!(!remove_package(&[&vendor], "x/y", "/etc").unwrap());
         fs::write(tmp.path().join("file"), b"").unwrap();
-        assert!(remove_package(&vendor, "file", &format!("{vendor}/file")).unwrap());
+        assert!(remove_package(&[&vendor], "file", &format!("{vendor}/file")).unwrap());
     }
 
     #[test]

@@ -156,68 +156,112 @@ fn smoke(dir: &Path, check: &[&str]) {
     );
 }
 
-fn e2e_app(fixture: &str, flags: &[&str], trees: &[&str], check: &[&str]) {
-    let work = tempfile::tempdir().unwrap();
-    let root = work.path().canonicalize().unwrap();
-    let (pristine, app_dir, composer_dir) = (
-        root.join("pristine"),
-        root.join("app"),
-        root.join("composer"),
-    );
-    checkout(fixture, &pristine);
+fn differences(composer_dir: &Path, app_dir: &Path, trees: &[&str]) -> Vec<String> {
+    let ignore = Ignore::names(&[".git", "var", "node_modules"]);
+    let mut all = Vec::new();
+    for tree in trees {
+        let diffs = compare(&composer_dir.join(tree), &app_dir.join(tree), &ignore).unwrap();
+        all.extend(diffs.iter().map(|d| format!("{tree}/: {d}")));
+    }
+    all
+}
 
-    copy_tree(&pristine, &app_dir);
+fn composer_install(dir: &Path, flags: &[&str]) {
     run(
         Command::new("composer")
             .args(["install", "--no-interaction", "--no-progress"])
             .args(flags)
-            .current_dir(&app_dir)
+            .current_dir(dir)
             .env_remove("COMPOSER_ROOT_VERSION"),
         "composer install",
     );
+}
+
+/// `native`: phpm must install without handing any step to Composer.
+fn e2e_app(fixture: &str, flags: &[&str], trees: &[&str], check: &[&str], native: bool) {
+    let work = tempfile::tempdir().unwrap();
+    let root = work.path().canonicalize().unwrap();
+    let (pristine, app_dir, composer_dir, phpm_dir) = (
+        root.join("pristine"),
+        root.join("app"),
+        root.join("composer"),
+        root.join("phpm"),
+    );
+    checkout(fixture, &pristine);
+
+    copy_tree(&pristine, &app_dir);
+    composer_install(&app_dir, flags);
     std::fs::rename(&app_dir, &composer_dir).unwrap();
 
     copy_tree(&pristine, &app_dir);
-    run(
-        Command::new(env!("CARGO_BIN_EXE_phpm"))
-            .args(["install"])
-            .args(flags)
-            .current_dir(&app_dir)
-            .env_remove("COMPOSER_ROOT_VERSION")
-            .env_remove("PHPM_COMPOSER"),
-        "phpm install",
+    let out = Command::new(env!("CARGO_BIN_EXE_phpm"))
+        .args(["install", "--explain"])
+        .args(flags)
+        .current_dir(&app_dir)
+        .env_remove("COMPOSER_ROOT_VERSION")
+        .env_remove("PHPM_COMPOSER")
+        .output()
+        .unwrap();
+    let log = format!(
+        "{}{}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
     );
-    smoke(&app_dir, check);
-
-    let ignore = Ignore::names(&[".git", "var", "node_modules"]);
-    for tree in trees {
-        let diffs = compare(&composer_dir.join(tree), &app_dir.join(tree), &ignore).unwrap();
-        let shown: Vec<String> = diffs.iter().take(20).map(ToString::to_string).collect();
+    assert!(out.status.success(), "phpm install failed:\n{log}");
+    if native {
+        let fallbacks: Vec<&str> = log
+            .lines()
+            .filter(|l| l.contains("Composer runs") || l.contains("fallback"))
+            .collect();
         assert!(
-            diffs.is_empty(),
-            "{fixture} {tree}/: {} differences\n{}",
-            diffs.len(),
-            shown.join("\n")
+            fallbacks.is_empty(),
+            "{fixture} fell back:\n{}",
+            fallbacks.join("\n")
         );
     }
+    smoke(&app_dir, check);
+
+    let mut diffs = differences(&composer_dir, &app_dir, trees);
+    if !diffs.is_empty() {
+        // Composer's first install orders some files by when each archive
+        // finished unzipping; a second install uses installed.json's order,
+        // as phpm does. Compare against that before counting a difference.
+        std::fs::rename(&app_dir, &phpm_dir).unwrap();
+        std::fs::rename(&composer_dir, &app_dir).unwrap();
+        composer_install(&app_dir, flags);
+        std::fs::rename(&app_dir, &composer_dir).unwrap();
+        std::fs::rename(&phpm_dir, &app_dir).unwrap();
+        diffs = differences(&composer_dir, &app_dir, trees);
+    }
+    let shown: Vec<&String> = diffs.iter().take(20).collect();
+    assert!(
+        diffs.is_empty(),
+        "{fixture}: {} differences\n{}",
+        diffs.len(),
+        shown
+            .iter()
+            .map(|s| s.as_str())
+            .collect::<Vec<_>>()
+            .join("\n")
+    );
 }
 
 macro_rules! e2e_app_tests {
-    ($($name:ident: $fixture:literal, [$($flag:literal),*], [$($tree:literal),*], [$($check:literal),*];)*) => {$(
+    ($($name:ident: $fixture:literal, [$($flag:literal),*], [$($tree:literal),*], [$($check:literal),*], $native:literal;)*) => {$(
         #[test]
         #[ignore = "clones the app and runs composer install over the network"]
         fn $name() {
-            e2e_app($fixture, &[$($flag),*], &[$($tree),*], &[$($check),*]);
+            e2e_app($fixture, &[$($flag),*], &[$($tree),*], &[$($check),*], $native);
         }
     )*};
 }
 
 e2e_app_tests! {
-    e2e_app_laravel_skeleton: "laravel-skeleton", [], ["vendor", "bootstrap"], ["php", "artisan", "--version"];
-    e2e_app_symfony_demo: "symfony-demo", [], ["vendor", "config", "public"], ["php", "bin/console", "about"];
-    e2e_app_monica: "monica", ["--ignore-platform-reqs"], ["vendor", "bootstrap"], ["php", "artisan", "--version"];
+    e2e_app_laravel_skeleton: "laravel-skeleton", [], ["vendor", "bootstrap"], ["php", "artisan", "--version"], false;
+    e2e_app_symfony_demo: "symfony-demo", [], ["vendor", "config", "public"], ["php", "bin/console", "about"], false;
+    e2e_app_monica: "monica", ["--ignore-platform-reqs"], ["vendor", "bootstrap"], ["php", "artisan", "--version"], false;
     e2e_app_drupal_recommended: "drupal-recommended", [], ["vendor", "web", "recipes"],
-        ["php", "-r", "require 'vendor/autoload.php'; echo Drupal::VERSION;"];
+        ["php", "-r", "require 'vendor/autoload.php'; echo Drupal::VERSION;"], false;
     e2e_app_bedrock: "bedrock", [], ["vendor", "web"],
-        ["php", "-r", "require 'vendor/autoload.php'; require 'web/wp/wp-includes/version.php'; echo $wp_version;"];
+        ["php", "-r", "require 'vendor/autoload.php'; require 'web/wp/wp-includes/version.php'; echo $wp_version;"], false;
 }

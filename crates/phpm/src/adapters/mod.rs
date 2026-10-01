@@ -1,0 +1,411 @@
+//! Native adapters for the Composer plugins whose effect phpm reproduces
+//! byte for byte (decision 0004). Each is on only for its exact package
+//! name and the versions whose source was read and compared; any other
+//! plugin, or any input an adapter cannot reproduce, stays with Composer.
+
+pub(crate) mod installers;
+mod php;
+
+use std::collections::BTreeMap;
+
+use phpm_lock::{InstallPaths, normalize_path};
+use serde_json::{Map, Value};
+
+use crate::plugins::{Adapter, Plugins};
+use installers::{Installers, Locked, Root};
+
+/// What an adapter does in place of its plugin.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Role {
+    Installers,
+    WordPressCore,
+}
+
+#[derive(Debug)]
+struct Known {
+    name: &'static str,
+    /// Normalised versions whose plugin source matches the adapter.
+    versions: &'static [&'static str],
+    role: Role,
+    does: &'static str,
+}
+
+const KNOWN: [Known; 2] = [
+    Known {
+        name: "composer/installers",
+        versions: &["2.3.0.0"],
+        role: Role::Installers,
+        does: "phpm computes its install paths",
+    },
+    Known {
+        name: "roots/wordpress-core-installer",
+        versions: &["1.100.0.0", "2.0.0.0", "3.0.0.0", "4.0.0.0"],
+        role: Role::WordPressCore,
+        does: "phpm computes the wordpress-core install path",
+    },
+];
+
+/// Where the project is, for the adapters that need paths.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Context<'a> {
+    pub(crate) root_extra: Option<&'a Map<String, Value>>,
+    /// The project directory, forward slashes, symlinks resolved.
+    pub(crate) root: &'a str,
+    /// The absolute vendor directory, forward slashes.
+    pub(crate) vendor: &'a str,
+    /// `vendor-dir` as configured, before it is made absolute.
+    pub(crate) vendor_relative: &'a str,
+}
+
+/// Install directories chosen by installer plugins, by lowercase name.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub(crate) struct Paths {
+    /// What the plugin's `getInstallPath` returns, as PHP sees it.
+    pub(crate) raw: BTreeMap<String, String>,
+    /// Absolute and normalised, for placement and `installed.*`.
+    pub(crate) normalized: InstallPaths,
+}
+
+fn text<'a>(entry: &'a Map<String, Value>, key: &str) -> &'a str {
+    entry.get(key).and_then(Value::as_str).unwrap_or("")
+}
+
+fn normalized_version(entry: &Map<String, Value>) -> String {
+    let pretty = text(entry, "version");
+    phpm_lock::version::normalize(pretty).unwrap_or_else(|_| pretty.to_owned())
+}
+
+/// The paths every active installer plugin gives the packages it installs,
+/// or why phpm cannot reproduce them.
+fn install_paths(
+    roles: &[Role],
+    entries: &[&Map<String, Value>],
+    ctx: Context<'_>,
+) -> Result<Paths, String> {
+    let root = Root {
+        extra: ctx.root_extra,
+        cwd: ctx.root,
+        vendor_relative: ctx.vendor_relative,
+    };
+    let installers = if roles.contains(&Role::Installers) {
+        Some(Installers::new(ctx.root_extra)?)
+    } else {
+        None
+    };
+    let mut paths = Paths::default();
+    let mut taken: Vec<(String, String)> = Vec::new();
+    for entry in entries {
+        let package = Locked { entry };
+        let name = text(entry, "name").to_ascii_lowercase();
+        let raw = if let Some(i) = &installers
+            && let Some(path) = i.path(package, root)?
+        {
+            Some(path)
+        } else if roles.contains(&Role::WordPressCore) {
+            installers::wordpress_core_path(package, root)?
+        } else {
+            None
+        };
+        let Some(raw) = raw else {
+            if package.kind() != "metapackage" {
+                let mut path = format!("{}/{}", ctx.vendor, text(entry, "name"));
+                if let Some(target) = entry.get("target-dir").and_then(Value::as_str) {
+                    path = format!("{path}/{target}");
+                }
+                taken.push((name, normalize_path(&path)));
+            }
+            continue;
+        };
+        let absolute = if phpm_php::is_absolute_path(&raw) {
+            raw.clone()
+        } else {
+            format!("{}/{raw}", ctx.root)
+        };
+        let normalized = normalize_path(&absolute);
+        let inside = normalized
+            .strip_prefix(ctx.root)
+            .is_some_and(|rest| rest.len() > 1 && rest.starts_with('/'));
+        if !inside {
+            return Err(format!(
+                "{name} would be installed to {normalized}, outside the project"
+            ));
+        }
+        taken.push((name.clone(), normalized.clone()));
+        paths.raw.insert(name.clone(), raw);
+        paths.normalized.insert(name, normalized);
+    }
+    let custom: Vec<&(String, String)> = taken
+        .iter()
+        .filter(|(n, _)| paths.normalized.contains_key(n))
+        .collect();
+    for (name, path) in &custom {
+        for (other, there) in &taken {
+            let nested = there == path
+                || there.starts_with(&format!("{path}/"))
+                || path.starts_with(&format!("{there}/"));
+            if other != name && nested {
+                return Err(format!("{name} and {other} would share {path}"));
+            }
+        }
+    }
+    Ok(paths)
+}
+
+/// Mark each active plugin a native adapter covers, and work out the
+/// install paths the covered installer plugins choose.
+pub(crate) fn cover(
+    plugins: &mut Plugins,
+    entries: &[&Map<String, Value>],
+    ctx: Context<'_>,
+) -> Paths {
+    let mut roles: Vec<(usize, Role)> = Vec::new();
+    for (i, plugin) in plugins.active.iter_mut().enumerate() {
+        let Some(known) = KNOWN
+            .iter()
+            .find(|k| k.name == plugin.name.to_ascii_lowercase())
+        else {
+            continue;
+        };
+        if plugin.global {
+            plugin.adapter = Adapter::Declined("installed globally".to_owned());
+            continue;
+        }
+        let entry = entries
+            .iter()
+            .find(|e| text(e, "name").eq_ignore_ascii_case(known.name));
+        let version = entry.map(|e| normalized_version(e)).unwrap_or_default();
+        if !known.versions.contains(&version.as_str()) {
+            plugin.adapter = Adapter::Declined(format!(
+                "no adapter for version {}",
+                entry.map_or("", |e| text(e, "version"))
+            ));
+            continue;
+        }
+        plugin.adapter = Adapter::Native(known.does);
+        roles.push((i, known.role));
+    }
+    let others: Vec<&str> = plugins
+        .active
+        .iter()
+        .filter(|p| !matches!(p.adapter, Adapter::Native(_)))
+        .map(|p| p.name.as_str())
+        .collect();
+    if !others.is_empty() {
+        let why = format!(
+            "Composer loads {} for this install, so it places the packages too",
+            others.join(", ")
+        );
+        for (i, _) in &roles {
+            plugins.active[*i].adapter = Adapter::Declined(why.clone());
+        }
+        return Paths::default();
+    }
+    let only: Vec<Role> = roles.iter().map(|(_, r)| *r).collect();
+    match install_paths(&only, entries, ctx) {
+        Ok(paths) => {
+            for (i, _) in &roles {
+                plugins.active[*i].needs_full_install = None;
+            }
+            paths
+        }
+        Err(why) => {
+            for (i, _) in &roles {
+                plugins.active[*i].adapter = Adapter::Declined(why.clone());
+            }
+            Paths::default()
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Context, Paths, Role, cover, install_paths};
+    use crate::plugins::{Adapter, Plugin, Plugins};
+    use serde_json::{Map, Value, json};
+
+    fn obj(v: Value) -> Map<String, Value> {
+        match v {
+            Value::Object(m) => m,
+            _ => unreachable!(),
+        }
+    }
+
+    fn plugin(name: &str) -> Plugin {
+        Plugin {
+            name: name.into(),
+            global: false,
+            needs_full_install: Some("it changes where packages are installed".into()),
+            adapter: Adapter::Missing,
+        }
+    }
+
+    fn ctx(extra: &Map<String, Value>) -> Context<'_> {
+        Context {
+            root_extra: Some(extra),
+            root: "/p",
+            vendor: "/p/vendor",
+            vendor_relative: "vendor",
+        }
+    }
+
+    fn bedrock() -> Vec<Map<String, Value>> {
+        vec![
+            obj(
+                json!({"name": "composer/installers", "version": "v2.3.0", "type": "composer-plugin"}),
+            ),
+            obj(
+                json!({"name": "roots/wordpress-core-installer", "version": "v4.0.0", "type": "composer-plugin"}),
+            ),
+            obj(json!({"name": "roots/wordpress", "version": "7.1.2", "type": "metapackage"})),
+            obj(
+                json!({"name": "roots/wordpress-no-content", "version": "7.1.2", "type": "wordpress-core"}),
+            ),
+            obj(
+                json!({"name": "wp-theme/twentytwentyfive", "version": "1.5", "type": "wordpress-theme"}),
+            ),
+            obj(json!({"name": "vlucas/phpdotenv", "version": "v5.7.0", "type": "library"})),
+        ]
+    }
+
+    #[test]
+    fn covers_bedrock_and_maps_its_paths() {
+        let entries = bedrock();
+        let refs: Vec<&Map<String, Value>> = entries.iter().collect();
+        let extra = obj(json!({
+            "installer-paths": {"web/app/themes/{$name}/": ["type:wordpress-theme"]},
+            "wordpress-install-dir": "web/wp",
+        }));
+        let mut plugins = Plugins {
+            active: vec![
+                plugin("composer/installers"),
+                plugin("roots/wordpress-core-installer"),
+            ],
+            skipped: Vec::new(),
+        };
+        let paths = cover(&mut plugins, &refs, ctx(&extra));
+        assert!(
+            plugins
+                .active
+                .iter()
+                .all(|p| p.needs_full_install.is_none())
+        );
+        assert!(
+            plugins
+                .active
+                .iter()
+                .all(|p| matches!(p.adapter, Adapter::Native(_)))
+        );
+        assert_eq!(paths.raw["roots/wordpress-no-content"], "web/wp");
+        assert_eq!(paths.normalized["roots/wordpress-no-content"], "/p/web/wp");
+        assert_eq!(
+            paths.raw["wp-theme/twentytwentyfive"],
+            "/p/web/app/themes/twentytwentyfive/"
+        );
+        assert_eq!(
+            paths.normalized["wp-theme/twentytwentyfive"],
+            "/p/web/app/themes/twentytwentyfive"
+        );
+        assert!(!paths.raw.contains_key("vlucas/phpdotenv"));
+    }
+
+    #[test]
+    fn unverified_versions_and_global_plugins_keep_the_fallback() {
+        let mut entries = bedrock();
+        entries[0].insert("version".into(), json!("v2.2.0"));
+        let refs: Vec<&Map<String, Value>> = entries.iter().collect();
+        let extra = Map::new();
+        let mut global = plugin("roots/wordpress-core-installer");
+        global.global = true;
+        let mut plugins = Plugins {
+            active: vec![
+                plugin("composer/installers"),
+                global,
+                plugin("symfony/flex"),
+            ],
+            skipped: Vec::new(),
+        };
+        let paths = cover(&mut plugins, &refs, ctx(&extra));
+        assert_eq!(paths, Paths::default());
+        assert_eq!(
+            plugins.active[0].adapter,
+            Adapter::Declined("no adapter for version v2.2.0".into())
+        );
+        assert!(plugins.active[0].needs_full_install.is_some());
+        assert_eq!(
+            plugins.active[1].adapter,
+            Adapter::Declined("installed globally".into())
+        );
+        assert_eq!(plugins.active[2].adapter, Adapter::Missing);
+    }
+
+    #[test]
+    fn installers_stay_with_composer_while_it_runs_other_plugins() {
+        let entries = bedrock();
+        let refs: Vec<&Map<String, Value>> = entries.iter().collect();
+        let extra = Map::new();
+        let mut plugins = Plugins {
+            active: vec![plugin("composer/installers"), plugin("pestphp/pest-plugin")],
+            skipped: Vec::new(),
+        };
+        assert_eq!(cover(&mut plugins, &refs, ctx(&extra)), Paths::default());
+        assert_eq!(
+            plugins.active[0].adapter,
+            Adapter::Declined(
+                "Composer loads pestphp/pest-plugin for this install, so it places the packages too"
+                    .into()
+            )
+        );
+        assert!(plugins.active[0].needs_full_install.is_some());
+    }
+
+    #[test]
+    fn a_path_it_cannot_reproduce_declines_every_installer() {
+        let mut entries = bedrock();
+        entries.push(obj(
+            json!({"name": "a/cake", "version": "1.0.0", "type": "cakephp-plugin"}),
+        ));
+        let refs: Vec<&Map<String, Value>> = entries.iter().collect();
+        let extra = obj(json!({"wordpress-install-dir": "web/wp"}));
+        let mut plugins = Plugins {
+            active: vec![
+                plugin("composer/installers"),
+                plugin("roots/wordpress-core-installer"),
+            ],
+            skipped: Vec::new(),
+        };
+        let paths = cover(&mut plugins, &refs, ctx(&extra));
+        assert_eq!(paths, Paths::default());
+        for p in &plugins.active {
+            assert!(matches!(&p.adapter, Adapter::Declined(why) if why.contains("cakephp")));
+            assert!(p.needs_full_install.is_some());
+        }
+    }
+
+    #[test]
+    fn paths_must_stay_inside_the_project_and_apart() {
+        let entries = bedrock();
+        let refs: Vec<&Map<String, Value>> = entries.iter().collect();
+        let roles = [Role::Installers, Role::WordPressCore];
+        let outside = obj(json!({"wordpress-install-dir": "../wp"}));
+        assert!(
+            install_paths(&roles, &refs, ctx(&outside))
+                .unwrap_err()
+                .contains("outside")
+        );
+        let shared = obj(json!({
+            "wordpress-install-dir": "web",
+            "installer-paths": {"web/{$name}": ["type:wordpress-theme"]},
+        }));
+        assert!(
+            install_paths(&roles, &refs, ctx(&shared))
+                .unwrap_err()
+                .contains("share")
+        );
+        let into_vendor =
+            obj(json!({"installer-paths": {"vendor/vlucas/phpdotenv": ["type:wordpress-theme"]}}));
+        assert!(install_paths(&roles, &refs, ctx(&into_vendor)).is_err());
+        let root = obj(json!({"wordpress-install-dir": "web/.."}));
+        assert!(install_paths(&roles, &refs, ctx(&root)).is_err());
+        assert_eq!(install_paths(&[], &refs, ctx(&root)), Ok(Paths::default()));
+    }
+}
