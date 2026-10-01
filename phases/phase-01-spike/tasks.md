@@ -26,24 +26,25 @@
 
 ## Install path
 
-- [ ] Lock parser and plan (install / update / remove) against `installed.json`.
+- [x] Lock parser and plan (install / update / remove) against `installed.json`. `phpm install` in `crates/phpm`: packages already in place are skipped, ones the old `installed.json` had and the lock does not are removed.
 - [x] Root version guessing via git, matching `VersionGuesser` for tag, branch and no-VCS cases. hg, svn and fossil checkouts are refused.
 - [x] Fetch: reqwest + tokio, HTTP/2, User-Agent with contact, ≤ 10 Packagist, ≤ 24 codeload, 3 retries, codeload-400 retry. In `phpm-store` (rustls on ring); auth covers `github-oauth` and `http-basic`.
 - [ ] Auth beyond the spike: `bearer`, `gitlab-oauth`, `gitlab-token`, `bitbucket-oauth`, `forgejo-token`, `custom-headers`, client certs, inline `user:pass@host`, composer.json `config` auth, `github-domains`.
 - [x] Store: `<cache>/phpm/pkgs/v1/`, key `(name, reference)`, zip buffered in memory, `zip` crate on tokio's blocking pool, top-dir strip, `.DS_Store` skip, modes kept, temp + atomic rename.
 - [x] Link: `libc::clonefile` per package directory (macOS); FICLONE then hardlink per file (Linux); copy fallback; stale packages removed.
 - [x] `installed.json`, `installed.php`, `InstalledVersions.php` written. Byte-identical to Composer 2.10.3 on all five fixtures, dev and `--no-dev` (`just golden`).
-- [ ] Bin proxies from Composer's templates.
+- [x] Bin proxies from Composer's templates. `BinaryInstaller` ported, golden-tested against proxies Composer itself wrote; bin targets `0777 & ~umask`, copied first when hard-linked from the store.
 - [x] Autoload: PackageSorter port (weights, `strnatcasecmp`, stable sort), psr-0, psr-4, classmap and files sections, suffix rules, `autoload_static.php`, `platform_check.php` (php-only default). `phpm-autoload`, byte-identical to Composer 2.10.3 on all five fixtures, dev and `--no-dev`, including `-o` from the fixtures' config (`just golden`). Class scanning for classmap rules and `-o`/`classmap-authoritative` came with it: a port of `php_strip_whitespace` and class-map-generator 1.7.3, on rayon.
-- [ ] State file and no-op fast path.
-- [ ] `--no-dev`.
+- [x] State file and no-op fast path. Outside `vendor/`, in the cache; 4.7 ms on the Laravel skeleton. See [progress](progress.md).
+- [x] `--no-dev`.
+- [ ] Phase 02: Composer 2.10's malware filter and audit, global plugins from `COMPOSER_HOME`, source installs, and a Composer fallback for plugins and scripts (the spike refuses them unless `--no-plugins` / `--no-scripts`).
 
 ## Measurement
 
 - [x] `tools/diffvendor`: Composer `--no-scripts --no-plugins` vs phpm into sibling dirs; compare bytes and mode of every file; exit non-zero on any difference.
 - [x] `tools/bench`: hyperfine, cold / warm / no-op, `--prepare` deletes `vendor/` (and caches for cold), run order alternated, raw JSON kept with tool versions, OS, filesystem.
 - [ ] Run on macOS APFS and in a Linux Docker container (no bind mount; vendor inside the container).
-- [ ] Profile phpm's warm path and write where the remaining time goes.
+- [x] Profile phpm's warm path and write where the remaining time goes. See [progress](progress.md#where-the-warm-time-goes).
 
 ## Gate
 
