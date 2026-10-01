@@ -9,3 +9,7 @@ pr_labels = ["release"]
 [[package]]
 name = "phpm-testkit"
 release = false
+
+[[package]]
+name = "phpm-sweep"
+release = false
