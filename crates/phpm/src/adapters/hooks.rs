@@ -9,7 +9,7 @@ use serde_json::{Map, Value};
 use crate::error::Error;
 use crate::fsutil::write_if_changed;
 
-use super::{Paths, Role, phpstan_extension_installer, symfony_runtime};
+use super::{Paths, Role, dealerdirect_phpcs, phpstan_extension_installer, symfony_runtime};
 
 /// The install as the plugins' listeners see it.
 #[derive(Debug, Clone, Copy)]
@@ -28,6 +28,10 @@ pub(crate) struct Installed<'a> {
 impl Installed<'_> {
     fn root_extra(&self) -> Option<&Map<String, Value>> {
         self.composer.data().get("extra").and_then(Value::as_object)
+    }
+
+    fn root_type(&self) -> Option<&str> {
+        self.composer.data().get("type").and_then(Value::as_str)
     }
 }
 
@@ -50,7 +54,10 @@ impl Hooks {
             match role {
                 Role::Pest => written.push(pest(at)?),
                 Role::SymfonyRuntime => written.extend(runtime(at)?),
-                Role::Installers | Role::WordPressCore | Role::PhpstanExtensionInstaller => {}
+                Role::Installers
+                | Role::WordPressCore
+                | Role::PhpstanExtensionInstaller
+                | Role::DealerdirectPhpcs => {}
             }
         }
         Ok(written)
@@ -60,8 +67,10 @@ impl Hooks {
     pub(crate) fn post_install(&self, at: Installed<'_>) -> Result<Vec<PathBuf>, Error> {
         let mut written = Vec::new();
         for role in &self.roles {
-            if *role == Role::PhpstanExtensionInstaller {
-                written.push(phpstan(at)?);
+            match role {
+                Role::PhpstanExtensionInstaller => written.push(phpstan(at)?),
+                Role::DealerdirectPhpcs => written.extend(dealerdirect(at)?),
+                Role::Installers | Role::WordPressCore | Role::Pest | Role::SymfonyRuntime => {}
             }
         }
         Ok(written)
@@ -165,6 +174,49 @@ fn phpstan(at: Installed<'_>) -> Result<PathBuf, Error> {
     )
 }
 
+/// Whether phpm reproduces `CodeSniffer.conf`'s `installed_paths` exactly.
+/// The filesystem walk this needs finds nothing before packages are placed,
+/// so this only validates the parts that do not depend on it.
+pub(crate) fn dealerdirect_check(
+    packages: &[&Map<String, Value>],
+    root_type: Option<&str>,
+    root_extra: Option<&Map<String, Value>>,
+    root: &str,
+    vendor: &str,
+) -> Result<(), String> {
+    dealerdirect_phpcs::generate(
+        packages,
+        root_type,
+        root_extra,
+        &Paths::default(),
+        root,
+        vendor,
+    )
+    .map(|_| ())
+}
+
+fn dealerdirect(at: Installed<'_>) -> Result<Option<PathBuf>, Error> {
+    let generated = dealerdirect_phpcs::generate(
+        at.packages,
+        at.root_type(),
+        at.root_extra(),
+        at.paths,
+        at.root,
+        at.vendor,
+    )
+    .map_err(Error::install)?;
+    let Some(bytes) = generated else {
+        return Ok(None);
+    };
+    let phpcs_path = at
+        .paths
+        .normalized
+        .get("squizlabs/php_codesniffer")
+        .cloned()
+        .unwrap_or_else(|| format!("{}/squizlabs/php_codesniffer", at.vendor));
+    write(&Path::new(&phpcs_path).join("CodeSniffer.conf"), &bytes).map(Some)
+}
+
 /// What a covered plugin's `uninstall()` removes when its package goes.
 // Composer: symfony/runtime Internal/ComposerPlugin::uninstall (always
 // unlinks); pestphp/pest-plugin Manager::uninstall (always unlinks).
@@ -174,7 +226,10 @@ pub(crate) fn uninstalled(role: Role, vendor: &str) -> Option<PathBuf> {
     match role {
         Role::Pest => Some(Path::new(vendor).join("pest-plugins.json")),
         Role::SymfonyRuntime => Some(Path::new(vendor).join("autoload_runtime.php")),
-        Role::Installers | Role::WordPressCore | Role::PhpstanExtensionInstaller => None,
+        Role::Installers
+        | Role::WordPressCore
+        | Role::PhpstanExtensionInstaller
+        | Role::DealerdirectPhpcs => None,
     }
 }
 
