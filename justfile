@@ -73,7 +73,11 @@ npm-wrapper-test:
 packagist-wrapper-test:
     dist/packagist-wrapper/test.sh
 
-ci: fmt-check lint docs test deny shear msrv typos md actions sweep-test bench-real-test npm-wrapper-test packagist-wrapper-test cov
+# shellcheck and the detect-target.sh mapping tests for the setup-phpm action scaffold
+setup-phpm-action-test:
+    dist/setup-phpm-action/test.sh
+
+ci: fmt-check lint docs test deny shear msrv typos md actions sweep-test bench-real-test npm-wrapper-test packagist-wrapper-test setup-phpm-action-test cov
 
 # warm placement time for a fixture; the first run fills the store
 place fixture="laravel-skeleton" *args="":

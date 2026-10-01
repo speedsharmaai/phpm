@@ -1,0 +1,71 @@
+name: Setup phpm
+description: Install phpm and cache its content-addressed store between runs
+author: Sanjeev Sharma
+branding:
+  icon: package
+  color: purple
+
+inputs:
+  version:
+    description: phpm version to install, without the leading v (e.g. "0.1.0"). Defaults to the latest release.
+    required: false
+    default: latest
+  cache:
+    description: Cache the phpm store (downloaded packages) between runs
+    required: false
+    default: "true"
+  cache-key-suffix:
+    description: Extra string to add to the store cache key, e.g. a job name, to isolate caches that would otherwise collide
+    required: false
+    default: ""
+
+outputs:
+  version:
+    description: The phpm version that was installed
+    value: ${{ steps.resolve.outputs.version }}
+  phpm-path:
+    description: Absolute path to the installed phpm binary
+    value: ${{ steps.install.outputs.path }}
+  cache-hit:
+    description: Whether the store cache was restored from an exact key match
+    value: ${{ steps.restore-store.outputs.cache-hit }}
+
+runs:
+  using: composite
+  steps:
+    - id: resolve
+      shell: bash
+      env:
+        PHPM_VERSION_INPUT: ${{ inputs.version }}
+        GH_TOKEN: ${{ github.token }}
+      run: ${{ github.action_path }}/scripts/resolve-version.sh
+
+    - id: target
+      shell: bash
+      run: ${{ github.action_path }}/scripts/detect-target.sh
+
+    - id: store-dir
+      shell: bash
+      run: ${{ github.action_path }}/scripts/store-dir.sh
+
+    - id: restore-store
+      if: inputs.cache == 'true'
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ steps.store-dir.outputs.path }}
+        key: phpm-store-${{ runner.os }}-${{ steps.resolve.outputs.version }}${{ inputs.cache-key-suffix != '' && format('-{0}', inputs.cache-key-suffix) || '' }}
+        restore-keys: |
+          phpm-store-${{ runner.os }}-${{ steps.resolve.outputs.version }}-
+          phpm-store-${{ runner.os }}-
+
+    - id: install
+      shell: bash
+      env:
+        PHPM_VERSION: ${{ steps.resolve.outputs.version }}
+        PHPM_TRIPLE: ${{ steps.target.outputs.triple }}
+        PHPM_EXT: ${{ steps.target.outputs.ext }}
+        GH_TOKEN: ${{ github.token }}
+      run: ${{ github.action_path }}/scripts/install.sh
+
+    - shell: bash
+      run: phpm --version
