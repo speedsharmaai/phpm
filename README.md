@@ -11,38 +11,45 @@ your `composer.json` and `composer.lock` unchanged and writes the same
 `vendor/`, byte for byte, in a fraction of the time on every install that is
 not bound by the network.
 
-> **Status: pre-release.** phpm passed its Phase 01 gate on 2026-10-01 and is
-> in Phase 02. `phpm install` works on any lockfile with dist archives: string
-> scripts run natively, and plugins or PHP-callable scripts fall back to real
+> **Status: pre-release.** phpm passed its Phase 01 gate and finished
+> Phase 02 on 2026-10-01. `phpm install` works on any lockfile with dist
+> archives: string scripts run natively, and plugins or PHP-callable scripts fall back to real
 > Composer for the steps that need them (`--explain` says which). There is no
 > release or installer yet, so it builds from source only.
 
 ## Numbers
 
-Laravel skeleton, 109 packages, M1 Pro, APFS, Composer 2.10.3, hyperfine
-([raw results](bench/results/), [the gate](phases/phase-01-spike/gate.md)):
+Laravel skeleton, 109 packages, M1 Pro, APFS, Composer 2.10.3, hyperfine,
+phpm at the end of Phase 02, every tool measured in the same session
+([raw results](bench/results/2026-10-01-phase-02-close/),
+[progress](phases/phase-02-parity-core/progress.md)):
 
-| Tool | Warm install | No-op | `vendor/` vs Composer |
-|---|---|---|---|
-| Composer 2.10.3 | 4.135 s | 1.509 s | reference |
-| riff 0.0.7 | 2.192 s | 1.293 s | 4 files differ |
-| viv 0.20.0 | 2.071 s | 9.2 ms | every file mode differs |
-| vivacity 0.19.1 | 582 ms | 407 ms | identical |
-| **phpm** | **229 ms** | **4.9 ms** | **identical** |
+| Tool | Cold (median of 8) | Warm install | No-op | `vendor/` vs Composer |
+|---|---|---|---|---|
+| Composer 2.10.3 | 21.08 s | 4.179 s | 1.606 s | reference |
+| riff 0.0.7 | 13.17 s | 2.486 s | 1.514 s | 4 files differ |
+| viv 0.20.0 | not run | 2.215 s | 8.8 ms | every file mode differs |
+| vivacity 0.19.1 | 14.21 s | 684 ms | 470 ms | identical |
+| **phpm** | **8.67 s** | **222 ms** | **4.5 ms** | **identical** |
+
+Cold is network-bound and noisy from here (India, home broadband), so it
+comes from a separate run with the tools interleaved, 8 rounds
+([cold results](bench/results/2026-10-01-cold-interleaved/)). On the ytmate
+fixture phpm's cold median is 11.65 s against riff's 13.19 s, a tie within
+the noise: its time is one 6.9 MB archive that every tool waits for.
 
 With the skeleton's scripts on (`package:discover`, a PHP callable, so that
-event goes through real Composer) phpm installs warm in 0.82 s against
-Composer's 4.93 s, median of 10, plus 0.35-0.75 s for the malware-filter
-check while it still costs a network round trip
-([progress](phases/phase-02-parity-core/progress.md)).
+event goes through real Composer) and the malware filter checked, phpm
+installs warm in 0.87 s against Composer's 4.57 s (median, 5.3x; 5.9x in a
+quieter 10-run rerun).
 
-On Linux (GitHub `ubuntu-latest`, ext4) phpm is 14x faster than Composer warm
-and 633x on a no-op. Cold installs are network-bound: phpm is 1.1-2.4x faster
-than Composer there, and not yet ahead of riff on macOS.
+On Linux (GitHub `ubuntu-latest`, ext4) phpm was 14x faster than Composer
+warm and 633x on a no-op at the Phase 01 gate.
 
 `vendor/` is byte-identical to Composer's, bytes and file modes, on all five
 fixtures (Laravel, Symfony demo, Monica, and two production apps), including
-the optimised class map.
+the optimised class map; the plugin-heavy apps (Symfony, Drupal, Bedrock,
+Monica) install through the Composer fallback with 0 differences.
 
 ## Try it from source
 
@@ -58,7 +65,7 @@ cd /path/to/your/php/project
 |---|---|---|
 | 00 | Quality foundation: lints, hooks, CI on 3 OSes, coverage, CodeQL, Scorecard, Sonar | done |
 | 01 | Spike: `phpm install`, byte-identical, benchmarked, gate | **passed** |
-| 02 | Parity core: platform checks, auth, scripts, malware filter, Composer fallback, faster cold fetch | in progress |
+| 02 | Parity core: platform checks, auth, scripts, malware filter, Composer fallback, faster cold fetch | **done** |
 | 03 | Compatibility sweep: nightly diff against Composer across hundreds of lockfiles | |
 | 04 | Plugin adapters: composer/installers, symfony/runtime, phpstan installer | |
 | 05 | Real-world benchmarks: Composer vs phpm on the largest open-source PHP apps | |
