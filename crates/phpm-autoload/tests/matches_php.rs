@@ -1,6 +1,7 @@
 //! Differential tests of the `php_strip_whitespace()` port against the real
 //! `php`. Ignored by default; CI runs them on Linux. They skip when `php` is
-//! not on PATH. `PHPM_STRIP_DIR=<dir>` also compares every `.php` file
+//! not on PATH; the strip tests also skip unless it is PHP 8.4, the version
+//! the fixtures were made with, since the lexer changes between minors. `PHPM_STRIP_DIR=<dir>` also compares every `.php` file
 //! under that directory.
 
 use phpm_autoload::scan::{finder_files, strip_whitespace};
@@ -18,6 +19,9 @@ foreach (array_slice($argv, 1) as $file) {
 /// What PHP strips each file to, run from a script file so the CLI skips
 /// `#!` lines the way it does under Composer.
 fn php_strip(files: &[PathBuf]) -> Option<Vec<Vec<u8>>> {
+    if !php_84() {
+        return None;
+    }
     let dir = tempfile::tempdir().ok()?;
     let script = dir.path().join("strip.php");
     std::fs::write(&script, STRIP).ok()?;
@@ -39,6 +43,13 @@ fn php_strip(files: &[PathBuf]) -> Option<Vec<Vec<u8>>> {
         }
     }
     Some(out)
+}
+
+fn php_84() -> bool {
+    Command::new("php")
+        .args(["-r", "echo PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;"])
+        .output()
+        .is_ok_and(|o| o.stdout == b"8.4")
 }
 
 fn decode(b64: &str) -> Vec<u8> {
