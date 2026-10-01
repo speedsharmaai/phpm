@@ -56,6 +56,7 @@ impl ZipBuilder {
         self.entry(name, 0, 0, data)
     }
 
+    #[cfg_attr(not(unix), allow(dead_code, reason = "only unix tests check modes"))]
     pub(crate) fn dos_file_attrs(self, name: &str, attrs: u32, data: &[u8]) -> Self {
         self.entry(name, 0, attrs, data)
     }
@@ -64,6 +65,7 @@ impl ZipBuilder {
         self.entry(name, 0, 0x10, b"")
     }
 
+    #[cfg_attr(not(unix), allow(dead_code, reason = "only unix tests check modes"))]
     pub(crate) fn dos_dir_attrs(self, name: &str, attrs: u32) -> Self {
         self.entry(name, 0, attrs, b"")
     }
@@ -73,6 +75,7 @@ impl ZipBuilder {
         self.entry(name, 0x0317, mode << 16, data)
     }
 
+    #[cfg_attr(not(unix), allow(dead_code, reason = "only unix tests check modes"))]
     pub(crate) fn unix_dir(self, name: &str, mode: u32) -> Self {
         self.entry(name, 0x0317, (mode << 16) | 0x10, b"")
     }

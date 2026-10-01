@@ -150,9 +150,12 @@ fn uses_xdg(is_dir: &dyn Fn(&Path) -> bool) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::{Auth, Credential, composer_home};
+    #[cfg(unix)]
+    use super::composer_home;
+    use super::{Auth, Credential};
     use crate::testutil::TempDir;
     use std::ffi::OsString;
+    #[cfg(unix)]
     use std::path::{Path, PathBuf};
 
     fn env<'a>(pairs: &'a [(&'a str, &'a str)]) -> impl Fn(&str) -> Option<OsString> + 'a {

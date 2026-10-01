@@ -304,7 +304,9 @@ fn sorted_dirs(dir: &Path) -> Result<Vec<PathBuf>> {
 
 #[cfg(test)]
 mod tests {
-    use super::{LinkMode, Placement, place, prune, remove_tree};
+    #[cfg(unix)]
+    use super::remove_tree;
+    use super::{LinkMode, Placement, place, prune};
     use crate::testutil::TempDir;
     use std::fs;
     use std::path::{Path, PathBuf};

@@ -59,7 +59,9 @@ pub(crate) fn clone_unsupported(err: &io::Error) -> bool {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(unix)]
     use super::clone_unsupported;
+    #[cfg(unix)]
     use std::io;
 
     #[cfg(unix)]

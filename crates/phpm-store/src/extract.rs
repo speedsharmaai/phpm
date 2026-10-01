@@ -31,6 +31,7 @@ impl Default for Limits {
     }
 }
 
+#[cfg_attr(not(unix), allow(dead_code, reason = "file modes only exist on unix"))]
 enum Mode {
     /// Unix mode from the archive, applied as is (setuid and friends dropped).
     Exact(u32),
@@ -261,6 +262,10 @@ fn set_file_mode(file: &fs::File, mode: &Mode) -> io::Result<()> {
 }
 
 #[cfg(not(unix))]
+#[allow(
+    clippy::unnecessary_wraps,
+    reason = "same signature as the unix version"
+)]
 fn set_file_mode(_file: &fs::File, _mode: &Mode) -> io::Result<()> {
     Ok(())
 }
@@ -277,6 +282,10 @@ fn set_dir_mode(path: &Path, mode: &Mode) -> io::Result<()> {
 }
 
 #[cfg(not(unix))]
+#[allow(
+    clippy::unnecessary_wraps,
+    reason = "same signature as the unix version"
+)]
 fn set_dir_mode(_path: &Path, _mode: &Mode) -> io::Result<()> {
     Ok(())
 }
