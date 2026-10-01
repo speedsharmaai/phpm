@@ -334,7 +334,7 @@ fn sorted_dirs(dir: &Path) -> Result<Vec<PathBuf>> {
 mod tests {
     #[cfg(unix)]
     use super::remove_tree;
-    use super::{LinkMode, Placement, next_mode, place, place_unshared, prune};
+    use super::{LinkMode, Placement, next_mode, place, prune};
     use crate::testutil::TempDir;
     use std::fs;
     use std::path::{Path, PathBuf};
@@ -398,6 +398,7 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn unshared_placement_never_shares_inodes_with_the_store() {
+        use super::place_unshared;
         use std::os::unix::fs::MetadataExt;
         let tmp = TempDir::new("link-unshared");
         let vendor = tmp.path().join("vendor");
