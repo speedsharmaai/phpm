@@ -9,8 +9,8 @@
 
 ## Setup
 
-- [ ] Cargo workspace per [topology](../../docs/arch/topology.md): `phpm`, `phpm-lock`, `phpm-php`, `phpm-store`, `phpm-fetch`, `phpm-autoload`.
-- [ ] `rust-toolchain.toml` pinned; clippy and rustfmt in CI from the first commit.
+- [x] Cargo workspace per [topology](../../docs/arch/topology.md): `phpm`, `phpm-lock`, `phpm-php`, `phpm-store` (fetch lives here, no separate `phpm-fetch`), `phpm-autoload`.
+- [x] `rust-toolchain.toml` pinned; clippy and rustfmt in CI from the first commit (Phase 00).
 - [ ] Pin Composer 2.10.3 as the reference version in `fixtures/COMPOSER_VERSION`; vendor its verbatim files (`ClassLoader.php`, `InstalledVersions.php`, `LICENSE`, bin proxy templates) into `crates/phpm-autoload/composer/` with their MIT licence. `ClassLoader.php`, `InstalledVersions.php` and `LICENSE` live in `crates/phpm-lock/composer/` (one copy, used by both crates); bin proxy templates are not vendored yet.
 
 ## Fixtures
@@ -43,12 +43,12 @@
 
 - [x] `tools/diffvendor`: Composer `--no-scripts --no-plugins` vs phpm into sibling dirs; compare bytes and mode of every file; exit non-zero on any difference.
 - [x] `tools/bench`: hyperfine, cold / warm / no-op, `--prepare` deletes `vendor/` (and caches for cold), run order alternated, raw JSON kept with tool versions, OS, filesystem.
-- [ ] Run on macOS APFS and in a Linux Docker container (no bind mount; vendor inside the container).
+- [x] Run on macOS APFS and on Linux. Linux ran on GitHub `ubuntu-latest` (ext4) via the `bench` workflow instead of a local Docker container: same kernel and filesystem class, and public.
 - [x] Profile phpm's warm path and write where the remaining time goes. See [progress](progress.md#where-the-warm-time-goes).
 
 ## Gate
 
-- [ ] Fill the five numbers from [phases/README.md](../README.md#the-gate).
-- [ ] Write `gate.md`: table, what was surprising, the call.
-- [ ] If it passes: ask r/PHP, r/laravel and ten developers directly whether install time is a top-three pain. Record answers in `gate.md` before scoping Phase 02 tasks.
-- [ ] If it fails: say so in `gate.md`, stop, and either contribute to the leader or go back to the shortlist in `devtools/_research/infra-landscape-2026-10.md`.
+- [x] Fill the five numbers from [phases/README.md](../README.md#the-gate).
+- [x] Write `gate.md`: table, what was surprising, the call.
+- [ ] If it passes: ask r/PHP, r/laravel and ten developers directly whether install time is a top-three pain. Owner action; carried into Phase 02, does not block engineering.
+- [x] ~~If it fails~~ It passed; see `gate.md`. If it fails: say so in `gate.md`, stop, and either contribute to the leader or go back to the shortlist in `devtools/_research/infra-landscape-2026-10.md`.
