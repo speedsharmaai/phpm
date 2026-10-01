@@ -114,7 +114,7 @@ pub(crate) fn run(req: &Request, env: Env<'_>, out: &mut Out<'_>) -> Result<(), 
         Some(dir) => dir.clone(),
         None => std::env::current_dir().map_err(|e| Error::usage(e.to_string()))?,
     };
-    let root = fs::canonicalize(&cwd)
+    let root = crate::fsutil::canonical(&cwd)
         .map_err(|e| Error::usage(format!("working directory {}: {e}", cwd.display())))?;
     let files = locate(root, env);
     let json = read_input(&files.composer_file, || {
@@ -852,8 +852,8 @@ fn install(
         started.elapsed()
     ));
 
-    let vendor_real =
-        fs::canonicalize(&vendor).map_or_else(|_| vendor.clone(), |p| path_string(&p));
+    let vendor_real = crate::fsutil::canonical(Path::new(&vendor))
+        .map_or_else(|_| vendor.clone(), |p| path_string(&p));
     let repo = PathBuf::from(format!("{vendor}/composer"));
     fs::create_dir_all(&repo).map_err(|e| Error::io(&repo, &e))?;
     let root_version = root_version

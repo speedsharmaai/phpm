@@ -85,7 +85,7 @@ impl<'a> Runner<'a> {
 
     // Composer: EventDispatcher::ensureBinDirIsInPath
     fn ensure_bin_dir_in_path(&mut self) {
-        let Ok(bin) = std::fs::canonicalize(&self.ctx.bin_dir) else {
+        let Ok(bin) = crate::fsutil::canonical(std::path::Path::new(&self.ctx.bin_dir)) else {
             return;
         };
         let bin = bin.to_string_lossy().into_owned();
