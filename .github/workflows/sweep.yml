@@ -91,7 +91,7 @@ jobs:
       - id: key
         env:
           SHARD: ${{ matrix.shard }}
-        run: echo "name=sweep-linux-${SHARD%/*}-of-${SHARD#*/}" >> "$GITHUB_OUTPUT"
+        run: echo "name=sweep-v2-linux-${SHARD%/*}-of-${SHARD#*/}" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/sweep-cache
@@ -138,8 +138,8 @@ jobs:
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/sweep-cache
-          key: sweep-windows-${{ github.run_id }}
-          restore-keys: sweep-windows-
+          key: sweep-v2-windows-${{ github.run_id }}
+          restore-keys: sweep-v2-windows-
       - name: Sweep
         shell: bash
         env:
