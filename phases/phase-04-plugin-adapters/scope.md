@@ -1,6 +1,7 @@
 # Phase 04: Plugin adapters
 
-Outline. Tasked only after Phase 03's gate.
+Tasked in [tasks.md](tasks.md). Starts in parallel with Phase 03; the sweep
+confirms each adapter at the Phase 03 and Phase 04 gates.
 
 ## Why
 
