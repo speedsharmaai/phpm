@@ -101,6 +101,15 @@ impl Lock {
         self.data.get("content-hash").and_then(Value::as_str)
     }
 
+    /// The plugin API of the Composer that wrote the lock; Composer reads a
+    /// missing one as `1.1.0`.
+    pub fn plugin_api_version(&self) -> &str {
+        self.data
+            .get("plugin-api-version")
+            .and_then(Value::as_str)
+            .unwrap_or("1.1.0")
+    }
+
     pub fn aliases(&self) -> Vec<LockAlias> {
         let Some(Value::Array(items)) = self.data.get("aliases") else {
             return Vec::new();
@@ -271,6 +280,9 @@ mod tests {
         assert_eq!(lock.content_hash(), None);
         let hashed = Lock::parse(r#"{"content-hash":"ab12"}"#).unwrap();
         assert_eq!(hashed.content_hash(), Some("ab12"));
+        assert_eq!(hashed.plugin_api_version(), "1.1.0");
+        let api = Lock::parse(r#"{"plugin-api-version":"2.9.0"}"#).unwrap();
+        assert_eq!(api.plugin_api_version(), "2.9.0");
     }
 
     #[test]

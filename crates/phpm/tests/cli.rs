@@ -343,26 +343,216 @@ fn no_dev_removes_dev_packages_and_their_bins() {
     assert!(p.vendor("c/dev/run").is_file());
 }
 
+/// A stand-in `composer` that logs its arguments and the dev-mode variable.
+#[cfg(unix)]
+fn fake_composer(p: &Project) -> (PathBuf, PathBuf) {
+    use std::os::unix::fs::PermissionsExt;
+    let bin = p.home.join("fake-composer");
+    let log = p.home.join("composer.log");
+    std::fs::create_dir_all(&p.home).unwrap();
+    std::fs::write(
+        &bin,
+        format!(
+            "#!/bin/sh\necho \"$*\" >> {log}\n\
+             [ \"$1\" = run-script ] && [ \"$2\" = post-install-cmd ] && [ -n \"$NOT_DEFINED\" ] && \
+             {{ echo 'Script \"post-install-cmd\" is not defined in this package' >&2; exit 1; }}\n\
+             [ \"$1\" = dump-autoload ] && [ -n \"$FAIL_DUMP\" ] && exit 5\n\
+             exit 0\n",
+            log = log.display()
+        ),
+    )
+    .unwrap();
+    std::fs::set_permissions(&bin, std::fs::Permissions::from_mode(0o755)).unwrap();
+    (bin, log)
+}
+
+#[cfg(unix)]
+fn plugin_project() -> Project {
+    Project::with(|composer, lock| {
+        composer["config"] = json!({"allow-plugins": {"a/*": true}});
+        lock["packages"][0]["type"] = json!("composer-plugin");
+    })
+}
+
 #[test]
-#[cfg_attr(windows, ignore = "Windows installs are Phase 03")]
-fn refuses_plugins_and_scripts_without_the_flags() {
-    let p = Project::with(|composer, lock| {
-        composer["scripts"] = json!({"post-install-cmd": ["@php -v"]});
+#[cfg(unix)]
+fn blocks_plugins_composer_would_block() {
+    let p = Project::with(|_, lock| {
         lock["packages"][0]["type"] = json!("composer-plugin");
     });
     let out = p.phpm(&["install"]);
     assert_eq!(out.status.code(), Some(1));
-    assert!(stderr(&out).contains("a/lib"), "{}", stderr(&out));
-    assert!(stderr(&out).contains("--no-plugins"));
-    let out = p.phpm(&["install", "--no-plugins"]);
-    assert_eq!(out.status.code(), Some(1));
     assert!(
-        stderr(&out).contains("post-install-cmd"),
+        stderr(&out).contains(
+            "a/lib contains a Composer plugin which is blocked by your allow-plugins config"
+        ),
         "{}",
         stderr(&out)
     );
     assert!(!p.root.join("vendor").exists());
-    ok(&p.phpm(&["install", "--no-plugins", "--no-scripts"]));
+    ok(&p.phpm(&["install", "--no-plugins"]));
+}
+
+#[test]
+#[cfg(unix)]
+fn falls_back_to_composer_for_plugins() {
+    let p = plugin_project();
+    let out = p.phpm_env(&["install"], &[("PHPM_COMPOSER", "/nonexistent/composer")]);
+    assert_eq!(out.status.code(), Some(1));
+    assert!(
+        stderr(&out).contains("composer is not on PATH"),
+        "{}",
+        stderr(&out)
+    );
+    assert!(stderr(&out).contains("Nothing was changed"));
+    assert!(!p.root.join("vendor").exists());
+
+    let (bin, log) = fake_composer(&p);
+    let bin = bin.to_string_lossy().into_owned();
+    let out = ok(&p.phpm_env(
+        &["install", "--explain"],
+        &[("PHPM_COMPOSER", &bin), ("NOT_DEFINED", "1")],
+    ));
+    assert!(
+        out.contains("package a/lib 1.0.0: native, downloaded to the store, then placed; plugin, Composer loads it"),
+        "{out}"
+    );
+    assert!(
+        out.contains("package m/meta 1.0.0: native, metapackage, nothing to place"),
+        "{out}"
+    );
+    assert!(out.contains("decision plugins: a/lib allowed"), "{out}");
+    assert!(
+        out.contains("decision autoload: fallback to Composer, plugins are loaded (a/lib)"),
+        "{out}"
+    );
+    assert!(out.contains("Composer runs the autoload dump"), "{out}");
+    assert!(!out.contains("is not defined"), "{out}");
+    assert!(p.vendor("a/lib/src/Lib.php").is_file());
+    assert!(p.vendor("composer/installed.json").is_file());
+    assert!(
+        !p.vendor("autoload.php").exists(),
+        "composer writes the autoloader, not phpm"
+    );
+    assert_eq!(
+        std::fs::read_to_string(&log).unwrap(),
+        "dump-autoload --dev --no-interaction\nrun-script post-install-cmd --dev --no-interaction\n"
+    );
+
+    std::fs::remove_dir_all(p.root.join("vendor")).unwrap();
+    let out = p.phpm_env(
+        &["install", "--no-dev", "-q"],
+        &[("PHPM_COMPOSER", &bin), ("FAIL_DUMP", "1")],
+    );
+    assert_eq!(out.status.code(), Some(5), "{}", stderr(&out));
+    assert!(stderr(&out).contains("dump-autoload failed with exit code 5"));
+    assert!(
+        std::fs::read_to_string(&log)
+            .unwrap()
+            .ends_with("dump-autoload --no-dev --no-interaction --quiet\n")
+    );
+}
+
+#[test]
+#[cfg(unix)]
+fn hands_the_whole_install_to_composer_when_a_plugin_moves_packages() {
+    let p = Project::with(|composer, lock| {
+        composer["config"] = json!({"allow-plugins": {"composer/installers": true}});
+        lock["packages"][0]["name"] = json!("composer/installers");
+        lock["packages"][0]["type"] = json!("composer-plugin");
+    });
+    let (bin, log) = fake_composer(&p);
+    let bin = bin.to_string_lossy().into_owned();
+    let out = ok(&p.phpm_env(
+        &["install", "--explain", "-o", "--no-dev"],
+        &[("PHPM_COMPOSER", &bin)],
+    ));
+    assert!(
+        out.contains("package composer/installers 1.0.0: fallback, composer install places it; plugin, loaded by composer install"),
+        "{out}"
+    );
+    assert!(
+        out.contains("decision install: fallback to composer install, composer/installers: it changes where packages are installed"),
+        "{out}"
+    );
+    assert!(!p.root.join("vendor").exists());
+    assert_eq!(
+        std::fs::read_to_string(&log).unwrap(),
+        "install --no-dev --optimize-autoloader --no-interaction\n"
+    );
+    ok(&p.phpm_env(&["install", "-o", "--no-dev"], &[("PHPM_COMPOSER", &bin)]));
+    assert_eq!(
+        std::fs::read_to_string(&log).unwrap().lines().count(),
+        2,
+        "no state file after a full fallback"
+    );
+}
+
+#[test]
+#[cfg(unix)]
+fn runs_string_scripts_natively_in_composer_order() {
+    let p = Project::with(|composer, _| {
+        composer["scripts"] = json!({
+            "pre-install-cmd": "test -d vendor && echo pre-install:vendor >> events.log || echo pre-install >> events.log",
+            "pre-autoload-dump": ["@putenv STAGE=dump", "@log-it pre-autoload"],
+            "post-autoload-dump": "test -f vendor/autoload.php && echo \"post-autoload:$STAGE:$COMPOSER_DEV_MODE\" >> events.log",
+            "post-install-cmd": ["echo \"post-install:${PATH%%:*}\" >> events.log"],
+            "log-it": "echo $1 >> events.log; true",
+        });
+    });
+    let out = ok(&p.phpm(&["install", "--explain"]));
+    assert!(
+        out.contains("decision pre-install-cmd: native, 1 script"),
+        "{out}"
+    );
+    assert!(
+        out.contains("decision pre-autoload-dump: native, 2 scripts"),
+        "{out}"
+    );
+    assert!(
+        out.contains("decision post-autoload-dump: native, 1 script"),
+        "{out}"
+    );
+    assert!(out.contains("> @putenv STAGE=dump"), "{out}");
+    let bin = p.root.join("vendor/bin").canonicalize().unwrap();
+    assert_eq!(
+        std::fs::read_to_string(p.root.join("events.log")).unwrap(),
+        format!(
+            "pre-install\n\npost-autoload:dump:1\npost-install:{}\n",
+            bin.display()
+        )
+    );
+}
+
+#[test]
+#[cfg(unix)]
+fn php_callables_send_their_event_to_composer() {
+    let p = Project::with(|composer, _| {
+        composer["scripts"] = json!({
+            "post-autoload-dump": ["App\\Scripts::dump", "@php -v"],
+            "post-install-cmd": "exit 9",
+        });
+    });
+    let (bin, log) = fake_composer(&p);
+    let bin = bin.to_string_lossy().into_owned();
+    let out = p.phpm_env(&["install"], &[("PHPM_COMPOSER", &bin)]);
+    assert_eq!(out.status.code(), Some(9), "{}", stderr(&out));
+    assert!(
+        stderr(&out).contains(
+            "Script exit 9 handling the post-install-cmd event returned with error code 9"
+        ),
+        "{}",
+        stderr(&out)
+    );
+    assert_eq!(
+        std::fs::read_to_string(&log).unwrap(),
+        "run-script post-autoload-dump --dev --no-interaction\n"
+    );
+    assert!(p.vendor("a/lib/src/Lib.php").is_file());
+    assert!(
+        p.vendor("autoload.php").is_file(),
+        "phpm still writes the autoloader"
+    );
 }
 
 #[test]

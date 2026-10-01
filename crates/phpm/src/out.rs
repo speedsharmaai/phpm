@@ -41,6 +41,10 @@ impl<'a> Out<'a> {
         self.verbosity = verbosity;
     }
 
+    pub(crate) fn verbosity(&self) -> Verbosity {
+        self.verbosity
+    }
+
     pub(crate) fn stdout(&mut self, text: &str) {
         let _ = self.stdout.write_all(text.as_bytes());
         let _ = self.stdout.flush();
@@ -130,6 +134,7 @@ pub(crate) mod tests {
         out.detail("shown");
         out.warn("w");
         assert_eq!(stderr.text(), "a\nshown\nwarning: w\n");
+        assert_eq!(out.verbosity(), Verbosity::Verbose);
         assert!(format!("{out:?}").contains("Verbose"));
     }
 }
