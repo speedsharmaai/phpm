@@ -16,6 +16,8 @@ use zip::write::SimpleFileOptions;
 struct Server {
     base: String,
     hits: Arc<Mutex<BTreeMap<String, usize>>>,
+    /// `(path, body)` of every POST.
+    posts: Arc<Mutex<Vec<(String, String)>>>,
 }
 
 impl Server {
@@ -24,6 +26,8 @@ impl Server {
         let base = format!("http://{}", listener.local_addr().unwrap());
         let hits = Arc::new(Mutex::new(BTreeMap::new()));
         let log = Arc::clone(&hits);
+        let posts = Arc::new(Mutex::new(Vec::new()));
+        let post_log = Arc::clone(&posts);
         std::thread::spawn(move || {
             for stream in listener.incoming() {
                 let Ok(mut sock) = stream else { continue };
@@ -38,6 +42,32 @@ impl Server {
                 let head = String::from_utf8_lossy(&buf).into_owned();
                 let path = head.split(' ').nth(1).unwrap_or("/").to_owned();
                 *log.lock().unwrap().entry(path.clone()).or_insert(0) += 1;
+                if head.starts_with("POST ") {
+                    let len: usize = head
+                        .lines()
+                        .find_map(|l| {
+                            l.to_ascii_lowercase()
+                                .strip_prefix("content-length: ")
+                                .map(str::to_owned)
+                        })
+                        .and_then(|v| v.trim().parse().ok())
+                        .unwrap_or(0);
+                    let start = buf
+                        .windows(4)
+                        .position(|w| w == b"\r\n\r\n")
+                        .map_or(buf.len(), |i| i + 4);
+                    let mut body = buf[start..].to_vec();
+                    while body.len() < len {
+                        match sock.read(&mut chunk) {
+                            Ok(0) | Err(_) => break,
+                            Ok(n) => body.extend_from_slice(&chunk[..n]),
+                        }
+                    }
+                    post_log
+                        .lock()
+                        .unwrap()
+                        .push((path.clone(), String::from_utf8_lossy(&body).into_owned()));
+                }
                 let (status, body) = match files.get(&path) {
                     Some(body) => ("200 OK", body.clone()),
                     None => ("404 Not Found", Vec::new()),
@@ -51,7 +81,7 @@ impl Server {
                 let _ = sock.write_all(&out);
             }
         });
-        Self { base, hits }
+        Self { base, hits, posts }
     }
 
     fn total_hits(&self) -> usize {
@@ -992,4 +1022,65 @@ fn live_packagist_blocks_the_aikido_test_package() {
         stderr(&out)
     );
     assert!(!p.root.join("vendor").exists());
+}
+
+#[test]
+fn notifies_downloads_once_per_url_for_what_was_installed() {
+    let p = Project::with(|_, lock| {
+        let url = "/downloads/";
+        for (i, entry) in lock["packages"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .enumerate()
+        {
+            if i < 2 {
+                entry["notification-url"] = json!(url);
+            }
+        }
+    });
+    let mut lock: Value =
+        serde_json::from_slice(&std::fs::read(p.root.join("composer.lock")).unwrap()).unwrap();
+    for entry in lock["packages"].as_array_mut().unwrap() {
+        if entry.get("notification-url").is_some() {
+            entry["notification-url"] = json!(format!("{}/downloads/", p.server.base));
+        }
+    }
+    std::fs::write(p.root.join("composer.lock"), lock.to_string()).unwrap();
+    ok(&p.phpm(&["install"]));
+    let posts = p.server.posts.lock().unwrap().clone();
+    assert_eq!(posts.len(), 1, "{posts:?}");
+    assert_eq!(posts[0].0, "/downloads/");
+    let body: Value = serde_json::from_str(&posts[0].1).unwrap();
+    assert_eq!(body["downloads"][0]["name"], "a/lib");
+    assert_eq!(body["downloads"][0]["version"], "1.0.0.0");
+    assert_eq!(body["downloads"][1]["name"], "b/tool");
+    assert!(
+        body["downloads"][0].get("downloaded").is_none(),
+        "only Packagist gets sizes"
+    );
+    assert!(
+        posts[0].1.contains(r#""name":"a\/lib""#),
+        "PHP json_encode escapes slashes"
+    );
+
+    ok(&p.phpm(&["install"]));
+    std::fs::remove_dir_all(p.root.join("vendor/a")).unwrap();
+    ok(&p.phpm(&["install"]));
+    let posts = p.server.posts.lock().unwrap().clone();
+    assert_eq!(posts.len(), 2, "{posts:?}");
+    let body: Value = serde_json::from_str(&posts[1].1).unwrap();
+    assert_eq!(body["downloads"].as_array().unwrap().len(), 1);
+
+    let mut composer: Value =
+        serde_json::from_slice(&std::fs::read(p.root.join("composer.json")).unwrap()).unwrap();
+    composer["config"] = json!({"notify-on-install": false});
+    std::fs::write(p.root.join("composer.json"), composer.to_string()).unwrap();
+    std::fs::remove_dir_all(p.root.join("vendor")).unwrap();
+    ok(&p.phpm(&["install"]));
+    ok(&p.phpm_env(
+        &["install", "--no-dev"],
+        &[("COMPOSER_DISABLE_NETWORK", "1")],
+    ));
+    assert_eq!(p.server.posts.lock().unwrap().len(), 2);
 }

@@ -69,7 +69,8 @@ fn e2e(fixture: &str, flags: &[&str]) {
                 .args(["install", "--no-scripts", "--no-plugins", "-q"])
                 .args(flags)
                 .current_dir(&phpm_dir)
-                .env_remove("COMPOSER_ROOT_VERSION"),
+                .env_remove("COMPOSER_ROOT_VERSION")
+                .env("COMPOSER_DISABLE_NETWORK", "1"),
             "phpm install",
         );
         let diffs = compare(

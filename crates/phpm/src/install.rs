@@ -19,6 +19,7 @@ use crate::error::Error;
 use crate::exec::{find_composer, find_php};
 use crate::fallback::{self, Composer, Plan, Step};
 use crate::fsutil::{Modes, path_string, write_if_changed};
+use crate::notify::{self, Download};
 use crate::out::Out;
 use crate::pathrepo::{self, PathDist};
 use crate::platform::{Filter, Platform, Requirements};
@@ -485,6 +486,64 @@ fn abandoned(entry: &Map<String, Value>) -> Option<Abandonment> {
     }
 }
 
+/// Send download notifications for what this run installed, on a thread of
+/// its own so the POST overlaps the rest of the install.
+// Composer: Installer.php run, config notify-on-install
+#[expect(
+    clippy::too_many_arguments,
+    reason = "everything the install already has in hand"
+)]
+fn notify_installs(
+    entries: &[&Map<String, Value>],
+    locked: &[Locked],
+    changed: &[&Locked],
+    before: &BTreeMap<String, Previous>,
+    sizes: &BTreeMap<String, u64>,
+    files: &ProjectFiles,
+    config: Option<&Map<String, Value>>,
+    env: Env<'_>,
+) -> Option<std::thread::JoinHandle<()>> {
+    let wanted = config
+        .and_then(|c| c.get("notify-on-install"))
+        .and_then(Value::as_bool)
+        .unwrap_or(true)
+        && env("COMPOSER_DISABLE_NETWORK").is_none_or(|v| v.is_empty() || v == "0");
+    if !wanted {
+        return None;
+    }
+    let installed = |l: &Locked| match &l.package {
+        Some(_) => changed.iter().any(|c| c.name == l.name),
+        None => before.get(&l.name).is_none_or(|p| p.version != l.version),
+    };
+    let downloads: Vec<Download> = entries
+        .iter()
+        .zip(locked)
+        .filter(|(_, l)| installed(l))
+        .filter_map(|(e, l)| Download::from_lock(e, sizes.get(&l.name).copied()))
+        .collect();
+    if downloads.is_empty() {
+        return None;
+    }
+    let root = files.root.clone();
+    let config = config.cloned();
+    Some(std::thread::spawn(move || {
+        let Ok(auth) = Auth::load(Some(&root), config.as_ref()) else {
+            return;
+        };
+        let (Ok(fetcher), Ok(rt)) = (
+            Fetcher::new(FetchOptions {
+                auth,
+                retries: 0,
+                ..FetchOptions::default()
+            }),
+            runtime(),
+        ) else {
+            return;
+        };
+        rt.block_on(notify::send(&fetcher, notify::batches(&downloads)));
+    }))
+}
+
 /// What an install leaves for the state file and the exit code.
 #[derive(Debug)]
 struct Installed {
@@ -689,16 +748,18 @@ fn install(
         .filter(|p| !store.contains(&p.name, &p.key()))
         .map(|p| (*p).clone())
         .collect();
+    let mut sizes: BTreeMap<String, u64> = BTreeMap::new();
     if !missing.is_empty() {
         let n = net(&mut network, &files.root, config.as_ref())?;
         let fetched = n
             .runtime
-            .block_on(store.fetch_missing(&n.fetcher, &missing))?;
+            .block_on(store.fetch_missing_sized(&n.fetcher, &missing))?;
         out.info(&format!(
             "Downloaded {} packages in {:.2?}",
             fetched.len(),
             started.elapsed()
         ));
+        sizes.extend(fetched);
     }
 
     let mut removed = 0;
@@ -721,6 +782,16 @@ fn install(
     if used != mode {
         out.detail(&format!("{mode:?} is not available here, used {used:?}"));
     }
+    let notifier = notify_installs(
+        &entries,
+        &locked,
+        &changed,
+        &before,
+        &sizes,
+        files,
+        config.as_ref(),
+        env,
+    );
     let mirror_env = env("COMPOSER_MIRROR_PATH_REPOS");
     for l in &from_paths {
         if let (Some(dist), Some(p)) = (&l.path, &l.package) {
@@ -868,6 +939,9 @@ fn install(
         out,
     )?;
     written.extend(wanted.iter().map(PathBuf::from));
+    if let Some(handle) = notifier {
+        let _ = handle.join();
+    }
     let mut audit_failed = false;
     if let Some(format) = req.audit {
         let audited: Vec<Audited> = entries
