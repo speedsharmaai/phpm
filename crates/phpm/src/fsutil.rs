@@ -30,7 +30,7 @@ pub(crate) struct Modes {
 }
 
 impl Modes {
-    #[cfg(test)]
+    #[cfg(all(test, unix))]
     pub(crate) fn with_exec(exec: u32) -> Self {
         Self { exec }
     }
