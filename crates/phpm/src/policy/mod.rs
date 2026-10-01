@@ -7,6 +7,7 @@
 
 mod audit;
 mod filter;
+mod pending;
 mod repo;
 
 use phpm_lock::constraint::{Constraint, parse};
@@ -17,7 +18,8 @@ use crate::platform::glob;
 use crate::project::Env;
 
 pub(crate) use audit::{Abandonment, AuditFormat, Audited, run_audit};
-pub(crate) use filter::{Locked, check_install};
+pub(crate) use filter::Locked;
+pub(crate) use pending::Pending;
 pub(crate) use repo::{Client, repos};
 
 /// How `composer audit` treats a list's matches.

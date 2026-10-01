@@ -24,7 +24,9 @@ use crate::out::Out;
 use crate::pathrepo::{self, PathDist};
 use crate::platform::{Filter, Platform, Requirements};
 use crate::plugins::{self, Global, Plugins};
-use crate::policy::{self, Abandonment, AuditFormat, Audited, Locked as PolicyLocked, Policy};
+use crate::policy::{
+    self, Abandonment, AuditFormat, Audited, Locked as PolicyLocked, Pending, Policy,
+};
 use crate::prefetch;
 use crate::project::{Env, ProjectFiles, dirs, locate, with_vendor_dir};
 use crate::runner::{self, Runner};
@@ -567,7 +569,6 @@ fn install(
     if req.dev {
         entries.extend(lock.packages_dev()?);
     }
-    check_platform(req, env, &composer, &lock, out)?;
     let config = composer
         .data()
         .get("config")
@@ -575,32 +576,16 @@ fn install(
         .cloned();
     let policy = Policy::from_config(config.as_ref(), env, req.no_blocking)?;
     let repos = policy::repos(&composer);
-    let policy_packages: Vec<PolicyLocked> = entries.iter().map(|e| policy_locked(e)).collect();
     let cache_dir = phpm_store::cache_dir().ok();
+    let mut filter = Pending::start(
+        &policy,
+        &repos,
+        entries.iter().map(|e| policy_locked(e)).collect(),
+        || Ok(Auth::load(Some(&files.root), config.as_ref())?),
+        cache_dir.clone(),
+    )?;
+    check_platform(req, env, &composer, &lock, out)?;
     let mut network: Option<Net> = None;
-    let mut expires = None;
-    if policy.blocks_install() && !repos.is_empty() {
-        let started = Instant::now();
-        let n = net(&mut network, &files.root, config.as_ref())?;
-        let client = policy::Client {
-            fetcher: &n.fetcher,
-            cache: cache_dir.clone(),
-        };
-        let outcome = n.runtime.block_on(policy::check_install(
-            &client,
-            &repos,
-            &policy,
-            &policy_packages,
-        ))?;
-        for line in &outcome.warnings {
-            out.info(line);
-        }
-        expires = outcome.expires;
-        out.detail(&format!(
-            "checked the malware filter lists in {:.1?}",
-            started.elapsed()
-        ));
-    }
     let dirs = dirs(&composer, &files.root, env)?;
     let composer = with_vendor_dir(composer, &files.root, &dirs.vendor);
     let vendor = normalize_path(&dirs.vendor);
@@ -701,6 +686,7 @@ fn install(
         .clone()
         .map(|bin| Composer::new(bin, &files.root, out.verbosity()));
     if let (Some(why), Some(composer)) = (&plan.full_install, &fallback) {
+        let expires = filter_verdict(&mut filter, &store, &[], out)?;
         out.info(&format!("Composer runs this install: {why}"));
         composer.run(&fallback::install_args(req), out)?;
         return Ok(Installed {
@@ -751,9 +737,16 @@ fn install(
     let mut sizes: BTreeMap<String, u64> = BTreeMap::new();
     if !missing.is_empty() {
         let n = net(&mut network, &files.root, config.as_ref())?;
-        let fetched = n
+        let fetched = match n
             .runtime
-            .block_on(store.fetch_missing_sized(&n.fetcher, &missing))?;
+            .block_on(store.fetch_missing_sized(&n.fetcher, &missing))
+        {
+            Ok(fetched) => fetched,
+            Err(e) => {
+                filter_verdict(&mut filter, &store, &missing, out)?;
+                return Err(e.into());
+            }
+        };
         out.info(&format!(
             "Downloaded {} packages in {:.2?}",
             fetched.len(),
@@ -762,6 +755,7 @@ fn install(
         sizes.extend(fetched);
     }
 
+    let expires = filter_verdict(&mut filter, &store, &missing, out)?;
     let mut removed = 0;
     for (name, prev) in &before {
         if let Some(path) = &prev.install_path
@@ -981,6 +975,26 @@ fn install(
         expires,
         audit_failed,
     })
+}
+
+/// Wait for the malware filter before anything in `vendor/` changes; its
+/// warnings print here, and the result's expiry bounds the no-op state.
+fn filter_verdict(
+    filter: &mut Pending,
+    store: &Store,
+    fetched: &[Package],
+    out: &mut Out<'_>,
+) -> Result<Option<u64>, Error> {
+    let (outcome, waited) = filter.verdict(store, fetched)?;
+    for line in &outcome.warnings {
+        out.info(line);
+    }
+    if let Some(waited) = waited {
+        out.detail(&format!(
+            "checked the malware filter lists, verdict in hand {waited:.1?} after the install started"
+        ));
+    }
+    Ok(outcome.expires)
 }
 
 /// Where the install's script events and Composer calls go.

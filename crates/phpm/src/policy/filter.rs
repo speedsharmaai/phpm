@@ -6,13 +6,13 @@
 //! FilterList/FilterListProvider/FilterListProviderSet.php,
 //! FilterList/FilterListAuditor.php, Repository/ComposerRepository.php getFilter.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 
 use phpm_lock::constraint::{Constraint, Op, parse};
 use serde_json::{Value, json};
 
-use super::repo::{Cached, Client, Repo, Unreachable, now};
+use super::repo::{Cached, Client, ROOT_MAX_AGE, Repo, Unreachable, now};
 use super::{IgnoreRule, Policy};
 use crate::error::Error;
 use crate::platform::is_platform_package;
@@ -194,6 +194,16 @@ fn expiry(cached: &Cached, fallback: u64) -> u64 {
     now() + cached.max_age.unwrap_or(fallback)
 }
 
+/// `name version` for each locked package the lists are asked about.
+fn keys(packages: &[Locked]) -> Vec<String> {
+    let set: BTreeSet<String> = packages
+        .iter()
+        .filter(|p| !is_platform_package(&p.name))
+        .map(|p| format!("{} {}", p.name, p.version))
+        .collect();
+    set.into_iter().collect()
+}
+
 /// Every entry the repositories have for the locked packages on `lists`.
 pub(crate) async fn collect(
     client: &Client<'_>,
@@ -203,6 +213,7 @@ pub(crate) async fn collect(
     ignore_unreachable: bool,
 ) -> Result<(Vec<Entry>, Outcome), Error> {
     let map = constraint_map(packages);
+    let keys = keys(packages);
     let mut outcome = Outcome::default();
     let mut entries = Vec::new();
     let unreachable = |e: Unreachable, outcome: &mut Outcome| {
@@ -223,7 +234,8 @@ pub(crate) async fn collect(
                 continue;
             }
         };
-        expires.push(root.checked + 600);
+        let root_until = root.checked + ROOT_MAX_AGE;
+        expires.push(root_until);
         let Some(Advertised {
             lists: advertised,
             summary_url,
@@ -270,7 +282,12 @@ pub(crate) async fn collect(
             continue;
         }
         let mut candidates: Vec<&String> = map.keys().collect();
+        let mut fresh_until = None;
         if let Some(url) = summary_url {
+            if let Some(until) = client.verified(repo, &relevant, &keys) {
+                expires.push(until);
+                continue;
+            }
             let summary = match client.json(repo, "filter-summary.json", &url, None).await {
                 Ok(Some(s)) => s,
                 Ok(None) => {
@@ -285,7 +302,9 @@ pub(crate) async fn collect(
                     continue;
                 }
             };
-            expires.push(expiry(&summary, 0));
+            let until = expiry(&summary, 0);
+            expires.push(until);
+            fresh_until = Some(until.min(root_until));
             let by_list = summary.data.get("filter").and_then(Value::as_object);
             candidates.retain(|name| {
                 relevant.iter().any(|list| {
@@ -303,11 +322,17 @@ pub(crate) async fn collect(
                 })
             });
         }
-        let Some(metadata_url) = metadata_url else {
-            continue;
-        };
-        for name in candidates {
-            let url = metadata_url.replace("%package%", name);
+        let first = entries.len();
+        let mut reached = true;
+        let lookups: Vec<(&String, String)> = metadata_url
+            .map(|t| {
+                candidates
+                    .iter()
+                    .map(|n| (*n, t.replace("%package%", n)))
+                    .collect()
+            })
+            .unwrap_or_default();
+        for (name, url) in lookups {
             let key = format!("provider-{}.json", name.replace('/', "~"));
             match client.json(repo, &key, &url, None).await {
                 Ok(Some(meta)) => {
@@ -316,8 +341,23 @@ pub(crate) async fn collect(
                     }
                 }
                 Ok(None) => {}
-                Err(e) => unreachable(e, &mut outcome)?,
+                Err(e) => {
+                    reached = false;
+                    unreachable(e, &mut outcome)?;
+                }
             }
+        }
+        if let Some(until) = fresh_until.filter(|_| reached) {
+            let flagged: BTreeSet<&str> = entries[first..]
+                .iter()
+                .map(|e| e.package.as_str())
+                .collect();
+            let clean: Vec<String> = keys
+                .iter()
+                .filter(|k| !k.split(' ').next().is_some_and(|n| flagged.contains(n)))
+                .cloned()
+                .collect();
+            client.record(repo, &relevant, until, &clean);
         }
     }
     outcome.expires = expires.into_iter().min();
@@ -406,14 +446,30 @@ fn reason(package: &Locked, hits: &[&Entry]) -> String {
     )
 }
 
-/// Run the malware filter for an install; `Err` carries Composer's message
-/// and its exit code 2.
+/// An install the filter stopped, and the packages it blocked.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct Refusal {
+    pub(crate) error: Error,
+    pub(crate) blocked: Vec<String>,
+}
+
+impl From<Error> for Refusal {
+    fn from(error: Error) -> Self {
+        Self {
+            error,
+            blocked: Vec::new(),
+        }
+    }
+}
+
+/// Run the malware filter for an install; a refusal carries Composer's
+/// message and its exit code 2.
 pub(crate) async fn check_install(
     client: &Client<'_>,
     repos: &[Repo],
     policy: &Policy,
     packages: &[Locked],
-) -> Result<Outcome, Error> {
+) -> Result<Outcome, Refusal> {
     if !policy.blocks_install() {
         return Ok(Outcome::default());
     }
@@ -426,6 +482,7 @@ pub(crate) async fn check_install(
         outcome.warnings = lines;
     }
     let mut problems = Vec::new();
+    let mut blocked = Vec::new();
     for package in packages.iter().filter(|p| !is_platform_package(&p.name)) {
         let hits = matching(
             package,
@@ -436,6 +493,7 @@ pub(crate) async fn check_install(
         );
         if !hits.is_empty() {
             problems.push(reason(package, &hits));
+            blocked.push(package.name.clone());
         }
     }
     if problems.is_empty() {
@@ -445,7 +503,10 @@ pub(crate) async fn check_install(
     for (i, p) in problems.iter().enumerate() {
         let _ = write!(text, "\n  Problem {}\n    {p}", i + 1);
     }
-    Err(Error::new(2, text))
+    Err(Refusal {
+        error: Error::new(2, text),
+        blocked,
+    })
 }
 
 #[cfg(test)]

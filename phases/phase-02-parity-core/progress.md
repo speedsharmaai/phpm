@@ -141,11 +141,23 @@ checks the filter lists over the network, 0.35-0.75 s here, so `main` at
 | default (filter checked) | 1.233 s | 1.138 s | 4.0x |
 | `--no-blocking` | 822 ms | 787 ms | 6.0x |
 
-A rerun at `20d6251` (download notifications added) gives the same picture:
-1.208 s and 845 ms mean. The fallback itself stays under the 5x line; the exit criterion is not met on
-`main` until the filter check stops costing a round trip per warm install
-(for example by honouring the cached lists' freshness, or overlapping the
-check with placement into the store).
+A rerun at `20d6251` (download notifications added) gave the same picture:
+1.208 s and 845 ms mean.
+
+With the filter check made cheap (see "What the filter costs" under Track B),
+`BENCH_SCRIPTS=1 tools/bench/bench.sh laravel-skeleton composer phpm` plus a
+10-run warm rerun, filter on, no other agents running (load average about 2):
+
+| Tool | Cold (n=3) | Warm (n=5), mean | Warm (n=10), median | Warm (n=10), min | No-op |
+|---|---|---|---|---|---|
+| Composer | 21.4-130.8 s (GitHub throttled one run) | 4.482 s ± 0.193 | 4.773 s | 4.135 s | 2.011 s |
+| phpm | 15.47 s ± 0.36 | 818 ms ± 46 | 811 ms | 776 ms | 5.7 ms |
+
+Warm with scripts and the filter: **5.5x** on the 5-run mean, **5.9x** on the
+10-run median, 5.3x min to min. One of the ten phpm runs took 2.0 s, most likely where the
+lists had gone stale (600 s after the first check) and phpm asked Packagist
+again, which is the price once per ten minutes. Raw JSON:
+`bench/results/2026-10-01-filter-reuse/laravel-skeleton/`.
 
 ## Track B: platform, auth, repositories, policy
 
@@ -226,6 +238,32 @@ check with placement into the store).
   Advisories come from the `security-advisories` api-url in one POST in
   every format; Composer's summary format reads the same data from
   per-package metadata. The table format prints as plain.
+- What the filter costs. The check starts on its own thread at the start of
+  an install and runs while phpm reads the lock, checks the platform, runs
+  `pre-install-cmd` (Composer also runs it before the filter) and downloads
+  into the store. Nothing is removed from or placed into `vendor/` until the
+  verdict is in, so a blocked package never reaches `vendor/`; one that was
+  downloaded while the lists were being read is taken out of the store again.
+  A download error waits for the verdict first, so a blocked package still
+  reports as blocked.
+- Freshness. After a check, phpm records per repository which locked
+  `name version` pairs had no entry at all on the checked lists, until the
+  earlier of the summary's `Cache-Control: max-age` (900 s on Packagist) and
+  the root file's 600 s. An install whose packages are all in a fresh record
+  asks nothing; anything new, any package with an entry (even an ignored
+  one), a changed list set, an `api-url` repository or a summary without
+  `max-age` goes to the network as before. Composer revalidates the summary
+  with `If-Modified-Since` on every install, so the one difference is this:
+  a package added to the list in the last 600 s at most, after phpm checked
+  the same version clean, is still placed by phpm and refused by Composer.
+  That is the freshness Packagist itself declares for the file (decision
+  0006), and the same window the no-op path already used. Per-package
+  lookups are only made for summary candidates (none on the Laravel
+  skeleton), so skipping them when the summary is unchanged would save
+  nothing measurable and is not done.
+- Measured on the Laravel skeleton, `--no-scripts`: the check took 350-620 ms
+  per warm install before (one TLS connection to the CDN in Singapore, about
+  120 ms RTT from India, three round trips), and 2 ms within freshness.
 - The no-op state expires with the repository's cache headers (600 s root
   file, `max-age` of the summary), so a no-op revalidates the filter list at
   most that often.

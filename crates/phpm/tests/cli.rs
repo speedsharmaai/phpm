@@ -72,8 +72,13 @@ impl Server {
                     Some(body) => ("200 OK", body.clone()),
                     None => ("404 Not Found", Vec::new()),
                 };
+                let fresh = if path.contains("fresh") {
+                    "Cache-Control: public, max-age=900\r\n"
+                } else {
+                    ""
+                };
                 let mut out = format!(
-                    "HTTP/1.1 {status}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                    "HTTP/1.1 {status}\r\n{fresh}Content-Length: {}\r\nConnection: close\r\n\r\n",
                     body.len()
                 )
                 .into_bytes();
@@ -892,7 +897,13 @@ fn the_malware_filter_blocks_a_flagged_locked_package() {
         "{err}"
     );
     assert!(!p.root.join("vendor").exists());
-    assert_eq!(hits(&p, "/a/lib.zip"), 0);
+    assert!(
+        !p.cache
+            .join("pkgs/v1/a~lib")
+            .read_dir()
+            .is_ok_and(|mut d| d.next().is_some()),
+        "a refused package fetched while the lists were checked leaves the store"
+    );
     assert_eq!(hits(&p, "/lists/summary.json"), 1);
     assert_eq!(hits(&p, "/p2/a/lib.json"), 1);
     assert_eq!(hits(&p, "/p2/b/tool.json"), 0);
@@ -908,6 +919,60 @@ fn the_malware_filter_blocks_a_flagged_locked_package() {
     ok(&p.phpm(&["install", "--no-blocking"]));
     std::fs::remove_dir_all(p.root.join("vendor")).unwrap();
     ok(&p.phpm_env(&["install"], &[("COMPOSER_POLICY_MALWARE_BLOCK", "0")]));
+}
+
+#[test]
+fn a_fresh_clean_verdict_is_reused_until_the_lists_go_stale() {
+    let mut files = malware_repo();
+    files.insert(
+        "/packages.json".to_owned(),
+        json!({
+            "metadata-url": "/p2/%package%.json",
+            "filter": {"metadata": true, "lists": {"malware": {"enabled": true}}, "summary-url": "/lists/fresh.json"},
+        })
+        .to_string()
+        .into_bytes(),
+    );
+    files.insert(
+        "/lists/fresh.json".to_owned(),
+        json!({"filter": {"malware": {"z/other": "*", "b/tool": ">=2"}}})
+            .to_string()
+            .into_bytes(),
+    );
+    let p = with_repo(files, &json!({}));
+    ok(&p.phpm(&["install"]));
+    assert_eq!(hits(&p, "/lists/fresh.json"), 1);
+    std::fs::remove_dir_all(p.root.join("vendor")).unwrap();
+    let again = ok(&p.phpm(&["install", "-vv"]));
+    assert!(again.contains("Installed"), "{again}");
+    assert_eq!(
+        hits(&p, "/lists/fresh.json"),
+        1,
+        "the same packages, checked clean within the summary's max-age"
+    );
+    ok(&p.phpm(&["install", "--no-dev"]));
+    assert_eq!(hits(&p, "/lists/fresh.json"), 1, "a subset is covered too");
+
+    let mut lock: Value =
+        serde_json::from_slice(&std::fs::read(p.root.join("composer.lock")).unwrap()).unwrap();
+    lock["packages"][0]["version"] = json!("1.0.1");
+    std::fs::write(p.root.join("composer.lock"), lock.to_string()).unwrap();
+    ok(&p.phpm(&["install"]));
+    assert_eq!(
+        hits(&p, "/lists/fresh.json"),
+        2,
+        "a version never checked asks the lists again"
+    );
+}
+
+#[test]
+fn flagged_packages_are_checked_on_every_install() {
+    let p = with_repo(malware_repo(), &json!({"malware": {"ignore": ["a/lib"]}}));
+    ok(&p.phpm(&["install"]));
+    std::fs::remove_dir_all(p.root.join("vendor")).unwrap();
+    ok(&p.phpm(&["install"]));
+    assert_eq!(hits(&p, "/lists/summary.json"), 2);
+    assert_eq!(hits(&p, "/p2/a/lib.json"), 2);
 }
 
 #[test]
