@@ -1,5 +1,5 @@
 [files]
-extend-exclude = ["fixtures/", "**/snapshots/", "*.snap", "Cargo.lock", "crates/*/tests/golden/", "crates/*/tests/data/", "crates/*/composer/*.php"]
+extend-exclude = ["fixtures/", "**/snapshots/", "*.snap", "Cargo.lock", "crates/*/tests/golden/", "crates/*/tests/data/", "crates/*/composer/*.php", "crates/*/vendor/*/*"]
 
 [default.extend-words]
 psr = "psr"

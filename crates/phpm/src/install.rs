@@ -1066,6 +1066,7 @@ fn install(
             .cmp(&text(b, "name").unwrap_or_default())
     });
     let at = adapters::Installed {
+        root: &root_dir,
         vendor: &vendor,
         composer: &composer,
         packages: &local_repo,
