@@ -17,6 +17,24 @@ not bound by the network.
 > Composer for the steps that need them (`--explain` says which). There is no
 > release or installer yet, so it builds from source only.
 
+## Now
+
+*Updated 2026-10-01.* Phases 03 and 04 run in parallel.
+
+- **Phase 03, compatibility sweep (in progress).** 330 open-source PHP
+  projects pinned from GitHub search. Every night CI installs each one with
+  Composer and with phpm and compares the trees byte for byte. First full run
+  ([results page](https://speedsharmaai.github.io/phpm/)): **269 of 312
+  installable projects identical (86.2%)** with scripts and plugins off, 199
+  of 280 (71.1%) with them on. The gate is 95%. The sweep has already found
+  and fixed four bugs (dist URL placeholders, a repository named `packagist`,
+  plugins Composer cannot load, and Composer's own run-to-run differences
+  being counted against phpm); the next run includes those fixes.
+- **Phase 04, plugin adapters (started).** Native support for
+  composer/installers (WordPress, Drupal paths), Drupal scaffold,
+  symfony/runtime, phpstan's extension installer and the PHPCS installer, so
+  Bedrock and Drupal install without falling back to Composer.
+
 ## Numbers
 
 Laravel skeleton, 109 packages, M1 Pro, APFS, Composer 2.10.3, hyperfine,
@@ -66,8 +84,8 @@ cd /path/to/your/php/project
 | 00 | Quality foundation: lints, hooks, CI on 3 OSes, coverage, CodeQL, Scorecard, Sonar | done |
 | 01 | Spike: `phpm install`, byte-identical, benchmarked, gate | **passed** |
 | 02 | Parity core: platform checks, auth, scripts, malware filter, Composer fallback, faster cold fetch | **done** |
-| 03 | Compatibility sweep: nightly diff against Composer across hundreds of lockfiles | |
-| 04 | Plugin adapters: composer/installers, symfony/runtime, phpstan installer | |
+| 03 | Compatibility sweep: nightly diff against Composer across 330 projects | in progress: 86.2% identical, gate 95% |
+| 04 | Plugin adapters: composer/installers, Drupal scaffold, symfony/runtime, phpstan installer | in progress |
 | 05 | Real-world benchmarks: Composer vs phpm on the largest open-source PHP apps | |
 | 06 | Launch: release, Homebrew, setup-php, Docker, GitHub Action | |
 | 07 | Resolver: `update` and `require` | |
