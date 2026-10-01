@@ -447,3 +447,88 @@ fn walk(dir: &std::path::Path) -> Vec<PathBuf> {
     }
     out
 }
+
+/// A `php` that answers the platform probe with PHP 8.4 and only mbstring.
+#[cfg(unix)]
+fn fake_php(dir: &std::path::Path) -> String {
+    use std::os::unix::fs::PermissionsExt;
+    std::fs::create_dir_all(dir).unwrap();
+    let php = dir.join("php");
+    let probe = json!({
+        "version": "8.4.13", "debug": false, "zts": false, "int_size": 8, "ipv6": true,
+        "extensions": [["mbstring", "8.4.13"]], "libraries": [], "ini": [""],
+    });
+    std::fs::write(
+        &php,
+        format!("#!/bin/sh\ncat >/dev/null\nprintf '%s' '{probe}'\n"),
+    )
+    .unwrap();
+    std::fs::set_permissions(&php, std::fs::Permissions::from_mode(0o755)).unwrap();
+    dir.to_string_lossy().into_owned()
+}
+
+#[test]
+#[cfg(unix)]
+fn refuses_a_lock_the_platform_cannot_install() {
+    let p = Project::with(|_, lock| {
+        lock["packages"][0]["require"] =
+            json!({"php": ">=8.1", "ext-mbstring": "*", "ext-nope": "^1"});
+    });
+    let path = fake_php(&p.home.join("bin"));
+    let out = p.phpm_env(&["install"], &[("PATH", &path)]);
+    assert_eq!(out.status.code(), Some(2), "{}", stderr(&out));
+    let err = stderr(&out);
+    assert!(
+        err.contains("Your lock file does not contain a compatible set of packages"),
+        "{err}"
+    );
+    assert!(err.contains("a/lib 1.0.0 requires ext-nope ^1 -> it is missing from your system. Install or enable PHP's nope extension."), "{err}");
+    assert!(!p.root.join("vendor").exists());
+    assert_eq!(p.server.total_hits(), 0);
+
+    let out = p.phpm_env(
+        &["install", "--ignore-platform-req=ext-*"],
+        &[("PATH", &path)],
+    );
+    ok(&out);
+    let again = ok(&p.phpm_env(
+        &["install", "--ignore-platform-req=ext-*", "-v"],
+        &[("PATH", &path)],
+    ));
+    assert!(again.contains("vendor/ matches"), "{again}");
+    std::fs::OpenOptions::new()
+        .append(true)
+        .open(p.home.join("bin/php"))
+        .unwrap()
+        .write_all(b"\n")
+        .unwrap();
+    let changed = ok(&p.phpm_env(
+        &["install", "--ignore-platform-req=ext-*", "-v"],
+        &[("PATH", &path)],
+    ));
+    assert!(
+        changed.contains("platform requirements met by"),
+        "{changed}"
+    );
+}
+
+#[test]
+#[cfg(unix)]
+fn platform_checks_need_php_unless_ignored() {
+    let p = Project::with(|_, lock| {
+        lock["platform"] = json!({"php": ">=8.1"});
+    });
+    let empty = p.home.join("empty");
+    std::fs::create_dir_all(&empty).unwrap();
+    let out = p.phpm_env(&["install"], &[("PATH", empty.to_str().unwrap())]);
+    assert_eq!(out.status.code(), Some(1));
+    assert!(
+        stderr(&out).contains("php is not on PATH"),
+        "{}",
+        stderr(&out)
+    );
+    ok(&p.phpm_env(
+        &["install", "--ignore-platform-reqs"],
+        &[("PATH", empty.to_str().unwrap())],
+    ));
+}

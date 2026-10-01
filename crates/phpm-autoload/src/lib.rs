@@ -4,7 +4,6 @@
 
 mod autoloads;
 mod classmap;
-mod constraint;
 mod package;
 mod paths;
 mod platform;
