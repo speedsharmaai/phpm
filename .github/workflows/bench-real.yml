@@ -424,6 +424,15 @@ jobs:
     permissions:
       pages: write
       id-token: write
+    # Shared with sweep.yml's own deploy job: the github-pages environment
+    # itself serialises deployments, and GitHub silently skips one deploy
+    # job in favour of the other when both race it without a shared
+    # concurrency group (seen in practice: speedsharmaai/phpm#85's
+    # validation run deployed nothing because a sweep.yml deploy landed
+    # minutes earlier). actions/deploy-pages's own docs recommend this.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
