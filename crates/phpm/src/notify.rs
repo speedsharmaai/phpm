@@ -5,9 +5,12 @@
 //! Composer: Installer/InstallationManager.php notifyInstalls, markForNotification.
 
 use std::fmt::Write as _;
+use std::io::{Read, Write};
+use std::path::Path;
+use std::process::{Command, Stdio};
 
-use phpm_store::Fetcher;
-use serde_json::{Map, Value};
+use phpm_store::{Auth, FetchOptions, Fetcher};
+use serde_json::{Map, Value, json};
 
 /// One installed package with a `notification-url`.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -106,6 +109,117 @@ pub(crate) fn batches(downloads: &[Download]) -> Vec<(String, Vec<u8>)> {
         .collect()
 }
 
+/// `(url, body)` POSTs.
+type Posts = Vec<(String, Vec<u8>)>;
+
+/// What a detached sender reads on stdin.
+#[derive(Debug)]
+struct Payload {
+    root: String,
+    config: Option<Map<String, Value>>,
+    posts: Posts,
+}
+
+/// The hidden subcommand a detached sender runs as.
+pub(crate) const SUBCOMMAND: &str = "__notify";
+
+/// What a detached sender needs: the project (for auth) and the POSTs.
+fn payload(
+    root: &Path,
+    config: Option<&Map<String, Value>>,
+    batches: &[(String, Vec<u8>)],
+) -> Vec<u8> {
+    let posts: Vec<Value> = batches
+        .iter()
+        .map(|(url, body)| json!({"url": url, "body": String::from_utf8_lossy(body)}))
+        .collect();
+    json!({"root": root.to_string_lossy(), "config": config, "posts": posts})
+        .to_string()
+        .into_bytes()
+}
+
+fn parse_payload(bytes: &[u8]) -> Option<Payload> {
+    let doc: Value = serde_json::from_slice(bytes).ok()?;
+    let root = doc.get("root")?.as_str()?.to_owned();
+    let config = doc.get("config").and_then(Value::as_object).cloned();
+    let posts = doc
+        .get("posts")?
+        .as_array()?
+        .iter()
+        .filter_map(|p| {
+            Some((
+                p.get("url")?.as_str()?.to_owned(),
+                p.get("body")?.as_str()?.as_bytes().to_vec(),
+            ))
+        })
+        .collect();
+    Some(Payload {
+        root,
+        config,
+        posts,
+    })
+}
+
+/// Hand the POSTs to a copy of phpm that sends them after this process has
+/// exited, so an install never waits on Packagist's notification endpoint.
+/// `false` when no such process could be started.
+pub(crate) fn detach(
+    root: &Path,
+    config: Option<&Map<String, Value>>,
+    batches: &[(String, Vec<u8>)],
+) -> bool {
+    let Ok(exe) = std::env::current_exe() else {
+        return false;
+    };
+    let Ok(mut child) = Command::new(exe)
+        .arg(SUBCOMMAND)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+    else {
+        return false;
+    };
+    let written = child
+        .stdin
+        .take()
+        .is_some_and(|mut stdin| stdin.write_all(&payload(root, config, batches)).is_ok());
+    if !written {
+        let _ = child.kill();
+        let _ = child.wait();
+    }
+    written
+}
+
+/// The detached sender: read the payload on stdin and send it.
+pub(crate) fn run_detached(mut input: impl Read) {
+    let mut bytes = Vec::new();
+    if input.read_to_end(&mut bytes).is_err() {
+        return;
+    }
+    if let Some(p) = parse_payload(&bytes) {
+        send_blocking(Path::new(&p.root), p.config.as_ref(), p.posts);
+    }
+}
+
+/// Send the POSTs on a runtime of their own; failures are ignored.
+pub(crate) fn send_blocking(root: &Path, config: Option<&Map<String, Value>>, posts: Posts) {
+    let Ok(auth) = Auth::load(Some(root), config) else {
+        return;
+    };
+    let fetcher = Fetcher::new(FetchOptions {
+        auth,
+        retries: 0,
+        ..FetchOptions::default()
+    });
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build();
+    if let (Ok(fetcher), Ok(runtime)) = (fetcher, runtime) {
+        runtime.block_on(send(&fetcher, posts));
+    }
+}
+
 /// Send every batch; failures are ignored, as Composer ignores them.
 pub(crate) async fn send(fetcher: &Fetcher, batches: Vec<(String, Vec<u8>)>) {
     for (url, body) in batches {
@@ -148,6 +262,22 @@ mod tests {
             String::from_utf8(out[1].1.clone()).unwrap(),
             r#"{"downloads":[{"name":"a\/b","version":"1.2.0.0"}]}"#
         );
+    }
+
+    #[test]
+    fn round_trips_the_detached_payload() {
+        let config = json!({"notify-on-install": true});
+        let posts = vec![(
+            "https://p.test/downloads/".to_owned(),
+            br#"{"downloads":[]}"#.to_vec(),
+        )];
+        let bytes = super::payload(std::path::Path::new("/app"), config.as_object(), &posts);
+        let got = super::parse_payload(&bytes).unwrap();
+        assert_eq!(got.root, "/app");
+        assert_eq!(got.config.as_ref(), config.as_object());
+        assert_eq!(got.posts, posts);
+        assert!(super::parse_payload(b"{}").is_none());
+        super::run_detached(&b"not json"[..]);
     }
 
     #[test]
