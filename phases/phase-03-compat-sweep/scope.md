@@ -1,6 +1,6 @@
 # Phase 03: Compatibility sweep
 
-Outline. Tasked only after Phase 02 ships.
+Tasks: [tasks.md](tasks.md). Starts when Phase 02 closes.
 
 ## Why
 
