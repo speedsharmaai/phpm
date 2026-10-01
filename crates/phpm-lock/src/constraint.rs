@@ -499,19 +499,46 @@ fn manipulate(parts: [&str; 4], position: usize, increment: i64) -> Option<Strin
         if i > position {
             "0".clone_into(&mut out[i - 1]);
         } else if i == position && increment != 0 {
-            let value = php_intval(&out[i - 1]) + increment;
-            if value < 0 {
-                "0".clone_into(&mut out[i - 1]);
-                position -= 1;
-                if i == 1 {
-                    return None;
+            match php_add(&out[i - 1], increment) {
+                Ok(value) if value < 0 => {
+                    "0".clone_into(&mut out[i - 1]);
+                    position -= 1;
+                    if i == 1 {
+                        return None;
+                    }
                 }
-            } else {
-                out[i - 1] = value.to_string();
+                Ok(value) => out[i - 1] = value.to_string(),
+                Err(float) => out[i - 1] = float,
             }
         }
     }
     Some(out.join("."))
+}
+
+/// `$s += $increment` on a numeric string: an int, or past `PHP_INT_MAX` a
+/// float, printed as PHP prints one (`precision` 14, e.g. `9.2233720368548E+18`).
+fn php_add(s: &str, increment: i64) -> Result<i64, String> {
+    let digits = s.bytes().take_while(u8::is_ascii_digit).count();
+    if digits == 0 || digits < s.len() {
+        return Ok(php_intval(s).saturating_add(increment));
+    }
+    if let Some(sum) = s.parse::<i64>().ok().and_then(|n| n.checked_add(increment)) {
+        return Ok(sum);
+    }
+    #[expect(clippy::cast_precision_loss, reason = "PHP adds as a float here too")]
+    let sum = s.parse::<f64>().unwrap_or(f64::MAX) + increment as f64;
+    Err(php_float(sum))
+}
+
+/// PHP's float to string with `precision` 14, for values of 1e15 and up.
+fn php_float(f: f64) -> String {
+    let text = format!("{f:.13e}");
+    let (mantissa, exp) = text.split_once('e').unwrap_or((&text, "0"));
+    let mantissa = mantissa.trim_end_matches('0').trim_end_matches('.');
+    match exp.strip_prefix('-') {
+        Some(e) => format!("{mantissa}E-{e}"),
+        None => format!("{mantissa}E+{exp}"),
+    }
 }
 
 fn php_intval(s: &str) -> i64 {
@@ -841,6 +868,45 @@ mod tests {
             }
         }
         assert!(checked > 2500, "{checked}");
+    }
+
+    #[test]
+    fn huge_numbers_overflow_to_floats_like_php() {
+        // composer/semver 3.4.4 on PHP 8.4 prints these bounds.
+        let cases = [
+            (
+                format!("~{}", "4".repeat(118)),
+                "4.4444444444444E+117.0.0.0-dev",
+            ),
+            (
+                "~9223372036854775807".to_owned(),
+                "9.2233720368548E+18.0.0.0-dev",
+            ),
+            (
+                "~9223372036854775806.1".to_owned(),
+                "9223372036854775807.0.0.0-dev",
+            ),
+            (
+                "^9223372036854775807".to_owned(),
+                "9.2233720368548E+18.0.0.0-dev",
+            ),
+            (
+                "9223372036854775807.*".to_owned(),
+                "9.2233720368548E+18.0.0.0-dev",
+            ),
+        ];
+        for (constraint, upper) in cases {
+            let (_, high) = parse(&constraint).unwrap().bounds();
+            assert_eq!(
+                high.map(|b| b.version).as_deref(),
+                Some(upper),
+                "{constraint}"
+            );
+        }
+        assert_eq!(super::php_add("7", 1), Ok(8));
+        assert_eq!(super::php_add("", 1), Ok(1));
+        assert_eq!(super::php_float(1.5e300), "1.5E+300");
+        assert_eq!(super::php_float(1e-20), "1E-20");
     }
 
     #[test]

@@ -1,0 +1,53 @@
+name: fuzz
+
+on:
+  schedule:
+    - cron: "23 2 * * 1"
+  workflow_dispatch:
+    inputs:
+      seconds:
+        description: Seconds to run each target
+        default: "300"
+        required: true
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fuzz:
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [lockfile, version, classes, zip]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      TARGET: ${{ matrix.target }}
+      SECONDS_PER_TARGET: ${{ inputs.seconds || '300' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: rustup toolchain install nightly --profile minimal
+      - uses: taiki-e/install-action@83ac0ad63c0167e6f06796fab0fce28db1bf3db0 # v2.87.22
+        with:
+          tool: cargo-fuzz@0.13.2
+      - name: Seed the corpus
+        run: |
+          mkdir -p "fuzz/corpus/$TARGET"
+          case "$TARGET" in
+            lockfile) cp fixtures/*/fixture.json fixtures/*/fixture.lock "fuzz/corpus/$TARGET/" 2>/dev/null || true ;;
+            version) for v in 1.0.0 v2.3.4-beta.1 dev-main 1.x-dev "^8.1" ">=7.4 <8.0 || ^8.1"; do printf '%s' "$v" > "fuzz/corpus/$TARGET/$(printf '%s' "$v" | sha1sum | cut -c1-12)"; done ;;
+          esac
+      - name: Fuzz
+        run: cargo +nightly fuzz run "$TARGET" "fuzz/corpus/$TARGET" -- -max_total_time="$SECONDS_PER_TARGET"
+      - if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fuzz-crash-${{ matrix.target }}
+          path: fuzz/artifacts/${{ matrix.target }}
+          retention-days: 30
