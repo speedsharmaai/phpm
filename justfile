@@ -57,7 +57,11 @@ e2e:
 e2e-apps:
     cargo nextest run -p phpm --locked --run-ignored only -E 'test(/^e2e_app_/)' --test-threads 1 --no-fail-fast
 
-ci: fmt-check lint docs test deny shear msrv typos md actions cov
+# shellcheck and jq checks for tools/sweep
+sweep-test:
+    tools/sweep/test.sh
+
+ci: fmt-check lint docs test deny shear msrv typos md actions sweep-test cov
 
 # warm placement time for a fixture; the first run fills the store
 place fixture="laravel-skeleton" *args="":

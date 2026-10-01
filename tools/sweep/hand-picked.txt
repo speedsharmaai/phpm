@@ -1,0 +1,33 @@
+# Projects the sweep always includes, whatever their stars.
+# repository [fixture]: a fixture name means the repository commits no lock,
+# so the sweep installs fixtures/<fixture> instead, inside that repository
+# at the commit pinned in fixtures/apps.txt. "-" as the repository means the
+# fixture is all there is (our own apps).
+laravel/laravel laravel-skeleton
+symfony/demo
+drupal/recommended-project
+roots/bedrock bedrock
+magento/magento2
+Sylius/Sylius-Standard
+nextcloud/server
+matomo-org/matomo
+phpmyadmin/phpmyadmin
+monicahq/monica
+firefly-iii/firefly-iii
+BookStackApp/BookStack
+grokability/snipe-it
+kimai/kimai
+akaunting/akaunting
+invoiceninja/invoiceninja
+pixelfed/pixelfed
+koel/koel
+bagisto/bagisto
+flarum/flarum
+getgrav/grav
+statamic/statamic
+filamentphp/demo
+laravelio/laravel.io
+coollabsio/coolify
+cachethq/cachet
+- ytmate
+- wicketyaari

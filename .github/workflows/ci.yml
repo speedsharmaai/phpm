@@ -147,6 +147,7 @@ jobs:
       - uses: crate-ci/typos@00f422f3b19c57bc6338715ebfe3316d38768461 # v1.50.3
       - run: npx --yes markdownlint-cli2@0.23.3
       - run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+      - run: tools/sweep/test.sh
       - uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
         with:
           advanced-security: false

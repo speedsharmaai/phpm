@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+# Build sweep/corpus.json: the hand-picked projects, then the PHP repositories
+# on GitHub with a root composer.lock, most stars first. Pins are the default
+# branch's head at the time of the run; lockfiles are never stored.
+#
+#   tools/sweep/build-corpus [out]
+#
+# SWEEP_TARGET: projects to keep (default 330). SWEEP_TAKEN: the date to
+# record (default today, UTC). Needs gh (authenticated) and jq.
+set -euo pipefail
+
+here="$(cd "$(dirname "$0")" && pwd)"
+root="$(cd "$here/../.." && pwd)"
+# shellcheck source=tools/sweep/lib.sh
+. "$here/lib.sh"
+
+out="${1:-$root/sweep/corpus.json}"
+target="${SWEEP_TARGET:-330}"
+taken="${SWEEP_TAKEN:-$(date -u +%F)}"
+work="$(mktemp -d)"
+trap 'rm -rf "$work"' EXIT
+
+# Star bands, each under GitHub's 1,000-result search cap.
+bands=(">=10000" "5000..9999" "3000..4999" "2000..2999" "1500..1999" "1200..1499"
+  "1000..1199" "850..999" "700..849" "600..699" "500..599" "420..499" "350..419")
+
+# GitHub's GraphQL endpoint drops the odd large search; try again politely.
+graphql() {
+  local try
+  for try in 1 2 3 4; do
+    if gh api graphql "$@" >"$work/graphql.json"; then
+      cat "$work/graphql.json"
+      return 0
+    fi
+    sleep $((try * 10))
+  done
+  return 1
+}
+
+app_commit() {
+  awk -v r="$1" '$2 == r { print $3 }' "$root/fixtures/apps.txt"
+}
+
+hand_picked() {
+  local query="query {" i=0 repo fixture owner name
+  : >"$work/picked-meta"
+  while read -r repo fixture; do
+    case "$repo" in '' | '#'*) continue ;; esac
+    if [ "$repo" = - ]; then
+      jq -n --arg f "$fixture" --arg taken "$taken" \
+        '{repo: null, commit: null, stars: null, taken: $taken, source: "hand-picked",
+          notes: "our own app; installs fixtures/\($f)", fixture: $f}' >>"$work/picked-local"
+      continue
+    fi
+    owner="${repo%%/*}"
+    name="${repo#*/}"
+    query+=" r$i: repository(owner: \"$owner\", name: \"$name\") { $REPO_FIELDS }"
+    printf '%s\t%s\t%s\n' "r$i" "$repo" "${fixture:-}" >>"$work/picked-meta"
+    i=$((i + 1))
+  done <"$here/hand-picked.txt"
+  query+=" }"
+  graphql -f query="$query" >"$work/picked.json"
+  while IFS=$'\t' read -r alias repo fixture; do
+    jq --arg repo "$repo" --arg fixture "$fixture" --arg pin "$(app_commit "$repo")" \
+      --arg source hand-picked --arg taken "$taken" \
+      ".data.$alias | $ENTRY_JQ" "$work/picked.json"
+  done <"$work/picked-meta"
+  [ -f "$work/picked-local" ] && cat "$work/picked-local"
+  return 0
+}
+
+search_band() {
+  local q="language:PHP stars:$1 archived:false fork:false sort:stars-desc" after=null page
+  while :; do
+    page="$work/page.json"
+    graphql -F after="$after" -f q="$q" -f query="
+      query(\$q: String!, \$after: String) {
+        search(query: \$q, type: REPOSITORY, first: 50, after: \$after) {
+          repositoryCount
+          pageInfo { hasNextPage endCursor }
+          nodes { ... on Repository { $REPO_FIELDS } }
+        }
+      }" >"$page"
+    jq -c --arg source "search: $q" --arg taken "$taken" --arg repo "" --arg fixture "" --arg pin "" \
+      ".data.search.nodes[] | $ENTRY_JQ" "$page"
+    [ "$(jq -r '.data.search.pageInfo.hasNextPage' "$page")" = true ] || break
+    after="$(jq -r '.data.search.pageInfo.endCursor' "$page")"
+    sleep 1
+  done
+}
+
+hand_picked | jq -s . >"$work/picked-all.json"
+: >"$work/found.jsonl"
+for band in "${bands[@]}"; do
+  echo "search stars:$band" >&2
+  search_band "$band" >>"$work/found.jsonl"
+  found="$(jq -s 'map(select(.dropped == null)) | length' "$work/found.jsonl")"
+  echo "  usable so far: $found" >&2
+  [ "$found" -ge "$target" ] && break
+done
+jq -s . "$work/found.jsonl" >"$work/found.json"
+
+jq -s --argjson target "$target" --arg taken "$taken" "$MERGE_JQ" \
+  "$work/picked-all.json" "$work/found.json" >"$out"
+jq -r '"\(.projects | length) projects, \(.projects | map(select(.stars >= 10000)) | length) over 10k stars, \(.dropped | length) hand-picked dropped"' "$out" >&2
