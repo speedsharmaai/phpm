@@ -1,0 +1,55 @@
+{
+  "taken": "2026-10-01",
+  "selection": "40 projects picked from sweep/corpus.json by stars, covering every group in phases/phase-05-real-world-benchmarks/scope.md; at least 10 over 10k stars. Entries reference {repo, commit} already pinned in sweep/corpus.json, or {fixture} for the three local fixtures (laravel-skeleton, bedrock, and our own ytmate/wicketyaari) that have no upstream repo. See excluded for named projects that were checked and left out.",
+  "projects": [
+    { "group": "frameworks-own-apps", "repo": "laravel/laravel", "commit": "06d016a364a37430eec9cbc52209adce3d7667ce", "stars": 85049, "fixture": "laravel-skeleton" },
+    { "group": "frameworks-own-apps", "repo": "symfony/demo", "commit": "8d2e2ef75c3e18df173d8bf2379a14abb58c4c31", "stars": 2620 },
+
+    { "group": "cms", "repo": "drupal/drupal", "commit": "d29add7ebc18954dcb88877ed38b5bd88cdbf967", "stars": 4289 },
+    { "group": "cms", "repo": "roots/bedrock", "commit": "b905a0a21a71e51524760e7839d7908e023ce618", "stars": 6575, "fixture": "bedrock" },
+    { "group": "cms", "repo": "getgrav/grav", "commit": "dfa4e32e713a017d335a291117c80d7113361078", "stars": 15672 },
+    { "group": "cms", "repo": "craftcms/cms", "commit": "b6045c27737b62586604637605bc3396d63180a8", "stars": 3610, "notes": "stands in for 'Craft CMS starter': the craftcms/craft project template has no committed root composer.lock" },
+    { "group": "cms", "repo": "joomla/joomla-cms", "commit": "076bbc0087f0ab478e2a3569ff10c1b4ca321e3b", "stars": 5144 },
+
+    { "group": "big-apps", "repo": "magento/magento2", "commit": "ddbeae880cb333c3ca7efb65a1212cf258dc6914", "stars": 12196 },
+    { "group": "big-apps", "repo": "nextcloud/server", "commit": "74bafed8ad63f45d3c00730440c6f456308efd23", "stars": 36965 },
+    { "group": "big-apps", "repo": "matomo-org/matomo", "commit": "521acf30acc963e99f60e417ad126bd0346c4ce2", "stars": 21916 },
+    { "group": "big-apps", "repo": "phpmyadmin/phpmyadmin", "commit": "34eb83949a4a615470aa21d46e07d87f90a7ffea", "stars": 7944 },
+    { "group": "big-apps", "repo": "monicahq/monica", "commit": "6e6ec217457e946e330ba7cd3b28107f4332c7b1", "stars": 25388 },
+    { "group": "big-apps", "repo": "firefly-iii/firefly-iii", "commit": "7879e01a0f6aab52e9b5ae00d04b3f7e4c912079", "stars": 24786 },
+    { "group": "big-apps", "repo": "BookStackApp/BookStack", "commit": "f585a7d9100a99cba8479c1ef5fd56e05562daea", "stars": 19066 },
+    { "group": "big-apps", "repo": "grokability/snipe-it", "commit": "5d7fe00370813649d6b535a43d3a47ec51adbab2", "stars": 14990 },
+    { "group": "big-apps", "repo": "akaunting/akaunting", "commit": "edde6b54f27ee0635b9a5dbde52117d441a18195", "stars": 10154 },
+    { "group": "big-apps", "repo": "invoiceninja/invoiceninja", "commit": "f1ffa5f9989afbed4e7dc80b5c0cc18944335ffc", "stars": 10181 },
+    { "group": "big-apps", "repo": "kimai/kimai", "commit": "8528bb174469f0dcc0c4efb5bd18971460d74c78", "stars": 5054 },
+    { "group": "big-apps", "repo": "pixelfed/pixelfed", "commit": "c7dc513189f63d1bd3154667b4f62af08bb05ddc", "stars": 7116 },
+    { "group": "big-apps", "repo": "koel/koel", "commit": "295d8c1b7986b4f4e2565a7b8eab929c37863457", "stars": 17267 },
+    { "group": "big-apps", "repo": "bagisto/bagisto", "commit": "17b8bbfc5cc81852c39144004d444a1cd9bd20fc", "stars": 28196 },
+    { "group": "big-apps", "repo": "appwrite/appwrite", "commit": "27d5e8c4e498c2cd9f62ea163749a5fd4f557c9d", "stars": 57528 },
+    { "group": "big-apps", "repo": "owncloud/core", "commit": "8db5941d837921b282c9b934ad2f87506aaf67b2", "stars": 8833, "notes": "paired with nextcloud/server: same lineage, same install shape" },
+    { "group": "big-apps", "repo": "PrestaShop/PrestaShop", "commit": "dec15c65a3f3a0c27cfd1dc221a7b89bff036fa2", "stars": 9225 },
+    { "group": "big-apps", "repo": "opencart/opencart", "commit": "178a5bb12ebb3bcc8a4d000b3211f8111ffa6bb8", "stars": 8204 },
+    { "group": "big-apps", "repo": "moodle/moodle", "commit": "85af0b5dc354bf03c73db60079c232f004e01433", "stars": 7452 },
+    { "group": "big-apps", "repo": "mautic/mautic", "commit": "9b35bfd3f73da17546d8314b10d281d2ce4a7683", "stars": 10642 },
+    { "group": "big-apps", "repo": "pterodactyl/panel", "commit": "113ea43d0d48f48d567c9d91e4a7d5b5bb8876e3", "stars": 9275 },
+    { "group": "big-apps", "repo": "SuiteCRM/SuiteCRM", "commit": "62effd0ceb767ed3b634ade585b19a6633eb4fcb", "stars": 5778 },
+    { "group": "big-apps", "repo": "humhub/humhub", "commit": "80b5cb881253da959e16396101f5837fa0e1823c", "stars": 6746 },
+    { "group": "big-apps", "repo": "glpi-project/glpi", "commit": "4c24c75f872987374a30b25ea2a6059bc5d1c505", "stars": 6414 },
+    { "group": "big-apps", "repo": "FreshRSS/FreshRSS", "commit": "1f6d7853b3b9b21b75b6c382a14822fb8a2602a9", "stars": 16194 },
+    { "group": "big-apps", "repo": "wallabag/wallabag", "commit": "a5be36bf74b6d77307bf923beb6cbc185c849d56", "stars": 12994 },
+
+    { "group": "laravel-ecosystem", "repo": "filamentphp/demo", "commit": "d5b618a1e7d50e5adf3d8faa192b08b55cc23514", "stars": 1217 },
+    { "group": "laravel-ecosystem", "repo": "laravelio/laravel.io", "commit": "24be48939aaf4ab3a3438926ac0c55474bfb9f25", "stars": 2501 },
+    { "group": "laravel-ecosystem", "repo": "coollabsio/coolify", "commit": "ec373d651c17f2b27d6cefc32fd1f633f8b4840b", "stars": 62455 },
+    { "group": "laravel-ecosystem", "repo": "cachethq/cachet", "commit": "28ff732b68fc3374868695ce00226a276de24539", "stars": 15252 },
+    { "group": "laravel-ecosystem", "repo": "crater-invoice-inc/crater", "commit": "05d5ce26fdd8d9466009163444e944259bc0cc2a", "stars": 8350 },
+
+    { "group": "own", "fixture": "ytmate", "stars": null, "notes": "our own app" },
+    { "group": "own", "fixture": "wicketyaari", "stars": null, "notes": "our own app" }
+  ],
+  "excluded": [
+    { "repo": "Sylius/Sylius-Standard", "reason": "no root composer.lock on the default branch (2.3); same finding as sweep/corpus.json's dropped list" },
+    { "repo": "flarum/flarum", "reason": "no root composer.lock on the default branch (2.x); Flarum apps are generated by composer create-project, not committed upstream" },
+    { "repo": "statamic/statamic", "reason": "no root composer.lock on the default branch (6.x); same for statamic/cms. Statamic sites are generated per-install, not committed upstream" }
+  ]
+}
