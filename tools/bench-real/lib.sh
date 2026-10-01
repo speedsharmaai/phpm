@@ -120,8 +120,17 @@ run_project() {
   local packages
   packages=$(jq '((.packages // []) | length) + ((."packages-dev" // []) | length)' "$work/src/composer.lock")
 
-  cp -R "$work/src" "$work/composer"
-  cp -R "$work/src" "$work/phpm"
+  # -L dereferences symlinks in the source tree: creating a real symlink
+  # needs elevated privileges on windows-latest, and the install only ever
+  # reads composer.json/composer.lock through these copies anyway.
+  if ! cp -RL "$work/src" "$work/composer" 2>"$work/copy.err" || ! cp -RL "$work/src" "$work/phpm" 2>>"$work/copy.err"; then
+    jq -nc --arg group "$group" --arg repo "${repo:-null}" --arg fixture "${fixture:-null}" \
+      --arg os "$os" --arg error "copying the source tree failed: $(tail -3 "$work/copy.err")" \
+      '{group: $group, repo: (if $repo == "null" then null else $repo end),
+        fixture: (if $fixture == "null" then null else $fixture end),
+        os: $os, identity: "install-failed", error: $error}'
+    return
+  fi
   mkdir -p "$work/home"
   export COMPOSER_CACHE_DIR="$work/cache/composer" PHPM_CACHE_DIR="$work/cache/phpm" XDG_CACHE_HOME="$work/cache/xdg"
 
