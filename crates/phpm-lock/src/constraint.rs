@@ -80,8 +80,14 @@ fn at(v: &[u8], i: usize) -> u8 {
     v.get(i).copied().unwrap_or(0)
 }
 
+/// What C sees of a string: everything before the first NUL.
+fn c_str(s: &[u8]) -> &[u8] {
+    s.iter().position(|&c| c == 0).map_or(s, |end| &s[..end])
+}
+
 // php-src: ext/standard/versioning.c php_version_compare
 fn php_version_compare(a: &[u8], b: &[u8]) -> i32 {
+    let (a, b) = (c_str(a), c_str(b));
     if a.is_empty() || b.is_empty() {
         return i32::from(!a.is_empty()) - i32::from(!b.is_empty());
     }
@@ -868,6 +874,16 @@ mod tests {
             }
         }
         assert!(checked > 2500, "{checked}");
+    }
+
+    #[test]
+    fn stops_at_a_nul_like_php() {
+        // PHP 8.4's version_compare on the fuzzer's input and its neighbours.
+        let nul = "dev-m+\0n> 3\0\0\0ev";
+        assert_eq!(version_compare(nul, nul), Ordering::Less);
+        assert_eq!(version_compare("1.0\x002", "1.0.1"), Ordering::Less);
+        assert_eq!(version_compare("1.0.1\0", "1.0.1"), Ordering::Equal);
+        assert_eq!(version_compare("\0", "1"), Ordering::Less);
     }
 
     #[test]
