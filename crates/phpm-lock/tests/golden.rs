@@ -31,6 +31,8 @@ fn check(fixture: &str, dev_mode: bool) {
         root_dir: "/project",
         dev_mode,
         install_paths: &phpm_lock::InstallPaths::new(),
+        installed_json_indent: None,
+        unchanged_installed: &std::collections::BTreeMap::default(),
     };
     let files = phpm_lock::installed_files(&ctx).expect("golden test setup");
 

@@ -18,4 +18,5 @@ pub use installed::{
 };
 pub use manifest::{ComposerJson, InstallPreferences, Lock, LockAlias};
 pub use paths::{find_shortest_path, find_shortest_path_with, normalize_path};
+pub use phpm_php::detect_indent;
 pub use root::{NO_VERSION_SET, RootVersion, root_version};

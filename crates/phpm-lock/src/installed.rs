@@ -6,8 +6,8 @@ use crate::root::RootVersion;
 use crate::version::DEFAULT_BRANCH_ALIAS;
 use indexmap::IndexMap;
 use phpm_php::{
-    PhpArray, PhpKey, PhpValue, dump_to_php_code, encode_pretty, is_absolute_path, smart_strcmp,
-    strnatcmp,
+    PhpArray, PhpKey, PhpValue, dump_to_php_code, encode_pretty_indented, is_absolute_path,
+    smart_strcmp, strnatcmp,
 };
 use regex::Regex;
 use serde_json::{Map, Value};
@@ -50,6 +50,18 @@ pub struct InstallContext<'a> {
     pub root_dir: &'a str,
     pub dev_mode: bool,
     pub install_paths: &'a InstallPaths,
+    /// The indent already on disk in `vendor/composer/installed.json`, if
+    /// any, detected the way `JsonFile::read` does; `None` for no previous
+    /// file, which Composer's own default (`JsonFile::INDENT_DEFAULT`, four
+    /// spaces) matches.
+    pub installed_json_indent: Option<&'a str>,
+    /// By package name, the `vendor/composer/installed.json` entry a
+    /// package already had, for a package nothing installs or updates this
+    /// run: Composer's `FilesystemRepository::write` dumps the Package
+    /// object the repository loaded, and an untouched one keeps whatever
+    /// that was rather than the locked data (`Transaction::calculateOperations`
+    /// never visits it to replace it).
+    pub unchanged_installed: &'a BTreeMap<String, Map<String, Value>>,
 }
 
 /// The two files Composer writes into `vendor/composer/` after an install.
@@ -203,7 +215,16 @@ pub fn installed_files(ctx: &InstallContext<'_>) -> Result<InstalledFiles, Error
     }
     let mut installed: Vec<Installed> = Vec::with_capacity(locked.len());
     for config in locked {
-        let package = Package::from_lock(config)?;
+        // A package no operation touched keeps whatever InstalledRepository
+        // loaded for it, not the locked data: write() dumps the Package
+        // object already in memory, and nothing replaced it there.
+        // Repository/FilesystemRepository.php write, InstalledRepository
+        let source = config
+            .get("name")
+            .and_then(Value::as_str)
+            .and_then(|name| ctx.unchanged_installed.get(name))
+            .unwrap_or(config);
+        let package = Package::from_lock(source)?;
         let install_path = if package.kind == "metapackage" {
             None
         } else if let Some(path) = ctx.install_paths.get(&package.name) {
@@ -227,7 +248,12 @@ pub fn installed_files(ctx: &InstallContext<'_>) -> Result<InstalledFiles, Error
         });
     }
 
-    let installed_json = installed_json(&installed, &dev_names, ctx.dev_mode);
+    let installed_json = installed_json(
+        &installed,
+        &dev_names,
+        ctx.dev_mode,
+        ctx.installed_json_indent.unwrap_or("    "),
+    );
     let installed_php = installed_php(ctx, &installed, &dev_names, &root_dir, &repo_dir);
     Ok(InstalledFiles {
         installed_json,
@@ -235,7 +261,12 @@ pub fn installed_files(ctx: &InstallContext<'_>) -> Result<InstalledFiles, Error
     })
 }
 
-fn installed_json(installed: &[Installed], dev_names: &BTreeSet<String>, dev_mode: bool) -> String {
+fn installed_json(
+    installed: &[Installed],
+    dev_names: &BTreeSet<String>,
+    dev_mode: bool,
+    indent: &str,
+) -> String {
     let mut packages: Vec<Map<String, Value>> = installed
         .iter()
         .map(|i| {
@@ -274,7 +305,7 @@ fn installed_json(installed: &[Installed], dev_names: &BTreeSet<String>, dev_mod
         "dev-package-names".into(),
         Value::Array(dev_package_names.into_iter().map(Value::String).collect()),
     );
-    let mut out = encode_pretty(&Value::Object(data));
+    let mut out = encode_pretty_indented(&Value::Object(data), indent);
     out.push('\n');
     out
 }
@@ -508,6 +539,7 @@ mod tests {
     use crate::manifest::{ComposerJson, Lock};
     use crate::root::RootVersion;
     use serde_json::json;
+    use std::collections::BTreeMap;
 
     fn run(
         composer: serde_json::Value,
@@ -524,6 +556,8 @@ mod tests {
             root_dir: "/p",
             dev_mode: dev,
             install_paths: &InstallPaths::new(),
+            installed_json_indent: None,
+            unchanged_installed: &BTreeMap::new(),
         };
         let files = installed_files(&ctx).unwrap();
         (files.installed_json, files.installed_php)
@@ -687,6 +721,8 @@ mod tests {
             root_dir: "/p",
             dev_mode: false,
             install_paths: &paths,
+            installed_json_indent: None,
+            unchanged_installed: &BTreeMap::new(),
         };
         let files = installed_files(&ctx).unwrap();
         assert!(
@@ -718,6 +754,8 @@ mod tests {
             root_dir: "/p",
             dev_mode: false,
             install_paths: &InstallPaths::new(),
+            installed_json_indent: None,
+            unchanged_installed: &BTreeMap::new(),
         };
         assert!(installed_files(&ctx).is_err());
     }

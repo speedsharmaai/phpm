@@ -23,6 +23,49 @@ pub fn encode_pretty_escaped(value: &Value) -> String {
     out
 }
 
+/// Like [`encode_pretty`], but indented with `indent` instead of four
+/// spaces, the way Composer's `JsonFile::write` re-indents its usual
+/// 4-space `json_encode` output to the indent it detected on read.
+// Composer: Json/JsonFile.php encode
+pub fn encode_pretty_indented(value: &Value, indent: &str) -> String {
+    let mut out = String::new();
+    write_value(&mut out, value, 0, false);
+    if indent == INDENT {
+        return out;
+    }
+    reindent(&out, indent)
+}
+
+/// The leading run of spaces or tabs just before a `"` that starts a line,
+/// the first time that happens; four spaces if it never does.
+// Composer: Json/JsonFile.php detectIndenting
+pub fn detect_indent(json: &str) -> String {
+    for line in json.split('\n') {
+        let rest = line.trim_start_matches([' ', '\t']);
+        let indent = &line[..line.len() - rest.len()];
+        if !indent.is_empty() && rest.starts_with('"') {
+            return indent.to_owned();
+        }
+    }
+    INDENT.to_owned()
+}
+
+/// Every run of 4 or more spaces at the start of a line, replaced with that
+/// many groups of `indent`.
+fn reindent(s: &str, indent: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for line in s.split_inclusive('\n') {
+        let spaces = line.bytes().take_while(|&b| b == b' ').count();
+        if spaces >= 4 {
+            out.extend(std::iter::repeat_n(indent, spaces / 4));
+            out.push_str(&line[spaces..]);
+        } else {
+            out.push_str(line);
+        }
+    }
+    out
+}
+
 fn write_value(out: &mut String, value: &Value, level: usize, escaped: bool) {
     match value {
         Value::Null => out.push_str("null"),
@@ -225,8 +268,34 @@ fn write_string(out: &mut String, s: &str, escaped: bool) {
 
 #[cfg(test)]
 mod tests {
-    use super::{encode_pretty, encode_pretty_escaped, format_float};
+    use super::{
+        detect_indent, encode_pretty, encode_pretty_escaped, encode_pretty_indented, format_float,
+    };
     use serde_json::{Value, json};
+
+    #[test]
+    fn detects_the_indent_composer_wrote_before() {
+        assert_eq!(detect_indent("{\n        \"a\": 1\n}"), "        ");
+        assert_eq!(detect_indent("{\n\t\"a\": 1\n}"), "\t");
+        assert_eq!(detect_indent("[\n    1\n]"), "    ");
+        assert_eq!(detect_indent("not json"), "    ");
+        assert_eq!(detect_indent(""), "    ");
+        assert_eq!(detect_indent("{}"), "    ");
+    }
+
+    #[test]
+    fn reindents_every_nesting_level() {
+        let v = parse(r#"{"a":[1,{"b":2}]}"#);
+        assert_eq!(encode_pretty_indented(&v, "    "), encode_pretty(&v));
+        assert_eq!(
+            encode_pretty_indented(&v, "        "),
+            "{\n        \"a\": [\n                1,\n                {\n                        \"b\": 2\n                }\n        ]\n}"
+        );
+        assert_eq!(
+            encode_pretty_indented(&v, "\t"),
+            "{\n\t\"a\": [\n\t\t1,\n\t\t{\n\t\t\t\"b\": 2\n\t\t}\n\t]\n}"
+        );
+    }
 
     fn parse(s: &str) -> Value {
         serde_json::from_str(s).unwrap()
