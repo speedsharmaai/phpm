@@ -112,13 +112,13 @@ fn check(fixture: &str, dev_mode: bool) {
             .expect("fixture");
 
     let work = tempfile::tempdir().expect("temp dir");
-    let root = work.path().canonicalize().expect("real path");
-    stand_in_vendor(&root, &lock, &golden);
-    let root_dir = root.to_string_lossy().replace('\\', "/");
+    let real = work.path().canonicalize().expect("real path");
+    let root_dir = real.to_string_lossy().replace('\\', "/");
     let root_dir = root_dir
         .strip_prefix("//?/")
         .unwrap_or(&root_dir)
         .to_owned();
+    stand_in_vendor(Path::new(&root_dir), &lock, &golden);
     let project = Project {
         composer_json: &composer,
         lock: &lock,
