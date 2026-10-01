@@ -2,19 +2,18 @@
 
 The one-screen view. Details live in [phases](phases/README.md).
 
-Current state: **Phase 00 done. Phase 01 spike: metadata, store and autoload
-merged, the install command in progress.**
+Current state: **Phase 01 gate passed (2026-10-01). Phase 02 next.**
 
 ## Next three things
 
-1. **Finish the install path.** `phpm install` with bin proxies and the
-   no-op fast path (milestone 5).
-2. **Run the gate.** `tools/bench/bench.sh` for Composer, phpm and vivacity on
-   every fixture, `diffvendor` on every `vendor/`, then write
-   `phases/phase-01-spike/gate.md` with the five numbers and the call.
-3. **Rename fixture lockfiles** so GitHub's dependency graph stops treating
-   them as dependencies (Dependabot opened six PRs against them; automated
-   security-fix PRs are paused until this lands).
+1. **Phase 02 tasks.** Write `phases/phase-02-parity-core/tasks.md` from the
+   scope plus what the gate found: Composer fallback for plugins and scripts,
+   platform checks, auth, malware filter and audit, faster cold fetch,
+   fuzzing.
+2. **Rename fixture lockfiles** so GitHub's dependency graph stops treating
+   them as dependencies; then turn automated security-fix PRs back on.
+3. **Market check (owner).** Ask r/PHP, r/laravel and ten developers whether
+   install time is a top-three pain. Decides whether Phase 06 has an audience.
 
 ## Owner actions
 
@@ -33,8 +32,8 @@ merged, the install command in progress.**
 - [x] Fetch, global store, extraction, clonefile placement, pruning (#17)
 - [x] Autoload files without class scanning (#18)
 - [x] Class scanning for `-o` and classmap autoloads; autoload files byte-identical on 5/5 fixtures, dev and `--no-dev` (#20)
-- [ ] `phpm install`, bin proxies, no-op fast path
-- [ ] **Gate: write `gate.md` with the table and the call**
+- [x] `phpm install`, bin proxies, no-op fast path, class scan cache (#22, #24)
+- [x] **Gate passed: [gate.md](phases/phase-01-spike/gate.md)**
 
 ## Phase 02 and beyond
 

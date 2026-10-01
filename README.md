@@ -11,50 +11,47 @@ your `composer.json` and `composer.lock` unchanged and writes the same
 `vendor/`, byte for byte, in a fraction of the time on every install that is
 not bound by the network.
 
-> **Status: pre-release, not usable yet.** phpm is in Phase 01, a two-week
-> spike that ends in a gate which can stop the project. There is no release,
-> no installer and no `phpm install` command you can run today. Everything
-> below is built in the open, and every number is reproducible from this repo.
+> **Status: pre-release.** phpm passed its Phase 01 gate on 2026-10-01 and is
+> in Phase 02. `phpm install` works on plugin-free lockfiles; there is no
+> release or installer yet, so it builds from source only. Plugins and
+> scripts are refused until Phase 02 adds the Composer fallback.
 
-## What works today
+## Numbers
 
-| Piece | State | Measured |
-|---|---|---|
-| `installed.json`, `installed.php`, `InstalledVersions.php` | done | byte-identical to Composer 2.10.3 on all 5 fixtures, dev and `--no-dev` |
-| Download, global store, extraction | done | file contents and modes identical to Composer's per package |
-| Placement into `vendor/` (clonefile per package on APFS) | done | **0.13 s** for Laravel's 109 packages, vs ~2.6 s Composer spends re-extracting |
-| Autoload files (`autoload_*.php`, `ClassLoader.php`, `platform_check.php`) | done | byte-identical on 5/5 fixtures, dev and `--no-dev`, with `-o` |
-| `phpm install` command, bin proxies, no-op fast path | in progress | |
-| Head-to-head benchmark and the Phase 01 gate | next | |
-
-Measured on an M1 Pro (APFS), Composer 2.10.3, PHP 8.4, fixture
-`laravel-skeleton` (109 packages).
-
-## Where it stands against the field
-
-Other tools had the same idea this year. Measured on the same machine and
-fixture, before phpm has an install command of its own
-([details](phases/phase-01-spike/competitors.md)):
+Laravel skeleton, 109 packages, M1 Pro, APFS, Composer 2.10.3, hyperfine
+([raw results](bench/results/), [the gate](phases/phase-01-spike/gate.md)):
 
 | Tool | Warm install | No-op | `vendor/` vs Composer |
 |---|---|---|---|
-| Composer 2.10.3 | 4.28 s | 1.53 s | reference |
-| riff 0.0.7 | 2.46 s | 1.37 s | 4 files differ |
-| viv (vivace) 0.20.0 | 2.70 s | 9.3 ms | every file mode differs |
-| vivacity 0.19.1 | 0.76 s | 368 ms | identical |
-| **phpm target** | **≤ 0.40 s** | **≤ 10 ms** | **identical** |
+| Composer 2.10.3 | 4.135 s | 1.509 s | reference |
+| riff 0.0.7 | 2.192 s | 1.293 s | 4 files differ |
+| viv 0.20.0 | 2.071 s | 9.2 ms | every file mode differs |
+| vivacity 0.19.1 | 582 ms | 407 ms | identical |
+| **phpm** | **229 ms** | **4.9 ms** | **identical** |
 
-If phpm does not beat the best of these on warm installs and no-op while
-staying byte-identical, the plan says stop and contribute to the leader
-instead ([decision 0007](docs/decisions/0007-crowded-field-contribute-if-behind.md)).
+On Linux (GitHub `ubuntu-latest`, ext4) phpm is 14x faster than Composer warm
+and 633x on a no-op. Cold installs are network-bound: phpm is 1.1-2.4x faster
+than Composer there, and not yet ahead of riff on macOS.
+
+`vendor/` is byte-identical to Composer's, bytes and file modes, on all five
+fixtures (Laravel, Symfony demo, Monica, and two production apps), including
+the optimised class map.
+
+## Try it from source
+
+```sh
+cargo build --release -p phpm
+cd /path/to/your/php/project
+/path/to/phpm/target/release/phpm install --no-scripts --no-plugins
+```
 
 ## Roadmap
 
 | Phase | What | State |
 |---|---|---|
 | 00 | Quality foundation: lints, hooks, CI on 3 OSes, coverage, CodeQL, Scorecard, Sonar | done |
-| 01 | Spike: `phpm install` on plugin-free lockfiles, byte-identical, gate | in progress |
-| 02 | Parity core: platform checks, auth, scripts, malware filter, Composer fallback | |
+| 01 | Spike: `phpm install`, byte-identical, benchmarked, gate | **passed** |
+| 02 | Parity core: platform checks, auth, scripts, malware filter, Composer fallback, faster cold fetch | in progress |
 | 03 | Compatibility sweep: nightly diff against Composer across hundreds of lockfiles | |
 | 04 | Plugin adapters: composer/installers, symfony/runtime, phpstan installer | |
 | 05 | Real-world benchmarks: Composer vs phpm on the largest open-source PHP apps | |
@@ -76,6 +73,7 @@ crates/
   phpm-diffvendor compare two vendor/ trees byte for byte, modes included
   phpm-testkit    test helpers
 fixtures/         pinned lockfiles the gate is measured on
+bench/results/    hyperfine JSON behind every published number
 tools/bench/      hyperfine harness: Composer vs phpm vs other installers
 ```
 
