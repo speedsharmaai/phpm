@@ -74,7 +74,7 @@ async fn vendor_matches_composer_on_wicketyaari() {
     let packages = locked_packages(&src.join("fixture.lock"));
     let store = Store::new(&tmp.join("cache"));
     let fetcher = Fetcher::new(FetchOptions {
-        auth: Auth::load(None).unwrap(),
+        auth: Auth::load(None, None).unwrap(),
         ..FetchOptions::default()
     })
     .unwrap();

@@ -1,12 +1,13 @@
 //! Dist downloads: bounded per host class, retried, verified, buffered in memory.
 
+use std::collections::BTreeMap;
 use std::sync::{Arc, Once};
 use std::time::Duration;
 
 use reqwest::{StatusCode, Url};
-use tokio::sync::Semaphore;
+use tokio::sync::{Mutex, Semaphore};
 
-use crate::auth::{Auth, Credential};
+use crate::auth::{Auth, Credential, sanitize, split_inline_credentials};
 use crate::error::{Error, Result};
 use crate::store::hex_sha1;
 
@@ -19,6 +20,7 @@ pub const USER_AGENT: &str = concat!(
 
 const PACKAGIST_HOSTS: [&str; 2] = ["repo.packagist.org", "packagist.org"];
 const GITHUB_HOSTS: [&str; 3] = ["api.github.com", "codeload.github.com", "github.com"];
+const MAX_REDIRECTS: usize = 10;
 
 /// Knobs for [`Fetcher`]. The defaults are the published limits.
 #[derive(Debug, Clone)]
@@ -56,6 +58,7 @@ pub struct Fetcher {
     packagist: Arc<Semaphore>,
     github: Arc<Semaphore>,
     other: Arc<Semaphore>,
+    bitbucket_tokens: Arc<Mutex<BTreeMap<String, String>>>,
     options: Arc<FetchOptions>,
 }
 
@@ -75,6 +78,7 @@ impl Fetcher {
             .connect_timeout(Duration::from_secs(30))
             .read_timeout(Duration::from_secs(60))
             .pool_max_idle_per_host(options.github_concurrency)
+            .redirect(reqwest::redirect::Policy::none())
             .build()
             .map_err(|e| Error::Download {
                 url: String::new(),
@@ -85,14 +89,21 @@ impl Fetcher {
             packagist: Arc::new(Semaphore::new(options.packagist_concurrency.max(1))),
             github: Arc::new(Semaphore::new(options.github_concurrency.max(1))),
             other: Arc::new(Semaphore::new(options.other_concurrency.max(1))),
+            bitbucket_tokens: Arc::new(Mutex::new(BTreeMap::new())),
             options: Arc::new(options),
         })
     }
 
+    /// The auth this fetcher applies.
+    pub fn auth(&self) -> &Auth {
+        &self.options.auth
+    }
+
     /// Download `url`, retrying transient failures, and check `shasum` if given.
     pub async fn fetch(&self, url: &str, shasum: Option<&str>) -> Result<Vec<u8>> {
+        let shown = sanitize(url);
         let download_err = |reason: String| Error::Download {
-            url: url.to_owned(),
+            url: shown.clone(),
             reason,
         };
         let parsed = Url::parse(url).map_err(|e| download_err(e.to_string()))?;
@@ -126,7 +137,7 @@ impl Fetcher {
             let actual = hex_sha1(&bytes);
             if !actual.eq_ignore_ascii_case(expected) {
                 return Err(Error::Checksum {
-                    url: url.to_owned(),
+                    url: shown,
                     expected: expected.to_owned(),
                     actual,
                 });
@@ -135,31 +146,111 @@ impl Fetcher {
         Ok(bytes)
     }
 
-    async fn attempt(&self, url: &Url) -> Result<Vec<u8>, Failure> {
+    // Composer: Util/Bitbucket.php requestToken, requestAccessToken
+    async fn bitbucket_token(
+        &self,
+        origin: &str,
+        key: &str,
+        secret: &str,
+    ) -> Result<String, Failure> {
+        let mut tokens = self.bitbucket_tokens.lock().await;
+        if let Some(token) = tokens.get(origin) {
+            return Ok(token.clone());
+        }
+        let url = &self.options.auth.bitbucket_token_url;
         let fatal = |reason: String| {
             Failure::Fatal(Error::Download {
-                url: url.to_string(),
+                url: sanitize(url),
                 reason,
             })
         };
-        let mut request = self.client.get(url.clone());
-        match self
-            .options
-            .auth
-            .credential(url.host_str().unwrap_or_default(), url.port())
-        {
-            Some(Credential::GithubToken(token)) => {
-                request = request.header("Authorization", format!("token {token}"));
-            }
-            Some(Credential::Basic { username, password }) => {
-                request = request.basic_auth(username, Some(password));
-            }
-            None => {}
-        }
-        let mut response = request
+        let response = self
+            .client
+            .post(url.as_str())
+            .header(
+                "Authorization",
+                Auth::bitbucket_exchange_header(key, secret),
+            )
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .body("grant_type=client_credentials")
             .send()
             .await
             .map_err(|e| Failure::Retry(chain(&e)))?;
+        let status = response.status();
+        if !status.is_success() {
+            return Err(fatal(format!(
+                "HTTP {status}: invalid OAuth consumer for {origin}; check bitbucket-oauth in auth.json"
+            )));
+        }
+        let bytes = response
+            .bytes()
+            .await
+            .map_err(|e| Failure::Retry(chain(&e)))?;
+        let body: serde_json::Value =
+            serde_json::from_slice(&bytes).map_err(|e| fatal(e.to_string()))?;
+        let token = body
+            .get("access_token")
+            .and_then(serde_json::Value::as_str)
+            .filter(|_| body.get("expires_in").is_some())
+            .ok_or_else(|| {
+                fatal("expected access_token and expires_in in the response".to_owned())
+            })?
+            .to_owned();
+        tokens.insert(origin.to_owned(), token.clone());
+        Ok(token)
+    }
+
+    async fn headers_for(&self, url: &Url) -> Result<(Url, Vec<(String, String)>), Failure> {
+        let (bare, inline) = split_inline_credentials(url);
+        let auth = &self.options.auth;
+        let headers = match auth.credential(&bare, inline) {
+            None => Vec::new(),
+            Some(Credential::Headers(h)) => h,
+            Some(Credential::BitbucketConsumer { key, secret }) => {
+                let token = self
+                    .bitbucket_token(&auth.origin(&bare), &key, &secret)
+                    .await?;
+                vec![("Authorization".to_owned(), format!("Bearer {token}"))]
+            }
+        };
+        Ok((bare, headers))
+    }
+
+    async fn attempt(&self, start: &Url) -> Result<Vec<u8>, Failure> {
+        let mut url = start.clone();
+        let mut response = None;
+        for _ in 0..=MAX_REDIRECTS {
+            let (bare, headers) = self.headers_for(&url).await?;
+            let mut request = self.client.get(bare.clone());
+            for (name, value) in headers {
+                request = request.header(name, value);
+            }
+            let r = request
+                .send()
+                .await
+                .map_err(|e| Failure::Retry(chain(&e)))?;
+            if r.status().is_redirection()
+                && let Some(next) = r
+                    .headers()
+                    .get(reqwest::header::LOCATION)
+                    .and_then(|l| l.to_str().ok())
+                    .and_then(|l| bare.join(l).ok())
+            {
+                url = next;
+                continue;
+            }
+            response = Some(r);
+            break;
+        }
+        let fatal = |reason: String| {
+            Failure::Fatal(Error::Download {
+                url: sanitize(start.as_str()),
+                reason,
+            })
+        };
+        let Some(mut response) = response else {
+            return Err(fatal(format!("more than {MAX_REDIRECTS} redirects")));
+        };
         let status = response.status();
         if !status.is_success() {
             let reason = format!("HTTP {status}");
@@ -213,6 +304,94 @@ fn chain(err: &dyn std::error::Error) -> String {
 #[cfg(test)]
 mod tests {
     use super::{FetchOptions, Fetcher, USER_AGENT};
+    use crate::auth::Auth;
+    use reqwest::Url;
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    use tokio::net::TcpListener;
+
+    /// Answers every connection with `status` and `body`, and returns the
+    /// request heads it saw.
+    async fn token_server(
+        status: &'static str,
+        body: &'static str,
+    ) -> (String, tokio::task::JoinHandle<Vec<String>>) {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let base = format!("http://{}", listener.local_addr().unwrap());
+        let handle = tokio::spawn(async move {
+            let mut seen = Vec::new();
+            while let Ok(Ok((mut sock, _))) =
+                tokio::time::timeout(std::time::Duration::from_millis(300), listener.accept()).await
+            {
+                let mut buf = vec![0_u8; 8192];
+                let n = sock.read(&mut buf).await.unwrap_or(0);
+                seen.push(String::from_utf8_lossy(&buf[..n]).into_owned());
+                let reply = format!(
+                    "HTTP/1.1 {status}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+                    body.len()
+                );
+                let _ = sock.write_all(reply.as_bytes()).await;
+            }
+            seen
+        });
+        (base, handle)
+    }
+
+    fn consumer_fetcher(token_url: String) -> Fetcher {
+        let mut auth = Auth::from_json(
+            "t",
+            r#"{"bitbucket-oauth":{"bitbucket.org":{"consumer-key":"k","consumer-secret":"s"}}}"#,
+        )
+        .unwrap();
+        auth.bitbucket_token_url = token_url;
+        Fetcher::new(FetchOptions {
+            auth,
+            ..FetchOptions::default()
+        })
+        .unwrap()
+    }
+
+    #[tokio::test]
+    async fn exchanges_a_bitbucket_consumer_for_a_token_once() {
+        let (base, seen) =
+            token_server("200 OK", r#"{"access_token":"bbtok","expires_in":7200}"#).await;
+        let fetcher = consumer_fetcher(format!("{base}/site/oauth2/access_token"));
+        let url = Url::parse("https://bitbucket.org/o/r/get/abc.zip").unwrap();
+        for _ in 0..2 {
+            let (_, headers) = fetcher.headers_for(&url).await.ok().unwrap();
+            assert_eq!(
+                headers,
+                [("Authorization".to_owned(), "Bearer bbtok".to_owned())]
+            );
+        }
+        let seen = seen.await.unwrap();
+        assert_eq!(seen.len(), 1);
+        assert!(
+            seen[0].starts_with("POST /site/oauth2/access_token"),
+            "{}",
+            seen[0]
+        );
+        assert!(seen[0].contains("authorization: Basic azpz"), "{}", seen[0]);
+        assert!(
+            seen[0].contains("grant_type=client_credentials"),
+            "{}",
+            seen[0]
+        );
+        assert_eq!(fetcher.auth().origin(&url), "bitbucket.org");
+    }
+
+    #[tokio::test]
+    async fn reports_a_rejected_bitbucket_consumer() {
+        let (base, _) = token_server("401 Unauthorized", "").await;
+        let fetcher = consumer_fetcher(format!("{base}/token"));
+        let url = Url::parse("https://bitbucket.org/o/r/get/abc.zip").unwrap();
+        let Err(super::Failure::Fatal(err)) = fetcher.headers_for(&url).await else {
+            panic!("expected a fatal error");
+        };
+        assert!(err.to_string().contains("invalid OAuth consumer"), "{err}");
+        let (base, _) = token_server("200 OK", r#"{"nope":1}"#).await;
+        let fetcher = consumer_fetcher(format!("{base}/token"));
+        assert!(fetcher.headers_for(&url).await.is_err());
+    }
 
     #[test]
     fn user_agent_names_the_project() {

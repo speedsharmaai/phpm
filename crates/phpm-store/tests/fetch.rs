@@ -99,6 +99,25 @@ fn respond(path: &str, hit: usize, head: &str) -> (&'static str, String, Vec<u8>
         "/bad-400.zip" => ok("bad400"),
         "/always-503.zip" => ("503 Service Unavailable", String::new(), Vec::new()),
         "/private.zip" if head.contains("authorization: Basic dTpw") => ok("private"),
+        "/bearer.zip" if head.contains("authorization: Bearer bt") => ok("bearer"),
+        "/custom.zip" if head.contains("x-api-key: k1") => ok("custom"),
+        "/hop.zip" => {
+            let host = head
+                .lines()
+                .find_map(|l| l.strip_prefix("host: "))
+                .unwrap_or_default()
+                .replace("127.0.0.1", "localhost");
+            (
+                "302 Found",
+                format!("Location: http://{host}/no-auth.zip\r\n"),
+                Vec::new(),
+            )
+        }
+        "/no-auth.zip" if head.contains("authorization") => {
+            ("403 Forbidden", String::new(), Vec::new())
+        }
+        "/no-auth.zip" => ok("hopped"),
+        "/loop.zip" => ("302 Found", "Location: /loop.zip\r\n".into(), Vec::new()),
         "/private.zip" => ("401 Unauthorized", String::new(), Vec::new()),
         "/big.zip" => ("200 OK", String::new(), vec![0; 4096]),
         p if p.starts_with("/pkg/") => {
@@ -287,8 +306,7 @@ async fn sends_http_basic_credentials() {
     let err = anonymous.fetch(&url, None).await.unwrap_err();
     assert!(err.to_string().contains("HTTP 401"), "{err}");
 
-    let mut auth = Auth::default();
-    auth.merge_json(
+    let auth = Auth::from_json(
         "test",
         &format!(r#"{{"http-basic":{{"{host}":{{"username":"u","password":"p"}}}}}}"#),
     )
@@ -336,4 +354,69 @@ fn sha1_hex(bytes: &[u8]) -> String {
             let _ = write!(s, "{b:02x}");
             s
         })
+}
+
+#[tokio::test]
+async fn applies_bearer_and_custom_headers_by_host() {
+    let server = Server::start().await;
+    let host = server.base.trim_start_matches("http://").to_owned();
+    let auth = Auth::from_json("test", &format!(r#"{{"bearer":{{"{host}":"bt"}}}}"#)).unwrap();
+    let fetcher = Fetcher::new(FetchOptions { auth, ..options() }).unwrap();
+    assert!(
+        fetcher
+            .fetch(&server.url("/bearer.zip"), None)
+            .await
+            .is_ok()
+    );
+    let auth = Auth::from_json(
+        "test",
+        &format!(r#"{{"custom-headers":{{"{host}":["X-Api-Key: k1"]}}}}"#),
+    )
+    .unwrap();
+    let fetcher = Fetcher::new(FetchOptions { auth, ..options() }).unwrap();
+    assert!(
+        fetcher
+            .fetch(&server.url("/custom.zip"), None)
+            .await
+            .is_ok()
+    );
+}
+
+#[tokio::test]
+async fn credentials_do_not_follow_a_redirect_to_another_host() {
+    let server = Server::start().await;
+    let host = server.base.trim_start_matches("http://").to_owned();
+    let auth = Auth::from_json(
+        "test",
+        &format!(r#"{{"custom-headers":{{"{host}":["Authorization: Bearer leak"]}}}}"#),
+    )
+    .unwrap();
+    let fetcher = Fetcher::new(FetchOptions { auth, ..options() }).unwrap();
+    fetcher.fetch(&server.url("/hop.zip"), None).await.unwrap();
+    assert_eq!(server.hits("/no-auth.zip"), 1);
+    let err = fetcher
+        .fetch(&server.url("/loop.zip"), None)
+        .await
+        .unwrap_err();
+    assert!(err.to_string().contains("more than 10 redirects"), "{err}");
+}
+
+#[tokio::test]
+async fn uses_inline_credentials_and_never_prints_them() {
+    let server = Server::start().await;
+    let host = server.base.trim_start_matches("http://").to_owned();
+    let fetcher = Fetcher::new(options()).unwrap();
+    fetcher
+        .fetch(&format!("http://u:p@{host}/private.zip"), None)
+        .await
+        .unwrap();
+    let err = fetcher
+        .fetch(&format!("http://u:secretpw@{host}/gone.zip"), None)
+        .await
+        .unwrap_err();
+    let text = err.to_string();
+    assert!(
+        text.contains("http://u:***@") && !text.contains("secretpw"),
+        "{text}"
+    );
 }

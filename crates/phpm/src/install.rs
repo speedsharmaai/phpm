@@ -471,7 +471,10 @@ fn install(
         .collect();
     if !missing.is_empty() {
         let fetcher = Fetcher::new(FetchOptions {
-            auth: Auth::load(Some(&files.root))?,
+            auth: Auth::load(
+                Some(&files.root),
+                composer.data().get("config").and_then(Value::as_object),
+            )?,
             ..FetchOptions::default()
         })?;
         let fetched = runtime()?.block_on(store.fetch_missing(&fetcher, &missing))?;

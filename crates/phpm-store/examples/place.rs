@@ -50,7 +50,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     let started = Instant::now();
     let fetched = tokio::runtime::Runtime::new()?.block_on(async {
         let fetcher = Fetcher::new(FetchOptions {
-            auth: Auth::load(Some(&fixture))?,
+            auth: Auth::load(Some(&fixture), None)?,
             ..FetchOptions::default()
         })?;
         store.fetch_missing(&fetcher, &packages).await
