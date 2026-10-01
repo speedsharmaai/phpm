@@ -50,25 +50,51 @@ fallback_plugin_names() {
     | tr ',' '\n' | sed -E 's/^ +| +$//g' | grep -v '^$' | sort -u || true
 }
 
+# Times one iteration of $cmd via hyperfine, no shell involved (`-N`):
+# hyperfine's own shell-spawning calibration (used whenever a `--shell`
+# other than none is given) has proven unreliable on windows-latest across
+# four different shell/path combinations, so cleanup between iterations
+# happens as plain bash here, never inside hyperfine's own measurement.
+single_run() {
+  local home="$1" cmd="$2" out="$3"
+  HOME="$home" hyperfine -N --runs 1 --warmup 0 "$cmd" --export-json "$out" >/dev/null
+}
+
+# `runs` recorded iterations of $cmd (plus `warmup` unrecorded ones first),
+# with $cleanup run as plain bash before every iteration; combined into one
+# hyperfine-shaped JSON (mean_of reads `.results[0].mean`) at $out.
+manual_runs() {
+  local home="$1" cmd="$2" out="$3" runs="$4" warmup="$5" cleanup="$6"
+  local tmp times="[]" i t
+  for ((i = 1; i <= warmup; i++)); do
+    eval "$cleanup"
+    tmp=$(mktemp)
+    single_run "$home" "$cmd" "$tmp"
+    rm -f "$tmp"
+  done
+  for ((i = 1; i <= runs; i++)); do
+    eval "$cleanup"
+    tmp=$(mktemp)
+    single_run "$home" "$cmd" "$tmp"
+    t=$(jq '.results[0].times[0]' "$tmp")
+    times=$(jq -c --argjson t "$t" '. + [$t]' <<<"$times")
+    rm -f "$tmp"
+  done
+  jq -n --argjson times "$times" \
+    '{results: [{times: $times, mean: (if ($times | length) > 0 then ($times | add / length) else 0 end)}]}' \
+    >"$out"
+}
+
 scenario_timing() {
   local dir="$1" cmd="$2" work="$3" name="$4"
-  local clear_caches="rm -rf $work/cache"
-  # hyperfine resolves a bare shell name through its own PATH search, which
-  # has been unreliable for anything but cmd.exe/powershell on windows-latest
-  # (it fails hyperfine's shell-spawning calibration); an absolute path
-  # avoids that search entirely, on every OS.
-  local bash_bin
-  bash_bin="$(command -v bash)"
+  local home="$work/home"
   (
     cd "$dir" || exit 1
-    HOME="$work/home" hyperfine --shell "$bash_bin" --runs 3 --warmup 0 \
-      --prepare "rm -rf $dir/vendor; $clear_caches" \
-      -n "cold" "$cmd" --export-json "$work/$name-cold.json" >/dev/null
-    HOME="$work/home" hyperfine --shell "$bash_bin" --runs 5 --warmup 1 \
-      --prepare "rm -rf $dir/vendor" \
-      -n "warm" "$cmd" --export-json "$work/$name-warm.json" >/dev/null
-    HOME="$work/home" hyperfine -N --runs 10 --warmup 1 \
-      -n "noop" "$cmd" --export-json "$work/$name-noop.json" >/dev/null
+    manual_runs "$home" "$cmd" "$work/$name-cold.json" 3 0 \
+      "rm -rf '$dir/vendor' '$work/cache'"
+    manual_runs "$home" "$cmd" "$work/$name-warm.json" 5 1 \
+      "rm -rf '$dir/vendor'"
+    manual_runs "$home" "$cmd" "$work/$name-noop.json" 10 1 ":"
   )
 }
 
