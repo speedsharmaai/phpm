@@ -67,7 +67,9 @@ answers, in order of how much they matter:
 3. **It is built for where installs multiply now.** Agents run installs in
    CI, in containers, and in parallel git worktrees, each wanting its own
    `vendor/`. With a shared store, a new worktree's `vendor/` costs a
-   fraction of a second and almost no disk.
+   fraction of a second and almost no disk — see
+   [the worktree recipe](docs/agent-worktrees.md) and
+   [the Docker pattern](docs/docker.md) for a PHP-free build stage.
 
 Full rationale — why Composer itself is good, how phpm earns (or mostly
 doesn't), where the first users come from — is written out in
