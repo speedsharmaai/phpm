@@ -1329,6 +1329,7 @@ fn other_installer_versions_still_need_composer() {
 
 /// symfony/runtime v8.1.0 as the only active plugin, with its template
 /// embedded so no fetch is needed to prove phpm's output matches it.
+#[cfg(unix)]
 fn symfony_runtime_project() -> Project {
     Project::with(|composer, lock| {
         composer["require"] = json!({"symfony/runtime": "^8.1"});
