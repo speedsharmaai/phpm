@@ -1326,3 +1326,61 @@ fn other_installer_versions_still_need_composer() {
     );
     assert!(!p.root.join("web").exists());
 }
+
+/// symfony/runtime v8.1.0 as the only active plugin, with its template
+/// embedded so no fetch is needed to prove phpm's output matches it.
+fn symfony_runtime_project() -> Project {
+    Project::with(|composer, lock| {
+        composer["require"] = json!({"symfony/runtime": "^8.1"});
+        composer["config"] = json!({"allow-plugins": {"symfony/runtime": true}});
+        let mut runtime = package(
+            "",
+            "symfony/runtime",
+            &json!({"type": "composer-plugin", "extra": {"class": "Symfony\\Component\\Runtime\\Internal\\ComposerPlugin"}}),
+        );
+        runtime["version"] = json!("v8.1.0");
+        runtime["dist"]["url"] = lock["packages"][0]["dist"]["url"].clone();
+        lock["packages"] = json!([runtime]);
+        lock["packages-dev"] = json!([]);
+    })
+}
+
+#[test]
+#[cfg(unix)]
+fn writes_autoload_runtime_natively_for_symfony_runtime() {
+    let p = symfony_runtime_project();
+    let out = ok(&p.phpm_env(
+        &["install", "--explain"],
+        &[("PHPM_COMPOSER", "/nonexistent/composer")],
+    ));
+    assert!(
+        out.contains(
+            "decision plugins: native, symfony/runtime (phpm writes vendor/autoload_runtime.php)"
+        ),
+        "{out}"
+    );
+    assert!(!out.contains("Composer runs"), "{out}");
+    let code = std::fs::read_to_string(p.vendor("autoload_runtime.php")).unwrap();
+    assert!(
+        code.contains(
+            "$_SERVER['APP_RUNTIME'] ??= $_ENV['APP_RUNTIME'] ?? 'Symfony\\\\Component\\\\Runtime\\\\SymfonyRuntime';"
+        ),
+        "{code}"
+    );
+    assert!(
+        code.contains(
+            "$_SERVER['APP_RUNTIME_OPTIONS'] += [\n  'project_dir' => dirname(__DIR__, 1),\n]);"
+        ),
+        "{code}"
+    );
+
+    let lock_path = p.root.join("composer.lock");
+    let mut lock: Value = serde_json::from_slice(&std::fs::read(&lock_path).unwrap()).unwrap();
+    lock["packages"] = json!([]);
+    std::fs::write(&lock_path, lock.to_string()).unwrap();
+    ok(&p.phpm_env(&["install"], &[("PHPM_COMPOSER", "/nonexistent/composer")]));
+    assert!(
+        !p.vendor("autoload_runtime.php").exists(),
+        "removing the plugin removes the file its uninstall() would"
+    );
+}

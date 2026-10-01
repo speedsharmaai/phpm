@@ -1,4 +1,5 @@
 use indexmap::IndexMap;
+use serde_json::Value;
 use std::fmt::Write as _;
 
 /// A PHP array key. Numeric strings in canonical form become integers, as
@@ -80,6 +81,42 @@ impl From<PhpArray> for PhpValue {
     fn from(a: PhpArray) -> Self {
         Self::Array(a)
     }
+}
+
+/// `json_decode($json, true)`'s PHP-array shape of a JSON object or array,
+/// for `var_export`. `Err` on a JSON number that is not representable as a
+/// PHP int (`var_export` prints floats differently and nothing here needs
+/// one): callers decline rather than guess.
+pub fn array_from_json(value: &Value) -> Result<PhpArray, &'static str> {
+    match value_from_json(value)? {
+        PhpValue::Array(a) => Ok(a),
+        _ => Err("expected a JSON object or array"),
+    }
+}
+
+/// `json_decode($json, true)`'s PHP-value shape of any JSON value.
+pub fn value_from_json(value: &Value) -> Result<PhpValue, &'static str> {
+    Ok(match value {
+        Value::Null => PhpValue::Null,
+        Value::Bool(b) => PhpValue::Bool(*b),
+        Value::Number(n) => PhpValue::Int(n.as_i64().ok_or("a non-integer number")?),
+        Value::String(s) => PhpValue::String(s.clone()),
+        Value::Array(items) => {
+            let mut array = PhpArray::new();
+            for (i, item) in items.iter().enumerate() {
+                let key = i64::try_from(i).map_err(|_| "an array longer than i64::MAX")?;
+                array.insert(PhpKey::Int(key), value_from_json(item)?);
+            }
+            PhpValue::Array(array)
+        }
+        Value::Object(map) => {
+            let mut array = PhpArray::new();
+            for (k, v) in map {
+                array.insert(PhpKey::from(k.as_str()), value_from_json(v)?);
+            }
+            PhpValue::Array(array)
+        }
+    })
 }
 
 /// `var_export($s, true)` for a string.
@@ -190,7 +227,8 @@ fn export_value(out: &mut String, value: &PhpValue, depth: usize) {
 #[cfg(test)]
 mod tests {
     use super::{
-        PhpArray, PhpKey, PhpValue, dump_to_php_code, is_absolute_path, var_export, var_export_str,
+        PhpArray, PhpKey, PhpValue, array_from_json, dump_to_php_code, is_absolute_path,
+        value_from_json, var_export, var_export_str,
     };
 
     fn arr(items: Vec<(&str, PhpValue)>) -> PhpArray {
@@ -328,5 +366,41 @@ mod tests {
     fn dumps_ints_in_installed_php() {
         let a = arr(vec![("n", 7_i64.into())]);
         assert_eq!(dump_to_php_code(&a), "array(\n    'n' => 7,\n)");
+    }
+
+    #[test]
+    fn json_objects_and_arrays_decode_like_json_decode_assoc_true() {
+        use serde_json::json;
+        let decoded = array_from_json(&json!({
+            "name": "a/b",
+            "nested": {"x": 1},
+            "list": [true, null],
+        }))
+        .unwrap();
+        assert_eq!(decoded.get(&PhpKey::from("name")), Some(&"a/b".into()));
+        assert_eq!(
+            decoded.get(&PhpKey::from("list")),
+            Some(&PhpValue::Array(
+                [
+                    (PhpKey::Int(0), true.into()),
+                    (PhpKey::Int(1), PhpValue::Null)
+                ]
+                .into_iter()
+                .collect()
+            ))
+        );
+        let Some(PhpValue::Array(nested)) = decoded.get(&PhpKey::from("nested")) else {
+            panic!("expected a nested array");
+        };
+        assert_eq!(nested.get(&PhpKey::from("x")), Some(&1_i64.into()));
+
+        let list = array_from_json(&json!(["a", "b"])).unwrap();
+        assert_eq!(
+            list.keys().collect::<Vec<_>>(),
+            [&PhpKey::Int(0), &PhpKey::Int(1)]
+        );
+        assert!(array_from_json(&json!("x")).is_err());
+        assert!(value_from_json(&json!(1.5)).is_err());
+        assert_eq!(value_from_json(&json!(5)).unwrap(), 5_i64.into());
     }
 }

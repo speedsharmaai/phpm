@@ -9,11 +9,13 @@ use serde_json::{Map, Value};
 use crate::error::Error;
 use crate::fsutil::write_if_changed;
 
-use super::Role;
+use super::{Role, symfony_runtime};
 
 /// The install as the plugins' listeners see it.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Installed<'a> {
+    /// The project directory, absolute.
+    pub(crate) root: &'a str,
     /// `config.vendor-dir`, absolute.
     pub(crate) vendor: &'a str,
     pub(crate) composer: &'a ComposerJson,
@@ -43,8 +45,10 @@ impl Hooks {
     pub(crate) fn post_autoload(&self, at: Installed<'_>) -> Result<Vec<PathBuf>, Error> {
         let mut written = Vec::new();
         for role in &self.roles {
-            if *role == Role::Pest {
-                written.push(pest(at)?);
+            match role {
+                Role::Pest => written.push(pest(at)?),
+                Role::SymfonyRuntime => written.extend(runtime(at)?),
+                Role::Installers | Role::WordPressCore => {}
             }
         }
         Ok(written)
@@ -98,17 +102,44 @@ fn pest(at: Installed<'_>) -> Result<PathBuf, Error> {
     )
 }
 
+/// Whether phpm reproduces `vendor/autoload_runtime.php` exactly.
+pub(crate) fn symfony_runtime_check(
+    root_extra: Option<&Map<String, Value>>,
+    root: &str,
+    vendor: &str,
+) -> Result<(), String> {
+    symfony_runtime::generate(root_extra, symfony_runtime::Context { root, vendor }).map(|_| ())
+}
+
+fn runtime(at: Installed<'_>) -> Result<Option<PathBuf>, Error> {
+    let generated = symfony_runtime::generate(
+        at.root_extra(),
+        symfony_runtime::Context {
+            root: at.root,
+            vendor: at.vendor,
+        },
+    )
+    .map_err(Error::install)?;
+    let Some(bytes) = generated else {
+        return Ok(None);
+    };
+    write(&Path::new(at.vendor).join("autoload_runtime.php"), &bytes).map(Some)
+}
+
 /// What a covered plugin's `uninstall()` removes when its package goes.
+// Composer: symfony/runtime Internal/ComposerPlugin::uninstall (always
+// unlinks); pestphp/pest-plugin Manager::uninstall (always unlinks).
 pub(crate) fn uninstalled(role: Role, vendor: &str) -> Option<PathBuf> {
     match role {
         Role::Pest => Some(Path::new(vendor).join("pest-plugins.json")),
+        Role::SymfonyRuntime => Some(Path::new(vendor).join("autoload_runtime.php")),
         Role::Installers | Role::WordPressCore => None,
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Hooks, Installed, pest_check, uninstalled};
+    use super::{Hooks, Installed, pest_check, symfony_runtime_check, uninstalled};
     use crate::adapters::Role;
     use phpm_lock::ComposerJson;
     use serde_json::{Map, Value, json};
@@ -143,6 +174,7 @@ mod tests {
         };
         let written = hooks
             .post_autoload(Installed {
+                root: "/p",
                 vendor: &vendor,
                 composer: &composer,
                 packages: &refs,
@@ -156,6 +188,7 @@ mod tests {
         let none = ComposerJson::from_value(json!({})).unwrap();
         hooks
             .post_autoload(Installed {
+                root: "/p",
                 vendor: &vendor,
                 composer: &none,
                 packages: &[],
@@ -183,6 +216,54 @@ mod tests {
             uninstalled(Role::Pest, "/p/vendor"),
             Some(std::path::Path::new("/p/vendor").join("pest-plugins.json"))
         );
+        assert_eq!(
+            uninstalled(Role::SymfonyRuntime, "/p/vendor"),
+            Some(std::path::Path::new("/p/vendor").join("autoload_runtime.php"))
+        );
         assert_eq!(uninstalled(Role::Installers, "/p/vendor"), None);
+    }
+
+    #[test]
+    fn writes_autoload_runtime_through_the_post_autoload_hook() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path().to_string_lossy().replace('\\', "/");
+        let vendor = format!("{root}/vendor");
+        std::fs::create_dir_all(&vendor).unwrap();
+        let composer = ComposerJson::from_value(json!({})).unwrap();
+        let hooks = Hooks {
+            roles: vec![Role::SymfonyRuntime],
+        };
+        let written = hooks
+            .post_autoload(Installed {
+                root: &root,
+                vendor: &vendor,
+                composer: &composer,
+                packages: &[],
+            })
+            .unwrap();
+        assert_eq!(
+            written,
+            [std::path::Path::new(&vendor).join("autoload_runtime.php")]
+        );
+        let content = std::fs::read_to_string(&written[0]).unwrap();
+        assert!(content.contains("dirname(__DIR__, 1)"), "{content}");
+
+        let off = ComposerJson::from_value(json!({"extra": {"runtime": false}})).unwrap();
+        let written = hooks
+            .post_autoload(Installed {
+                root: &root,
+                vendor: &vendor,
+                composer: &off,
+                packages: &[],
+            })
+            .unwrap();
+        assert!(written.is_empty());
+    }
+
+    #[test]
+    fn symfony_runtime_check_matches_generate() {
+        assert_eq!(symfony_runtime_check(None, "/p", "/p/vendor"), Ok(()));
+        let bad = obj(json!({"runtime": "x"}));
+        assert!(symfony_runtime_check(Some(&bad), "/p", "/p/vendor").is_err());
     }
 }
