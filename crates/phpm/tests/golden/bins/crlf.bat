@@ -1,0 +1,5 @@
+@ECHO OFF
+setlocal DISABLEDELAYEDEXPANSION
+SET BIN_TARGET=%~dp0/../a/crlf/bin/crlf
+SET COMPOSER_RUNTIME_BIN_DIR=%~dp0
+php -d x=1 "%BIN_TARGET%" %*
