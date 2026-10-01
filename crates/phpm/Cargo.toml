@@ -11,6 +11,7 @@ publish = false
 
 [dependencies]
 clap = { version = "4.6.6", default-features = false, features = ["derive", "error-context", "help", "std", "usage"] }
+md5 = { workspace = true }
 phpm-autoload = { path = "../phpm-autoload" }
 phpm-lock = { path = "../phpm-lock" }
 phpm-php = { path = "../phpm-php" }
