@@ -20,18 +20,18 @@
 
 ## PHP-format writers (`phpm-php`)
 
-- [ ] `json_encode` writer: pretty print, unescaped slashes and unicode, 4-space indent, `{}` vs `[]` rules. Golden tests against PHP output for 50 generated inputs.
-- [ ] `var_export`-compatible writer for `installed.php` and `autoload_static.php`. Golden tests the same way.
+- [x] `json_encode` writer: pretty print, unescaped slashes and unicode, 4-space indent, `{}` vs `[]` rules. Golden tests against PHP output for 50 generated inputs. `phpm-php`, plus proptests against `php` in CI.
+- [ ] `var_export`-compatible writer for `installed.php` and `autoload_static.php`. Golden tests the same way. The `installed.php` half is done (`dump_to_php_code`); `autoload_static.php` is not.
 - [ ] content-hash, flags 0, verified against every fixture lock.
 
 ## Install path
 
 - [ ] Lock parser and plan (install / update / remove) against `installed.json`.
-- [ ] Root version guessing via git, matching `VersionGuesser` for tag, branch and no-VCS cases.
+- [x] Root version guessing via git, matching `VersionGuesser` for tag, branch and no-VCS cases. hg, svn and fossil checkouts are refused.
 - [ ] Fetch: reqwest + tokio, HTTP/2, User-Agent with contact, ≤ 10 Packagist, ≤ 24 codeload, 3 retries, codeload-400 retry.
 - [ ] Store: `~/.cache/phpm/pkgs/v1/`, key `(name, reference)`, zip buffered in memory, `zip` crate on rayon, top-dir strip, `.DS_Store` skip, modes kept, temp + atomic rename.
 - [ ] Link: `libc::clonefile` per package directory (macOS); hardlink per file (Linux); copy fallback; stale packages removed.
-- [ ] `installed.json`, `installed.php`, `InstalledVersions.php` written.
+- [x] `installed.json`, `installed.php`, `InstalledVersions.php` written. Byte-identical to Composer 2.10.3 on all five fixtures, dev and `--no-dev` (`just golden`).
 - [ ] Bin proxies from Composer's templates.
 - [ ] Autoload: PackageSorter port (weights, `strnatcasecmp`, stable sort), psr-0, psr-4, classmap and files sections, suffix rules, `autoload_static.php`, `platform_check.php` (php-only default).
 - [ ] State file and no-op fast path.

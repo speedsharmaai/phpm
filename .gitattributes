@@ -1,3 +1,6 @@
 * text=auto eol=lf
 fixtures/** -text
 **/snapshots/** -text
+crates/*/tests/golden/** -text
+crates/*/tests/data/** -text
+crates/*/composer/*.php -text
