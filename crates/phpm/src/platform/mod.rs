@@ -500,9 +500,8 @@ pub(crate) fn run_probe(php: &Path) -> Result<Probe, Error> {
         .spawn()
         .map_err(|e| failed(e.to_string()))?;
     if let Some(mut stdin) = child.stdin.take() {
-        stdin
-            .write_all(PROBE.as_bytes())
-            .map_err(|e| failed(e.to_string()))?;
+        // A php that exits early fails below with its own output.
+        let _ = stdin.write_all(PROBE.as_bytes());
     }
     let output = child
         .wait_with_output()

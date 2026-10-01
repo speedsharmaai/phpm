@@ -460,7 +460,7 @@ fn fake_php(dir: &std::path::Path) -> String {
     });
     std::fs::write(
         &php,
-        format!("#!/bin/sh\ncat >/dev/null\nprintf '%s' '{probe}'\n"),
+        format!("#!/bin/sh\nwhile read -r _; do :; done\nprintf '%s' '{probe}'\n"),
     )
     .unwrap();
     std::fs::set_permissions(&php, std::fs::Permissions::from_mode(0o755)).unwrap();
