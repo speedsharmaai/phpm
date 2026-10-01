@@ -11,7 +11,7 @@
 
 - [ ] Cargo workspace per [topology](../../docs/arch/topology.md): `phpm`, `phpm-lock`, `phpm-php`, `phpm-store`, `phpm-fetch`, `phpm-autoload`.
 - [ ] `rust-toolchain.toml` pinned; clippy and rustfmt in CI from the first commit.
-- [ ] Pin Composer 2.10.3 as the reference version in `fixtures/COMPOSER_VERSION`; vendor its verbatim files (`ClassLoader.php`, `InstalledVersions.php`, `LICENSE`, bin proxy templates) into `crates/phpm-autoload/composer/` with their MIT licence.
+- [ ] Pin Composer 2.10.3 as the reference version in `fixtures/COMPOSER_VERSION`; vendor its verbatim files (`ClassLoader.php`, `InstalledVersions.php`, `LICENSE`, bin proxy templates) into `crates/phpm-autoload/composer/` with their MIT licence. `ClassLoader.php`, `InstalledVersions.php` and `LICENSE` live in `crates/phpm-lock/composer/` (one copy, used by both crates); bin proxy templates are not vendored yet.
 
 ## Fixtures
 
@@ -21,7 +21,7 @@
 ## PHP-format writers (`phpm-php`)
 
 - [x] `json_encode` writer: pretty print, unescaped slashes and unicode, 4-space indent, `{}` vs `[]` rules. Golden tests against PHP output for 50 generated inputs. `phpm-php`, plus proptests against `php` in CI.
-- [ ] `var_export`-compatible writer for `installed.php` and `autoload_static.php`. Golden tests the same way. The `installed.php` half is done (`dump_to_php_code`); `autoload_static.php` is not.
+- [x] `var_export`-compatible writer for `installed.php` and `autoload_static.php`. Golden tests the same way. `dump_to_php_code` and `var_export`, proptest against `php`.
 - [ ] content-hash, flags 0, verified against every fixture lock.
 
 ## Install path
@@ -34,7 +34,7 @@
 - [x] Link: `libc::clonefile` per package directory (macOS); FICLONE then hardlink per file (Linux); copy fallback; stale packages removed.
 - [x] `installed.json`, `installed.php`, `InstalledVersions.php` written. Byte-identical to Composer 2.10.3 on all five fixtures, dev and `--no-dev` (`just golden`).
 - [ ] Bin proxies from Composer's templates.
-- [ ] Autoload: PackageSorter port (weights, `strnatcasecmp`, stable sort), psr-0, psr-4, classmap and files sections, suffix rules, `autoload_static.php`, `platform_check.php` (php-only default).
+- [x] Autoload: PackageSorter port (weights, `strnatcasecmp`, stable sort), psr-0, psr-4, classmap and files sections, suffix rules, `autoload_static.php`, `platform_check.php` (php-only default). `phpm-autoload`, byte-identical to Composer 2.10.3 on all five fixtures, dev and `--no-dev`, including `-o` from the fixtures' config (`just golden`). Class scanning for classmap rules and `-o`/`classmap-authoritative` came with it: a port of `php_strip_whitespace` and class-map-generator 1.7.3, on rayon.
 - [ ] State file and no-op fast path.
 - [ ] `--no-dev`.
 

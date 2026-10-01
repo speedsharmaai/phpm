@@ -44,10 +44,10 @@ actions:
     actionlint
 
 golden:
-    cargo nextest run -p phpm-lock --locked --run-ignored only -E 'test(/^composer_live/)' --test-threads 1
+    cargo nextest run -p phpm-lock -p phpm-autoload --locked --run-ignored only -E 'test(/^composer_live/)' --test-threads 1 --no-fail-fast
 
 golden-bless:
-    PHPM_BLESS=1 cargo nextest run -p phpm-lock --locked --run-ignored only -E 'test(/^composer_live/)' --test-threads 1
+    PHPM_BLESS=1 cargo nextest run -p phpm-lock -p phpm-autoload --locked --run-ignored only -E 'test(/^composer_live/)' --test-threads 1 --no-fail-fast
 
 ci: fmt-check lint docs test deny shear msrv typos md actions cov
 
