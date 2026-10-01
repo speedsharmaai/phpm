@@ -95,8 +95,13 @@ jobs:
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/sweep-cache
-          key: ${{ steps.key.outputs.name }}-${{ github.run_id }}
-          restore-keys: ${{ steps.key.outputs.name }}-
+          # The store is content-addressed by package, not by how phpm
+          # extracted or placed it, so a cache from a run before a fix
+          # landed would otherwise keep serving the old bytes forever
+          # through restore-keys. Hashing the binaries into the key drops
+          # that cache the moment phpm changes.
+          key: ${{ steps.key.outputs.name }}-${{ hashFiles('bin/phpm', 'bin/sweep') }}-${{ github.run_id }}
+          restore-keys: ${{ steps.key.outputs.name }}-${{ hashFiles('bin/phpm', 'bin/sweep') }}-
       - name: Sweep
         env:
           SHARD: ${{ matrix.shard }}
@@ -138,8 +143,11 @@ jobs:
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/sweep-cache
-          key: sweep-v2-windows-${{ github.run_id }}
-          restore-keys: sweep-v2-windows-
+          # See the linux job: hashing the binaries drops the cache the
+          # moment phpm changes, instead of restore-keys serving bytes a
+          # since-fixed version extracted.
+          key: sweep-v2-windows-${{ hashFiles('bin/phpm.exe', 'bin/sweep.exe') }}-${{ github.run_id }}
+          restore-keys: sweep-v2-windows-${{ hashFiles('bin/phpm.exe', 'bin/sweep.exe') }}-
       - name: Sweep
         shell: bash
         env:
