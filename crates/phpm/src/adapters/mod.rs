@@ -4,9 +4,11 @@
 //! plugin, or any input an adapter cannot reproduce, stays with Composer.
 
 mod dealerdirect_phpcs;
+mod drupal_scaffold;
 mod hooks;
 pub(crate) mod installers;
 mod php;
+mod php_http_discovery;
 mod phpstan_extension_installer;
 mod symfony_runtime;
 
@@ -18,7 +20,7 @@ use serde_json::{Map, Value};
 use crate::plugins::{Adapter, Plugins};
 use installers::{Installers, Locked, Root};
 
-pub(crate) use hooks::{Hooks, Installed, uninstalled};
+pub(crate) use hooks::{Hooks, Installed, PreAutoload, uninstalled};
 
 /// What an adapter does in place of its plugin.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -29,6 +31,12 @@ pub(crate) enum Role {
     SymfonyRuntime,
     PhpstanExtensionInstaller,
     DealerdirectPhpcs,
+    DrupalScaffold,
+    PhpHttpDiscovery,
+    /// Covered because the real plugin has no effect phpm needs to
+    /// reproduce for `install` (console-only output, or events that never
+    /// fire during an install).
+    NoOp,
 }
 
 /// Versions whose plugin source was read and compared against the adapter.
@@ -40,10 +48,14 @@ enum Versions {
     /// content changed a handful of times across the range, every change
     /// read and found cosmetic.
     Range(&'static str, &'static str),
+    /// A dev-branch package with no tagged release: the exact locked git
+    /// commits (`source.reference`) that were read, since the branch's
+    /// version string alone never distinguishes one commit from another.
+    Reference(&'static [&'static str]),
 }
 
 impl Versions {
-    fn contains(&self, version: &str) -> bool {
+    fn matches(&self, version: &str, reference: Option<&str>) -> bool {
         match self {
             Self::Exact(list) => list.contains(&version),
             Self::Range(min, max) => {
@@ -51,6 +63,7 @@ impl Versions {
                     && phpm_lock::constraint::version_compare(version, max)
                         != std::cmp::Ordering::Greater
             }
+            Self::Reference(list) => reference.is_some_and(|r| list.contains(&r)),
         }
     }
 }
@@ -63,7 +76,7 @@ struct Known {
     does: &'static str,
 }
 
-const KNOWN: [Known; 6] = [
+const KNOWN: [Known; 10] = [
     Known {
         name: "composer/installers",
         versions: Versions::Exact(&["2.3.0.0"]),
@@ -105,13 +118,44 @@ const KNOWN: [Known; 6] = [
         role: Role::DealerdirectPhpcs,
         does: "phpm sets PHP_CodeSniffer's installed_paths",
     },
+    Known {
+        name: "drupal/core-composer-scaffold",
+        // dev-branch package, no tagged release: pinned to the exact
+        // commit drupal-recommended's lock locks.
+        versions: Versions::Reference(&["c897b5b00ffabe21b03ddb2339de2523b15fb7ef"]),
+        role: Role::DrupalScaffold,
+        does: "phpm scaffolds files and writes drupal/DrupalInstalled.php",
+    },
+    Known {
+        name: "drupal/core-project-message",
+        // only prints to the console; verified it writes nothing to disk.
+        versions: Versions::Reference(&["f921f1c88502d559f77a9c86c87ce9bfd8082d07"]),
+        role: Role::NoOp,
+        does: "phpm does nothing, matching the plugin's own effect",
+    },
+    Known {
+        name: "drupal/core-recipe-unpack",
+        // only fires on post-update-cmd/post-create-project-cmd, neither of
+        // which `composer install` ever runs.
+        versions: Versions::Reference(&["6328365d870f9545ec8f953a9c16f6a628fc5e46"]),
+        role: Role::NoOp,
+        does: "phpm does nothing: its events never fire during install",
+    },
+    Known {
+        name: "php-http/discovery",
+        // its postUpdate listener binds to post-update-cmd, which install
+        // never runs; only 1.20.0 was checked for preAutoloadDump.
+        versions: Versions::Exact(&["1.20.0.0"]),
+        role: Role::PhpHttpDiscovery,
+        does: "phpm removes a stale vendor/composer/GeneratedDiscoveryStrategy.php",
+    },
 ];
 
 /// The adapter for a plugin package at a verified version.
 pub(crate) fn known_version(name: &str, pretty_version: &str) -> Option<Role> {
     let known = KNOWN.iter().find(|k| k.name.eq_ignore_ascii_case(name))?;
     let version = phpm_lock::version::normalize(pretty_version).ok()?;
-    known.versions.contains(&version).then_some(known.role)
+    known.versions.matches(&version, None).then_some(known.role)
 }
 
 /// Where the project is, for the adapters that need paths.
@@ -241,7 +285,9 @@ fn check(role: Role, entries: &[&Map<String, Value>], ctx: Context<'_>) -> Resul
         Role::DealerdirectPhpcs => {
             hooks::dealerdirect_check(entries, ctx.root_type, ctx.root_extra, ctx.root, ctx.vendor)
         }
-        Role::Installers | Role::WordPressCore => Ok(()),
+        Role::DrupalScaffold => hooks::drupal_scaffold_check(entries, ctx.root_extra, ctx.root),
+        Role::PhpHttpDiscovery => hooks::php_http_discovery_check(ctx.root_extra),
+        Role::Installers | Role::WordPressCore | Role::NoOp => Ok(()),
     }
 }
 
@@ -268,7 +314,11 @@ pub(crate) fn cover(
             .iter()
             .find(|e| text(e, "name").eq_ignore_ascii_case(known.name));
         let version = entry.map(|e| normalized_version(e)).unwrap_or_default();
-        if !known.versions.contains(version.as_str()) {
+        let reference = entry
+            .and_then(|e| e.get("source"))
+            .and_then(|s| s.get("reference"))
+            .and_then(Value::as_str);
+        if !known.versions.matches(&version, reference) {
             plugin.adapter = Adapter::Declined(format!(
                 "no adapter for version {}",
                 entry.map_or("", |e| text(e, "version"))
@@ -633,5 +683,106 @@ mod tests {
         let root = obj(json!({"wordpress-install-dir": "web/.."}));
         assert!(install_paths(&roles, &refs, ctx(&root)).is_err());
         assert_eq!(install_paths(&[], &refs, ctx(&root)), Ok(Paths::default()));
+    }
+
+    #[test]
+    fn drupal_core_adapters_run_natively_together() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir
+            .path()
+            .canonicalize()
+            .unwrap()
+            .to_string_lossy()
+            .replace('\\', "/");
+        let vendor = format!("{root}/vendor");
+        let entries = [
+            obj(json!({
+                "name": "drupal/core-composer-scaffold",
+                "version": "11.x-dev",
+                "type": "composer-plugin",
+                "source": {"reference": "c897b5b00ffabe21b03ddb2339de2523b15fb7ef"},
+            })),
+            obj(json!({
+                "name": "drupal/core-project-message",
+                "version": "11.x-dev",
+                "type": "composer-plugin",
+                "source": {"reference": "f921f1c88502d559f77a9c86c87ce9bfd8082d07"},
+            })),
+            obj(json!({
+                "name": "drupal/core-recipe-unpack",
+                "version": "11.x-dev",
+                "type": "composer-plugin",
+                "source": {"reference": "6328365d870f9545ec8f953a9c16f6a628fc5e46"},
+            })),
+        ];
+        let refs: Vec<&Map<String, Value>> = entries.iter().collect();
+        let mut plugins = Plugins {
+            active: vec![
+                plugin("drupal/core-composer-scaffold"),
+                plugin("drupal/core-project-message"),
+                plugin("drupal/core-recipe-unpack"),
+            ],
+            skipped: Vec::new(),
+        };
+        let extra = Map::new();
+        let context = Context {
+            root_extra: Some(&extra),
+            root_type: None,
+            root: &root,
+            vendor: &vendor,
+            vendor_relative: "vendor",
+        };
+        let covered = cover(&mut plugins, &refs, context);
+        assert_eq!(
+            covered.hooks.roles,
+            [Role::DrupalScaffold, Role::NoOp, Role::NoOp]
+        );
+        for p in &plugins.active {
+            assert!(matches!(p.adapter, Adapter::Native(_)), "{p:?}");
+        }
+
+        // an unknown git commit on the same branch stays with Composer.
+        let mut unpinned = entries;
+        unpinned[0] = obj(json!({
+            "name": "drupal/core-composer-scaffold",
+            "version": "11.x-dev",
+            "type": "composer-plugin",
+            "source": {"reference": "0000000000000000000000000000000000000000"},
+        }));
+        let refs: Vec<&Map<String, Value>> = unpinned.iter().collect();
+        let mut plugins = Plugins {
+            active: vec![plugin("drupal/core-composer-scaffold")],
+            skipped: Vec::new(),
+        };
+        assert_eq!(
+            cover(&mut plugins, &refs, ctx(&Map::new())),
+            Covered::default()
+        );
+    }
+
+    #[test]
+    fn php_http_discovery_runs_natively_unless_an_abstraction_is_pinned() {
+        let entries = [obj(
+            json!({"name": "php-http/discovery", "version": "1.20.0", "type": "composer-plugin"}),
+        )];
+        let refs: Vec<&Map<String, Value>> = entries.iter().collect();
+        let mut plugins = Plugins {
+            active: vec![plugin("php-http/discovery")],
+            skipped: Vec::new(),
+        };
+        let covered = cover(&mut plugins, &refs, ctx(&Map::new()));
+        assert_eq!(covered.hooks.roles, [Role::PhpHttpDiscovery]);
+        assert!(matches!(plugins.active[0].adapter, Adapter::Native(_)));
+
+        let pinned = obj(json!({"discovery": {"psr/http-client-implementation": "Foo"}}));
+        let mut plugins = Plugins {
+            active: vec![plugin("php-http/discovery")],
+            skipped: Vec::new(),
+        };
+        assert_eq!(cover(&mut plugins, &refs, ctx(&pinned)), Covered::default());
+        assert!(matches!(
+            &plugins.active[0].adapter,
+            Adapter::Declined(why) if why.contains("extra.discovery pins")
+        ));
     }
 }
