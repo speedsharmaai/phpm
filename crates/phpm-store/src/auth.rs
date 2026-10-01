@@ -22,17 +22,43 @@ use crate::error::{Error, Result};
 /// Composer: Util/Bitbucket.php `OAUTH2_ACCESS_TOKEN_URL`.
 pub const BITBUCKET_TOKEN_URL: &str = "https://bitbucket.org/site/oauth2/access_token";
 
-/// One domain's credential as Composer's IO keeps it: a username and a
-/// password, where marker passwords (`bearer`, `x-oauth-basic`, ...) say
-/// what kind of header to send.
+/// Which config key a domain's credential came from; Composer encodes this
+/// as a marker in the stored password (`bearer`, `x-oauth-basic`, ...).
+#[derive(Clone, PartialEq, Eq)]
+enum Kind {
+    Basic,
+    Bearer,
+    Github,
+    GitlabOauth,
+    GitlabPrivate,
+    CustomHeaders,
+    /// `bitbucket-oauth`, with the stored access token and its expiry if any.
+    Bitbucket(Option<(String, i64)>),
+}
+
+/// One domain's credential as Composer's IO keeps it.
 #[derive(Clone, PartialEq, Eq)]
 struct Entry {
-    username: String,
-    password: String,
-    /// From `bitbucket-oauth`: a consumer key and secret.
-    consumer: bool,
-    /// `bitbucket-oauth`: the access token and its expiry, when auth.json has one.
-    bitbucket_token: Option<(String, i64)>,
+    kind: Kind,
+    user: String,
+    pass: String,
+}
+
+impl Entry {
+    fn new(kind: Kind, user: String, pass: String) -> Self {
+        Self { kind, user, pass }
+    }
+
+    /// The pair Composer would base64 for basic auth.
+    fn basic_pair(&self) -> (&str, &str) {
+        let marker = match self.kind {
+            Kind::Github => "x-oauth-basic",
+            Kind::GitlabOauth => "oauth2",
+            Kind::GitlabPrivate => "private-token",
+            _ => self.pass.as_str(),
+        };
+        (self.user.as_str(), marker)
+    }
 }
 
 /// What to send with one request, after the auth for its origin is applied.
@@ -258,10 +284,7 @@ impl Auth {
             };
             let token = str_field(&cred, "access-token")
                 .zip(cred.get("access-token-expiration").and_then(Value::as_i64));
-            auth.set(&domain, key, secret, token);
-            if let Some(e) = auth.entries.get_mut(&domain) {
-                e.consumer = true;
-            }
+            auth.set(&domain, Entry::new(Kind::Bitbucket(token), key, secret));
         }
         for (domain, token) in section("github-oauth") {
             let token = token
@@ -270,7 +293,10 @@ impl Auth {
             if domain != "github.com" {
                 add_domain(&mut auth.github_domains, &domain);
             }
-            auth.set(&domain, token.to_owned(), "x-oauth-basic".to_owned(), None);
+            auth.set(
+                &domain,
+                Entry::new(Kind::Github, token.to_owned(), String::new()),
+            );
         }
         for (domain, token) in section("gitlab-oauth") {
             let token = match &token {
@@ -281,25 +307,26 @@ impl Auth {
             if domain != "gitlab.com" {
                 add_domain(&mut auth.gitlab_domains, &domain);
             }
-            auth.set(&domain, token, "oauth2".to_owned(), None);
+            auth.set(&domain, Entry::new(Kind::GitlabOauth, token, String::new()));
         }
         for (domain, token) in section("gitlab-token") {
-            let (user, pass) = match &token {
-                Value::String(s) => (s.clone(), "private-token".to_owned()),
+            let entry = match &token {
+                Value::String(s) => Entry::new(Kind::GitlabPrivate, s.clone(), String::new()),
                 other => str_field(other, "username")
                     .zip(str_field(other, "token"))
+                    .map(|(user, token)| Entry::new(Kind::Basic, user, token))
                     .ok_or_else(|| bad("gitlab-token", &domain, "needs username and token"))?,
             };
             if domain != "gitlab.com" {
                 add_domain(&mut auth.gitlab_domains, &domain);
             }
-            auth.set(&domain, user, pass, None);
+            auth.set(&domain, entry);
         }
         for (domain, cred) in section("forgejo-token") {
             let (user, token) = str_field(&cred, "username")
                 .zip(str_field(&cred, "token"))
                 .ok_or_else(|| bad("forgejo-token", &domain, "needs username and token"))?;
-            auth.set(&domain, user, token, None);
+            auth.set(&domain, Entry::new(Kind::Basic, user, token));
         }
         for (domain, cred) in section("http-basic") {
             let (user, pass) = str_field(&cred, "username")
@@ -311,13 +338,16 @@ impl Auth {
                         "entries need username and password strings",
                     )
                 })?;
-            auth.set(&domain, user, pass, None);
+            auth.set(&domain, Entry::new(Kind::Basic, user, pass));
         }
         for (domain, token) in section("bearer") {
             let token = token
                 .as_str()
                 .ok_or_else(|| bad("bearer", &domain, "tokens must be strings"))?;
-            auth.set(&domain, token.to_owned(), "bearer".to_owned(), None);
+            auth.set(
+                &domain,
+                Entry::new(Kind::Bearer, token.to_owned(), String::new()),
+            );
         }
         for (domain, headers) in section("custom-headers") {
             if headers.is_null() {
@@ -329,30 +359,18 @@ impl Auth {
                 .ok_or_else(|| bad("custom-headers", &domain, "must be a list of strings"))?;
             auth.set(
                 &domain,
-                Value::Array(list.clone()).to_string(),
-                "custom-headers".to_owned(),
-                None,
+                Entry::new(
+                    Kind::CustomHeaders,
+                    Value::Array(list.clone()).to_string(),
+                    String::new(),
+                ),
             );
         }
         Ok(auth)
     }
 
-    fn set(
-        &mut self,
-        domain: &str,
-        username: String,
-        password: String,
-        bitbucket_token: Option<(String, i64)>,
-    ) {
-        self.entries.insert(
-            domain.to_owned(),
-            Entry {
-                username,
-                password,
-                consumer: false,
-                bitbucket_token,
-            },
-        );
+    fn set(&mut self, domain: &str, entry: Entry) {
+        self.entries.insert(domain.to_owned(), entry);
     }
 
     /// Composer: Util/Url.php getOrigin.
@@ -399,76 +417,66 @@ impl Auth {
     // Composer: Util/AuthHelper.php addAuthenticationOptions
     pub fn credential(&self, url: &Url, inline: Option<(String, String)>) -> Option<Credential> {
         let origin = self.origin(url);
-        let inline_entry = inline.map(|(username, password)| Entry {
-            username,
-            password,
-            consumer: false,
-            bitbucket_token: None,
-        });
+        let inline_entry = inline.map(|(user, pass)| Entry::new(Kind::Basic, user, pass));
         let (origin, entry) = match &inline_entry {
             Some(e) => (origin.as_str(), e),
             None => self.find(&origin)?,
         };
         let header =
             |name: &str, value: String| Some(Credential::Headers(vec![(name.to_owned(), value)]));
-        let (user, pass) = (entry.username.as_str(), entry.password.as_str());
-        if pass == "bearer" {
-            return header("Authorization", format!("Bearer {user}"));
-        }
-        if pass == "custom-headers" {
-            let list: Vec<String> = serde_json::from_str(user).unwrap_or_default();
-            return Some(Credential::Headers(
-                list.iter()
-                    .filter_map(|h| h.split_once(':'))
-                    .map(|(n, v)| (n.trim().to_owned(), v.trim().to_owned()))
-                    .collect(),
-            ));
-        }
-        if origin == "github.com" && pass == "x-oauth-basic" {
-            let api = matches!(url.scheme(), "http" | "https")
-                && url.host_str() == Some("api.github.com");
-            return if api {
-                header("Authorization", format!("token {user}"))
-            } else {
-                None
-            };
-        }
-        if matches!(pass, "oauth2" | "private-token" | "gitlab-ci-token")
-            && self.gitlab_domains.iter().any(|d| d == origin)
-        {
-            return if pass == "oauth2" {
-                header("Authorization", format!("Bearer {user}"))
-            } else {
-                header("PRIVATE-TOKEN", user.to_owned())
-            };
-        }
-        if origin == "bitbucket.org" && url.as_str() != self.bitbucket_token_url {
-            if user == "x-token-auth" {
-                return if is_public_bitbucket_download(url) {
-                    None
+        let user = entry.user.as_str();
+        match &entry.kind {
+            Kind::Bearer => return header("Authorization", format!("Bearer {user}")),
+            Kind::CustomHeaders => {
+                let list: Vec<String> = serde_json::from_str(user).unwrap_or_default();
+                return Some(Credential::Headers(
+                    list.iter()
+                        .filter_map(|h| h.split_once(':'))
+                        .map(|(n, v)| (n.trim().to_owned(), v.trim().to_owned()))
+                        .collect(),
+                ));
+            }
+            Kind::Github if origin == "github.com" => {
+                let api = matches!(url.scheme(), "http" | "https")
+                    && url.host_str() == Some("api.github.com");
+                return if api {
+                    header("Authorization", format!("token {user}"))
                 } else {
-                    header("Authorization", format!("Bearer {pass}"))
+                    None
                 };
             }
-            if let Some((token, expires)) = &entry.bitbucket_token
-                && now() <= *expires
-            {
-                return if is_public_bitbucket_download(url) {
+            Kind::GitlabOauth if self.gitlab_domains.iter().any(|d| d == origin) => {
+                return header("Authorization", format!("Bearer {user}"));
+            }
+            Kind::GitlabPrivate if self.gitlab_domains.iter().any(|d| d == origin) => {
+                return header("PRIVATE-TOKEN", user.to_owned());
+            }
+            _ => {}
+        }
+        if origin == "bitbucket.org" && url.as_str() != self.bitbucket_token_url {
+            let public = is_public_bitbucket_download(url);
+            let bearer = |token: &str| {
+                if public {
                     None
                 } else {
                     header("Authorization", format!("Bearer {token}"))
-                };
-            }
-            if entry.consumer && !is_public_bitbucket_download(url) {
-                return Some(Credential::BitbucketConsumer {
-                    key: user.to_owned(),
-                    secret: pass.to_owned(),
-                });
+                }
+            };
+            match &entry.kind {
+                Kind::Basic if user == "x-token-auth" => return bearer(&entry.pass),
+                Kind::Bitbucket(Some((token, expires))) if now() <= *expires => {
+                    return bearer(token);
+                }
+                Kind::Bitbucket(_) if !public => {
+                    return Some(Credential::BitbucketConsumer {
+                        key: entry.user.clone(),
+                        secret: entry.pass.clone(),
+                    });
+                }
+                _ => {}
             }
         }
-        if user == "client-certificate" {
-            return None;
-        }
+        let (user, pass) = entry.basic_pair();
         header("Authorization", basic(user, pass))
     }
 
