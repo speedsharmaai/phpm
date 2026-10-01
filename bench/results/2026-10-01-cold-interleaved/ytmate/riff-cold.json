@@ -1,0 +1,33 @@
+{
+  "results": [
+    {
+      "command": "riff cold",
+      "mean": 14.87832386975,
+      "stddev": 6.983639534613797,
+      "median": 13.1942853125,
+      "min": 7.64912125,
+      "max": 27.751136125,
+      "times": [
+        12.175825667,
+        7.76421275,
+        15.62299325,
+        11.627343292,
+        22.223213666,
+        27.751136125,
+        7.64912125,
+        14.212744958
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "note": "one hyperfine run per round, tools interleaved per round, every cache deleted before each run"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "results": [
+    {
+      "command": "vivacity cold",
+      "mean": 11.69382365625,
+      "stddev": 3.032859739348204,
+      "median": 11.696122728999999,
+      "min": 7.980479875,
+      "max": 17.434308292,
+      "times": [
+        17.434308292,
+        11.227700375,
+        8.78152525,
+        13.69188025,
+        12.164545083,
+        9.701788667,
+        7.980479875,
+        12.568361458
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "note": "one hyperfine run per round, tools interleaved per round, every cache deleted before each run"
+    }
+  ]
+}

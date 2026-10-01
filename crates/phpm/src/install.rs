@@ -729,9 +729,16 @@ fn install(
     let mut sizes: BTreeMap<String, u64> = BTreeMap::new();
     if !missing.is_empty() {
         let n = net(&mut network, &files.root, config.as_ref())?;
+        let then: Arc<dyn Fn(&Path) + Send + Sync> = match &cache_dir {
+            Some(cache) => {
+                let (store_root, classes) = (store.root().to_owned(), cache_root(cache));
+                Arc::new(move |dir: &Path| crate::classes::prebuild(&store_root, &classes, dir))
+            }
+            None => Arc::new(|_: &Path| {}),
+        };
         let fetched = match n
             .runtime
-            .block_on(store.fetch_missing_sized(&n.fetcher, &missing))
+            .block_on(store.fetch_missing_then(&n.fetcher, &missing, then))
         {
             Ok(fetched) => fetched,
             Err(e) => {

@@ -105,6 +105,21 @@ fn parse(text: &str, vendor_dir: &str, out: &mut Vec<(String, Vec<String>)>) {
     }
 }
 
+/// Scan a tree just extracted into the store, so the autoload dump finds its
+/// cache; called while other downloads are still running.
+pub(crate) fn prebuild(store_root: &Path, cache_root: &Path, dir: &Path) {
+    if let Ok(rel) = dir.strip_prefix(store_root) {
+        let tree = Tree {
+            store_dir: dir.to_owned(),
+            cache_file: cache_root.join(rel),
+            vendor_dir: String::new(),
+        };
+        if !tree.cache_file.is_file() {
+            let _ = build(&tree);
+        }
+    }
+}
+
 /// Every cached scan for `trees`, building what is missing on all cores.
 /// A tree that cannot be cached is left out, and the autoloader reads it.
 pub(crate) fn known_classes(trees: &[Tree]) -> HashMap<String, Vec<String>> {
@@ -171,6 +186,22 @@ mod tests {
         fs::write(store.join("src/A.php"), "<?php class Changed {}").unwrap();
         let again = known_classes(std::slice::from_ref(&tree));
         assert_eq!(again["/v/a/b/src/A.php"], ["X\\A"], "read from the cache");
+    }
+
+    #[test]
+    fn prebuilds_the_cache_for_a_store_tree() {
+        let tmp = tempfile::tempdir().unwrap();
+        let store = tmp.path().join("store");
+        let dir = store.join("a~b/ref");
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(dir.join("A.php"), "<?php class A {}").unwrap();
+        let cache = tmp.path().join("cache");
+        super::prebuild(&store, &cache, &dir);
+        assert_eq!(
+            fs::read_to_string(cache.join("a~b/ref")).unwrap(),
+            "A.php\tA\n"
+        );
+        super::prebuild(&store, &cache, tmp.path());
     }
 
     #[test]

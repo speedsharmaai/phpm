@@ -1,0 +1,33 @@
+{
+  "results": [
+    {
+      "command": "composer cold",
+      "mean": 18.927491525875,
+      "stddev": 6.118962215878552,
+      "median": 17.8507282705,
+      "min": 11.7127905,
+      "max": 26.454995667,
+      "times": [
+        26.331538583,
+        26.454995667,
+        16.183761125,
+        24.390089083,
+        11.7127905,
+        13.248836458,
+        19.517695416,
+        13.580225375
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "note": "one hyperfine run per round, tools interleaved per round, every cache deleted before each run"
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 //! Dist downloads: bounded per host class, retried, verified, buffered in memory.
 
 use std::collections::BTreeMap;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Once};
 use std::time::Duration;
 
@@ -33,6 +34,12 @@ pub struct FetchOptions {
     pub max_bytes: u64,
     /// Hosts whose HTTP 400 is retried (codeload answers 400 on some reused connections).
     pub retry_400_hosts: Vec<String>,
+    /// HTTP/2 connections per host for dists, so one TCP window does not cap
+    /// a download that is bound by bandwidth.
+    pub dist_connections: usize,
+    /// Fetch public GitHub zipballs pinned to a commit straight from
+    /// codeload, skipping the api.github.com redirect.
+    pub direct_codeload: bool,
     pub auth: Auth,
 }
 
@@ -40,12 +47,14 @@ impl Default for FetchOptions {
     fn default() -> Self {
         Self {
             packagist_concurrency: 10,
-            github_concurrency: 24,
+            github_concurrency: 48,
             other_concurrency: 10,
             retries: 3,
             retry_delay: Duration::from_millis(500),
             max_bytes: 512 << 20,
             retry_400_hosts: vec!["codeload.github.com".into()],
+            dist_connections: 8,
+            direct_codeload: true,
             auth: Auth::default(),
         }
     }
@@ -55,6 +64,8 @@ impl Default for FetchOptions {
 #[derive(Debug, Clone)]
 pub struct Fetcher {
     client: reqwest::Client,
+    dist_clients: Arc<Vec<reqwest::Client>>,
+    next_client: Arc<AtomicUsize>,
     packagist: Arc<Semaphore>,
     github: Arc<Semaphore>,
     other: Arc<Semaphore>,
@@ -73,19 +84,28 @@ impl Fetcher {
         PROVIDER.call_once(|| {
             let _ = rustls::crypto::ring::default_provider().install_default();
         });
-        let client = reqwest::Client::builder()
-            .user_agent(USER_AGENT)
-            .connect_timeout(Duration::from_secs(30))
-            .read_timeout(Duration::from_secs(60))
-            .pool_max_idle_per_host(options.github_concurrency)
-            .redirect(reqwest::redirect::Policy::none())
-            .build()
-            .map_err(|e| Error::Download {
-                url: String::new(),
-                reason: e.to_string(),
-            })?;
+        let build = || {
+            reqwest::Client::builder()
+                .user_agent(USER_AGENT)
+                .connect_timeout(Duration::from_secs(30))
+                .read_timeout(Duration::from_secs(60))
+                .pool_max_idle_per_host(options.github_concurrency)
+                .redirect(reqwest::redirect::Policy::none())
+                .build()
+                .map_err(|e| Error::Download {
+                    url: String::new(),
+                    reason: e.to_string(),
+                })
+        };
+        let client = build()?;
+        let mut dist_clients = vec![client.clone()];
+        for _ in 1..options.dist_connections {
+            dist_clients.push(build()?);
+        }
         Ok(Self {
             client,
+            dist_clients: Arc::new(dist_clients),
+            next_client: Arc::new(AtomicUsize::new(0)),
             packagist: Arc::new(Semaphore::new(options.packagist_concurrency.max(1))),
             github: Arc::new(Semaphore::new(options.github_concurrency.max(1))),
             other: Arc::new(Semaphore::new(options.other_concurrency.max(1))),
@@ -127,20 +147,40 @@ impl Fetcher {
             .await
             .map_err(|e| download_err(e.to_string()))?;
 
+        let direct = if self.options.direct_codeload {
+            codeload(&parsed, &self.options.auth)
+        } else {
+            None
+        };
+        let bytes = match direct {
+            Some(direct) => match self.attempts(&direct).await {
+                Ok(bytes) => bytes,
+                Err(_) => self.attempts(&parsed).await?,
+            },
+            None => self.attempts(&parsed).await?,
+        };
+        verify(url, shasum, bytes)
+    }
+
+    /// GET `url`, retrying transient failures.
+    async fn attempts(&self, url: &Url) -> Result<Vec<u8>> {
         let mut attempt = 0;
-        let bytes = loop {
-            match self.attempt(&parsed).await {
-                Ok(bytes) => break bytes,
+        loop {
+            match self.attempt(url).await {
+                Ok(bytes) => return Ok(bytes),
                 Err(Failure::Retry(_)) if attempt < self.options.retries => {
                     tokio::time::sleep(self.options.retry_delay * 2_u32.pow(attempt)).await;
                     attempt += 1;
                 }
-                Err(Failure::Retry(reason)) => return Err(download_err(reason)),
+                Err(Failure::Retry(reason)) => {
+                    return Err(Error::Download {
+                        url: sanitize(url.as_str()),
+                        reason,
+                    });
+                }
                 Err(Failure::Fatal(e)) => return Err(e),
             }
-        };
-
-        verify(url, shasum, bytes)
+        }
     }
 
     // Composer: Util/Bitbucket.php requestToken, requestAccessToken
@@ -217,6 +257,7 @@ impl Fetcher {
     /// credentials are worked out again for every host.
     async fn send(
         &self,
+        client: &reqwest::Client,
         start: &Url,
         method: &reqwest::Method,
         body: Option<&[u8]>,
@@ -225,7 +266,7 @@ impl Fetcher {
         let mut url = start.clone();
         for _ in 0..=MAX_REDIRECTS {
             let (bare, headers) = self.headers_for(&url).await?;
-            let mut request = self.client.request(method.clone(), bare.clone());
+            let mut request = client.request(method.clone(), bare.clone());
             for (name, value) in headers {
                 request = request.header(name, value);
             }
@@ -290,7 +331,10 @@ impl Fetcher {
         };
         let mut attempt = 0;
         loop {
-            let outcome = match self.send(&parsed, &method, body, &extra).await {
+            let outcome = match self
+                .send(&self.client, &parsed, &method, body, &extra)
+                .await
+            {
                 Ok(r) => {
                     let status = r.status();
                     if status.is_server_error() || status == StatusCode::TOO_MANY_REQUESTS {
@@ -337,7 +381,16 @@ impl Fetcher {
                 reason,
             })
         };
-        let mut response = self.send(start, &reqwest::Method::GET, None, &[]).await?;
+        let i = self.next_client.fetch_add(1, Ordering::Relaxed) % self.dist_clients.len();
+        let mut response = self
+            .send(
+                &self.dist_clients[i],
+                start,
+                &reqwest::Method::GET,
+                None,
+                &[],
+            )
+            .await?;
         let status = response.status();
         if !status.is_success() {
             let reason = format!("HTTP {status}");
@@ -375,6 +428,37 @@ impl Fetcher {
         }
         Ok(body)
     }
+}
+
+/// `https://codeload.github.com/<owner>/<repo>/legacy.zip/<sha>` for a
+/// public `api.github.com` zipball pinned to a full commit: the URL the API
+/// redirects to, with the same bytes. `None` when a GitHub token applies,
+/// since private repositories need the API's signed redirect.
+fn codeload(url: &Url, auth: &Auth) -> Option<Url> {
+    if url.scheme() != "https"
+        || url.host_str() != Some("api.github.com")
+        || url.query().is_some()
+        || auth.credential(url, None).is_some()
+    {
+        return None;
+    }
+    let parts: Vec<&str> = url.path_segments()?.collect();
+    let ["repos", owner, repo, "zipball", sha] = parts.as_slice() else {
+        return None;
+    };
+    let pinned = sha.len() == 40 && sha.bytes().all(|b| b.is_ascii_hexdigit());
+    let plain = |s: &str| {
+        !s.is_empty()
+            && s.bytes()
+                .all(|b| b.is_ascii_alphanumeric() || b"-_.".contains(&b))
+    };
+    if !pinned || !plain(owner) || !plain(repo) {
+        return None;
+    }
+    Url::parse(&format!(
+        "https://codeload.github.com/{owner}/{repo}/legacy.zip/{sha}"
+    ))
+    .ok()
 }
 
 fn verify(url: &str, shasum: Option<&str>, bytes: Vec<u8>) -> Result<Vec<u8>> {
@@ -522,6 +606,44 @@ mod tests {
         let (base, _) = token_server("200 OK", r#"{"nope":1}"#).await;
         let fetcher = consumer_fetcher(format!("{base}/token"));
         assert!(fetcher.headers_for(&url).await.is_err());
+    }
+
+    #[test]
+    fn goes_straight_to_codeload_for_public_pinned_zipballs() {
+        let sha = "2effe05d2177c451b86c6a073196a4034c02f211";
+        let direct = |url: &str, auth: &Auth| {
+            super::codeload(&Url::parse(url).unwrap(), auth).map(|u| u.to_string())
+        };
+        let none = Auth::default();
+        assert_eq!(
+            direct(
+                &format!("https://api.github.com/repos/brick/math/zipball/{sha}"),
+                &none
+            ),
+            Some(format!(
+                "https://codeload.github.com/brick/math/legacy.zip/{sha}"
+            ))
+        );
+        for url in [
+            "https://api.github.com/repos/brick/math/zipball/main".to_owned(),
+            format!("https://api.github.com/repos/brick/math/tarball/{sha}"),
+            format!("https://api.github.com/repos/brick/math/zipball/{sha}?x=1"),
+            format!("http://api.github.com/repos/brick/math/zipball/{sha}"),
+            format!("https://github.example/repos/brick/math/zipball/{sha}"),
+            format!("https://api.github.com/repos/br%20ick/math/zipball/{sha}"),
+            format!("https://api.github.com/repos/brick/math/zipball/{sha}/extra"),
+        ] {
+            assert_eq!(direct(&url, &none), None, "{url}");
+        }
+        let token = Auth::from_json("t", r#"{"github-oauth":{"github.com":"ghp_x"}}"#).unwrap();
+        assert_eq!(
+            direct(
+                &format!("https://api.github.com/repos/brick/math/zipball/{sha}"),
+                &token
+            ),
+            None,
+            "a token may be for a private repository"
+        );
     }
 
     #[test]

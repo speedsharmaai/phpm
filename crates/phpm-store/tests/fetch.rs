@@ -201,6 +201,23 @@ async fn fetches_extracts_and_places_packages() {
     assert_eq!(server.hits("/flaky.zip"), 3);
     assert_eq!(server.hits("/pkg/moved.zip"), 1);
 
+    let extracted = Arc::new(Mutex::new(Vec::new()));
+    let seen = Arc::clone(&extracted);
+    let more = vec![package("acme/more", server.url("/pkg/more.zip"))];
+    let sized = store
+        .fetch_missing_then(
+            &fetcher,
+            &more,
+            Arc::new(move |dir: &Path| seen.lock().unwrap().push(dir.to_owned())),
+        )
+        .await
+        .unwrap();
+    assert_eq!(sized.len(), 1);
+    assert_eq!(
+        *extracted.lock().unwrap(),
+        [store.path("acme/more", "ref-acme-more").unwrap()]
+    );
+
     let again = store.fetch_missing(&fetcher, &packages).await.unwrap();
     assert!(again.is_empty());
     assert_eq!(server.hits("/pkg/plain.zip"), 1);

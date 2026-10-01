@@ -1,0 +1,33 @@
+{
+  "results": [
+    {
+      "command": "phpm cold",
+      "mean": 13.032556536375001,
+      "stddev": 5.285836143570467,
+      "median": 11.647390937,
+      "min": 8.671564417,
+      "max": 24.125802,
+      "times": [
+        8.989384542,
+        8.671564417,
+        24.125802,
+        16.804786583,
+        13.573612875,
+        10.982222916,
+        8.80052,
+        12.312558958
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "note": "one hyperfine run per round, tools interleaved per round, every cache deleted before each run"
+    }
+  ]
+}
