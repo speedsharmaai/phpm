@@ -1,0 +1,47 @@
+[package]
+name = "phpm-fuzz"
+version = "0.0.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[workspace]
+members = ["."]
+
+[[bin]]
+bench = false
+doc = false
+name = "lockfile"
+path = "fuzz_targets/lockfile.rs"
+test = false
+
+[[bin]]
+bench = false
+doc = false
+name = "version"
+path = "fuzz_targets/version.rs"
+test = false
+
+[[bin]]
+bench = false
+doc = false
+name = "classes"
+path = "fuzz_targets/classes.rs"
+test = false
+
+[[bin]]
+bench = false
+doc = false
+name = "zip"
+path = "fuzz_targets/zip.rs"
+test = false
+
+[dependencies]
+libfuzzer-sys = "0.4.12"
+phpm-autoload = { path = "../crates/phpm-autoload" }
+phpm-lock = { path = "../crates/phpm-lock" }
+phpm-store = { path = "../crates/phpm-store" }
+tempfile = "3.20"

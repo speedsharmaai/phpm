@@ -363,3 +363,32 @@ ytmate a tie within the noise, because ytmate's time is one 6.9 MB archive
 that codeload streams on one connection with no length and no ranges, and
 every tool waits for it the same way. viv was not in this run (it was not
 ahead of riff or vivacity cold at the gate).
+
+### Fuzzing
+
+`fuzz/` is a cargo-fuzz crate outside the workspace with four targets:
+
+| Target | What it feeds |
+|---|---|
+| `lockfile` | `ComposerJson::parse`, `Lock::parse`, the lock's package lists, aliases, and every link constraint through `constraint::parse` |
+| `version` | `version::normalize`, `normalize_branch`, numeric alias prefixes, `constraint::parse`, bounds, matching and `version_compare` |
+| `classes` | `strip_whitespace` (short tags on and off) and `find_classes` (with and without enums) |
+| `zip` | `Store::insert_zip` and `insert_tar` into a store inside a temp dir; fails if anything is written next to the store |
+
+`.github/workflows/fuzz.yml` runs each target for five minutes every Monday
+and on demand (`seconds` input), installing nightly in CI only, and uploads
+`fuzz/artifacts/<target>` when a target fails. CI's `fuzz-targets` job (and
+`just fuzz-check`) builds the crate on stable so an API change cannot break
+it silently.
+
+Found so far, before the first scheduled run, by running the targets built on
+stable (no coverage feedback) for 30-180 s each:
+
+- `version`: `~` or `^` on a number past `PHP_INT_MAX` overflowed an `i64`
+  (debug panic, release wrap-around). PHP turns the sum into a float and
+  prints it with `precision` 14, so `~9223372036854775807` has the upper
+  bound `9.2233720368548E+18.0.0.0-dev`. Ported, with a regression test
+  holding five bounds recorded from composer/semver 3.4.4.
+- A wrong assertion of mine, not a bug: `normalize` is not idempotent in
+  composer/semver either (`2222-222222222222222` normalises to
+  `2222.222222222222222`, which normalises to `2222.222222222222222.0.0`).

@@ -7,3 +7,7 @@
 /clippy.json
 /junit.xml
 /.sonar
+/fuzz/target
+/fuzz/corpus
+/fuzz/artifacts
+/fuzz/coverage
