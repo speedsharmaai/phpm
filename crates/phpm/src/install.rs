@@ -206,6 +206,7 @@ struct Locked {
     dir: String,
     /// Placed relative to the project rather than to `vendor/`.
     in_project: bool,
+    abandoned: Option<Abandonment>,
 }
 
 fn text(map: &Map<String, Value>, key: &str) -> Option<String> {
@@ -258,6 +259,7 @@ fn locked(
             plugin,
             dir: String::new(),
             in_project: false,
+            abandoned: abandoned(entry),
         });
     }
     let dist = entry.get("dist");
@@ -314,6 +316,7 @@ fn locked(
         plugin,
         dir,
         in_project,
+        abandoned: abandoned(entry),
     })
 }
 
@@ -428,15 +431,22 @@ fn local_dist_url(url: &str, root: &Path) -> String {
     }
 }
 
+// Composer: DependencyResolver/Transaction.php calculateOperations, the
+// present-package branch: an Update is queued (so the package gets
+// reinstalled) if the version, dist reference, abandoned flag or suggested
+// replacement differ, on top of Composer's own already-dist/right-place check.
 fn unchanged(prev: Option<&Previous>, l: &Locked) -> bool {
     let (Some(prev), Some(package)) = (prev, &l.package) else {
         return false;
     };
+    // installation-source (dist vs source) plays no part in Composer's own
+    // comparison: a package it originally built from source stays that way,
+    // git files and all, for as long as everything below still matches.
     prev.version == l.version
         && prev.reference == package.dist.reference
-        && prev.source.as_deref() == Some("dist")
         && prev.install_path.as_deref() == Some(l.dir.as_str())
         && Path::new(&l.dir).is_dir()
+        && abandoned(&prev.raw) == l.abandoned
 }
 
 /// Composer removes a package from wherever its installer put it; phpm
@@ -1633,6 +1643,31 @@ mod tests {
         fs::create_dir_all(tmp.path().join("a/b")).unwrap();
         assert!(unchanged(before.get("a/b"), &l));
         assert!(!unchanged(None, &l));
+
+        // Composer reinstalls (and so phpm re-places) a package whose
+        // locked "abandoned" no longer matches what installed.json has,
+        // even though nothing else about it changed: Transaction.php
+        // calculateOperations queues an Update for that alone.
+        let mut newly_abandoned = zip_entry("a/b");
+        newly_abandoned.insert("abandoned".into(), Value::Bool(true));
+        let l2 = locked(&newly_abandoned, &c, &vendor, "/p", &Paths::default()).unwrap();
+        assert!(!unchanged(before.get("a/b"), &l2));
+
+        fs::write(
+            tmp.path().join("composer/installed.json"),
+            json!({"packages": [
+                {"name": "a/b", "version": "1.0.0", "dist": {"reference": "abc"},
+                 "installation-source": "source", "install-path": "../a/b"},
+            ]})
+            .to_string(),
+        )
+        .unwrap();
+        // installation-source only records which of dist/source a package
+        // last came from; Composer's own comparison (version, dist
+        // reference, source reference, abandoned) does not look at it, so
+        // one phpm originally placed via a path repo or that a user built
+        // from source by hand is still left alone once it matches.
+        assert!(unchanged(previous(&vendor).get("a/b"), &l));
 
         fs::write(
             tmp.path().join("composer/installed.json"),
