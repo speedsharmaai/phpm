@@ -1,7 +1,11 @@
 # Fixtures
 
-Pinned `composer.json` + `composer.lock` pairs. Never updated during a phase;
-a new snapshot is a new directory. Excluded from every formatter and hook, and
+Pinned `composer.json` + `composer.lock` pairs, stored as `fixture.json` and
+`fixture.lock` so GitHub's dependency graph does not treat them as this
+repository's dependencies (they pin old, sometimes vulnerable versions on
+purpose). Tests and `tools/bench` copy them back to the Composer names.
+
+Never updated during a phase; a new snapshot is a new directory. Excluded from every formatter and hook, and
 marked `-text` in `.gitattributes`, because phpm's output is compared to
 Composer's byte for byte.
 

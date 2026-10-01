@@ -104,12 +104,11 @@ fn check(fixture: &str, dev_mode: bool) {
         .join(fixture)
         .join(if dev_mode { "dev" } else { "no-dev" });
     let composer = ComposerJson::parse(
-        &std::fs::read_to_string(source.join("composer.json")).expect("fixture"),
+        &std::fs::read_to_string(source.join("fixture.json")).expect("fixture"),
     )
     .expect("fixture");
-    let lock =
-        Lock::parse(&std::fs::read_to_string(source.join("composer.lock")).expect("fixture"))
-            .expect("fixture");
+    let lock = Lock::parse(&std::fs::read_to_string(source.join("fixture.lock")).expect("fixture"))
+        .expect("fixture");
 
     let work = tempfile::tempdir().expect("temp dir");
     let real = work.path().canonicalize().expect("real path");

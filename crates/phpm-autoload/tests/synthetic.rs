@@ -15,8 +15,8 @@ fn data(name: &str) -> String {
 
 #[test]
 fn matches_composer_dump_autoload() {
-    let composer = ComposerJson::parse(&data("composer.json")).unwrap();
-    let lock = Lock::parse(&data("composer.lock")).unwrap();
+    let composer = ComposerJson::parse(&data("fixture.json")).unwrap();
+    let lock = Lock::parse(&data("fixture.lock")).unwrap();
     let dir = tempfile::tempdir().unwrap();
     let root = dir
         .path()
