@@ -32,29 +32,34 @@ pub fn main(args: &[String], out: &mut dyn Write, err: &mut dyn Write) -> u8 {
 
 type Options<'a> = BTreeMap<&'a str, Vec<&'a str>>;
 
-/// Positional arguments and `--name value` options; `--name` may repeat.
+/// The index just past the run of values following an `--name` at `start`:
+/// every argument up to the next `--flag` or the end.
+fn value_run_end(args: &[String], start: usize) -> usize {
+    args[start..]
+        .iter()
+        .position(|a| a.starts_with("--"))
+        .map_or(args.len(), |offset| start + offset)
+}
+
+/// Positional arguments and `--name value...` options; a name may repeat
+/// and take more than one value before the next `--name`.
 fn split_args(args: &[String]) -> Result<(Vec<&str>, Options<'_>), String> {
     let mut positional = Vec::new();
     let mut options = Options::new();
-    let mut it = args.iter();
-    while let Some(a) = it.next() {
-        if let Some(name) = a.strip_prefix("--") {
-            let mut values = Vec::new();
-            while it
-                .clone()
-                .next()
-                .is_some_and(|next| !next.starts_with("--"))
-            {
-                let Some(next) = it.next() else { break };
-                values.push(next.as_str());
-            }
-            if values.is_empty() {
-                return Err(format!("--{name} needs a value"));
-            }
-            options.entry(name).or_default().extend(values);
-        } else {
-            positional.push(a.as_str());
+    let mut i = 0;
+    while i < args.len() {
+        let Some(name) = args[i].strip_prefix("--") else {
+            positional.push(args[i].as_str());
+            i += 1;
+            continue;
+        };
+        let end = value_run_end(args, i + 1);
+        if end == i + 1 {
+            return Err(format!("--{name} needs a value"));
         }
+        let values = args[i + 1..end].iter().map(String::as_str);
+        options.entry(name).or_default().extend(values);
+        i = end;
     }
     Ok((positional, options))
 }

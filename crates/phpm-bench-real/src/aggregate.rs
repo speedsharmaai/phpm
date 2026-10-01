@@ -233,38 +233,36 @@ impl Results {
     }
 }
 
-/// The history file with today's headline numbers added (replacing an
-/// entry for the same date).
-pub fn add_history(history: Option<&str>, results: &Results) -> Value {
-    let mut entries: Vec<Value> = history
-        .and_then(|h| serde_json::from_str::<Vec<Value>>(h).ok())
-        .unwrap_or_default();
-    entries.retain(|e| e.get("date").and_then(Value::as_str) != Some(results.date.as_str()));
-    let summary: BTreeMap<&String, Value> = results
+/// One calendar day's headline numbers, keyed by OS.
+fn day_summary(results: &Results) -> Value {
+    let by_os: BTreeMap<&String, Value> = results
         .summary
         .iter()
         .map(|(os, s)| {
-            (
-                os,
-                json!({
-                    "identity_rate": s.identity_rate,
-                    "fallback_rate": s.fallback_rate,
-                    "warm_median_speedup": s.warm.as_ref().map(|w| w.median_speedup),
-                }),
-            )
+            let entry = json!({
+                "identity_rate": s.identity_rate,
+                "fallback_rate": s.fallback_rate,
+                "warm_median_speedup": s.warm.as_ref().map(|w| w.median_speedup),
+            });
+            (os, entry)
         })
         .collect();
-    entries.push(json!({"date": results.date, "summary": summary}));
-    entries.sort_by(|a, b| {
-        let d = |v: &Value| {
-            v.get("date")
-                .and_then(Value::as_str)
-                .unwrap_or("")
-                .to_owned()
-        };
-        d(a).cmp(&d(b))
-    });
-    Value::Array(entries)
+    json!({"date": results.date, "summary": by_os})
+}
+
+/// The history, with today's entry added or replaced, oldest first. Kept
+/// as a date-keyed map while building so a rerun on the same day overwrites
+/// rather than duplicates.
+pub fn add_history(history: Option<&str>, results: &Results) -> Value {
+    let mut by_date: BTreeMap<String, Value> = BTreeMap::new();
+    let previous = history.and_then(|h| serde_json::from_str::<Vec<Value>>(h).ok());
+    for entry in previous.into_iter().flatten() {
+        if let Some(date) = entry.get("date").and_then(Value::as_str) {
+            by_date.insert(date.to_owned(), entry);
+        }
+    }
+    by_date.insert(results.date.clone(), day_summary(results));
+    Value::Array(by_date.into_values().collect())
 }
 
 /// A shields.io endpoint badge with the best (highest-speedup) OS's warm
