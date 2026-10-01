@@ -27,7 +27,7 @@ use tokio::task::JoinSet;
 pub use auth::{Auth, BITBUCKET_TOKEN_URL, Credential, sanitize, split_inline_credentials};
 pub use error::{Error, Result};
 pub use fetch::{FetchOptions, Fetcher, Response, USER_AGENT};
-pub use link::{LinkMode, Placement, place, prune};
+pub use link::{LinkMode, Placement, place, place_unshared, prune};
 pub use store::{Store, cache_dir, store_key};
 
 /// A locked package's `dist`, as `composer.lock` has it.
