@@ -38,8 +38,11 @@ fn live(fixture: &str, dev_mode: bool) {
     let source = manifest.join("../../fixtures").join(fixture);
     let work = tempfile::tempdir().expect("live test setup");
     let root = work.path().canonicalize().expect("live test setup");
-    for file in ["composer.json", "composer.lock"] {
-        std::fs::copy(source.join(file), root.join(file)).expect("live test setup");
+    for (from, to) in [
+        ("fixture.json", "composer.json"),
+        ("fixture.lock", "composer.lock"),
+    ] {
+        std::fs::copy(source.join(from), root.join(to)).expect("live test setup");
     }
 
     let version = Command::new("composer")

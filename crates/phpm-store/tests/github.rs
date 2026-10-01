@@ -49,8 +49,11 @@ async fn vendor_matches_composer_on_wicketyaari() {
     let _ = std::fs::remove_dir_all(&tmp);
     let composer_dir = tmp.join("composer");
     std::fs::create_dir_all(&composer_dir).unwrap();
-    for f in ["composer.json", "composer.lock"] {
-        std::fs::copy(src.join(f), composer_dir.join(f)).unwrap();
+    for (from, to) in [
+        ("fixture.json", "composer.json"),
+        ("fixture.lock", "composer.lock"),
+    ] {
+        std::fs::copy(src.join(from), composer_dir.join(to)).unwrap();
     }
     let status = Command::new("composer")
         .args([
@@ -68,7 +71,7 @@ async fn vendor_matches_composer_on_wicketyaari() {
         .expect("composer must be on PATH");
     assert!(status.success());
 
-    let packages = locked_packages(&src.join("composer.lock"));
+    let packages = locked_packages(&src.join("fixture.lock"));
     let store = Store::new(&tmp.join("cache"));
     let fetcher = Fetcher::new(FetchOptions {
         auth: Auth::load(None).unwrap(),

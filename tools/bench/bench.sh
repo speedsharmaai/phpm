@@ -15,12 +15,12 @@ tools=("$@")
 [ ${#tools[@]} -eq 0 ] && tools=(composer phpm riff viv vivacity)
 
 src="$root/fixtures/$fixture"
-[ -f "$src/composer.lock" ] || { echo "no fixture: $src" >&2; exit 2; }
+[ -f "$src/fixture.lock" ] || { echo "no fixture: $src" >&2; exit 2; }
 work="$root/target/bench/$fixture"
 mkdir -p "$work"
 
 plugin_free=true
-if grep -q '"type": "composer-plugin"' "$src/composer.lock"; then plugin_free=false; fi
+if grep -q '"type": "composer-plugin"' "$src/fixture.lock"; then plugin_free=false; fi
 
 # The runs happen inside the work dir, so relative binary paths are resolved first.
 absolute() {
@@ -57,7 +57,8 @@ for t in "${tools[@]}"; do
   dir="$work/${t:?}"
   rm -rf "${dir:?}"
   mkdir -p "$dir"
-  cp "$src/composer.json" "$src/composer.lock" "$dir/"
+  cp "$src/fixture.json" "$dir/composer.json"
+  cp "$src/fixture.lock" "$dir/composer.lock"
   cmd=$(cmd_for "$t")
   clear_caches="rm -rf ${work:?}/cache ${fake_home:?}/Library/Caches"
 

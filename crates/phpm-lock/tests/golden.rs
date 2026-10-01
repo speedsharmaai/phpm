@@ -14,13 +14,12 @@ fn repo_path(rel: &str) -> PathBuf {
 fn check(fixture: &str, dev_mode: bool) {
     let dir = repo_path(&format!("fixtures/{fixture}"));
     let composer = ComposerJson::parse(
-        &std::fs::read_to_string(dir.join("composer.json")).expect("golden test setup"),
+        &std::fs::read_to_string(dir.join("fixture.json")).expect("golden test setup"),
     )
     .expect("golden test setup");
-    let lock = Lock::parse(
-        &std::fs::read_to_string(dir.join("composer.lock")).expect("golden test setup"),
-    )
-    .expect("golden test setup");
+    let lock =
+        Lock::parse(&std::fs::read_to_string(dir.join("fixture.lock")).expect("golden test setup"))
+            .expect("golden test setup");
     let outside_any_repo = tempfile::tempdir().expect("golden test setup");
     let version =
         root_version(composer.data(), outside_any_repo.path(), None).expect("golden test setup");

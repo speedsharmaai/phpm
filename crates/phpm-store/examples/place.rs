@@ -43,7 +43,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     let fixture =
         fixture.ok_or("usage: place <fixture-dir> [--vendor DIR] [--mode clone|hardlink|copy]")?;
     let vendor = vendor.unwrap_or_else(|| fixture.join("vendor"));
-    let packages = locked_packages(&fixture.join("composer.lock"))?;
+    let packages = locked_packages(&fixture.join("fixture.lock"))?;
     let store = Store::from_env()?;
     let mut out = std::io::stdout().lock();
 

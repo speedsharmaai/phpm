@@ -14,8 +14,11 @@ fn prepare(fixture: &str, dir: &Path) {
     let source = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../fixtures")
         .join(fixture);
-    for file in ["composer.json", "composer.lock"] {
-        std::fs::copy(source.join(file), dir.join(file)).unwrap();
+    for (from, to) in [
+        ("fixture.json", "composer.json"),
+        ("fixture.lock", "composer.lock"),
+    ] {
+        std::fs::copy(source.join(from), dir.join(to)).unwrap();
     }
 }
 
