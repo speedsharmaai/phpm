@@ -255,8 +255,14 @@ fn locked(entry: &Map<String, Value>, composer: &ComposerJson) -> Result<Locked,
             "{name} installs from source, and phpm only installs dist archives so far"
         )));
     };
+    let reference = non_empty_text(dist, "reference");
     let url = non_empty_text(dist, "url")
         .ok_or_else(|| Error::install(format!("{name} has a dist without a url")))?;
+    let url = if url.contains('%') {
+        dist_url(&url, &name, &version, reference.as_deref(), &kind)
+    } else {
+        url
+    };
     let mut install_path = name.clone();
     if let Some(target) = text(entry, "target-dir").filter(|t| !t.is_empty() && t != "0") {
         install_path = format!("{install_path}/{target}");
@@ -266,7 +272,7 @@ fn locked(entry: &Map<String, Value>, composer: &ComposerJson) -> Result<Locked,
         Dist {
             kind,
             url,
-            reference: non_empty_text(dist, "reference"),
+            reference,
             shasum: non_empty_text(dist, "shasum"),
         },
     );
@@ -280,6 +286,34 @@ fn locked(entry: &Map<String, Value>, composer: &ComposerJson) -> Result<Locked,
         path,
         plugin,
     })
+}
+
+/// A dist URL with Composer's placeholders filled in.
+// Composer: Package/Package.php getUrls, Util/ComposerMirror.php processUrl
+fn dist_url(url: &str, name: &str, pretty: &str, reference: Option<&str>, kind: &str) -> String {
+    let reference = reference.map_or_else(String::new, |r| {
+        if r.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f')) || r == "%reference%" {
+            r.to_owned()
+        } else {
+            format!("{:x}", md5::compute(r))
+        }
+    });
+    let version = phpm_lock::version::normalize(pretty).unwrap_or_else(|_| pretty.to_owned());
+    let version = if version.contains('/') {
+        format!("{:x}", md5::compute(&version))
+    } else {
+        version
+    };
+    let name = name.to_lowercase();
+    [
+        ("%package%", name.as_str()),
+        ("%version%", version.as_str()),
+        ("%reference%", reference.as_str()),
+        ("%type%", kind),
+        ("%prettyVersion%", pretty),
+    ]
+    .iter()
+    .fold(url.to_owned(), |u, (from, to)| u.replace(from, to))
 }
 
 /// A package `vendor/composer/installed.json` says is installed.
@@ -1177,8 +1211,8 @@ fn summary(placed: usize, removed: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        Previous, Request, bins, locked, notify_on_install, package_line, previous, remove_package,
-        summary, top_files, unchanged,
+        Previous, Request, bins, dist_url, locked, notify_on_install, package_line, previous,
+        remove_package, summary, top_files, unchanged,
     };
     use phpm_autoload::PlatformRequirements;
     use phpm_lock::ComposerJson;
@@ -1190,6 +1224,45 @@ mod tests {
             Value::Object(m) => m,
             _ => unreachable!(),
         }
+    }
+
+    #[test]
+    fn fills_dist_url_placeholders_like_composer() {
+        assert_eq!(
+            dist_url(
+                "https://codeberg.org/api/v1/repos/danb/HtmlDiff/archive/%prettyVersion%.zip",
+                "ssddanbrown/htmldiff",
+                "v2.0.0",
+                Some("abc"),
+                "zip"
+            ),
+            "https://codeberg.org/api/v1/repos/danb/HtmlDiff/archive/v2.0.0.zip"
+        );
+        assert_eq!(
+            dist_url(
+                "m/%package%/%version%/%reference%.%type%",
+                "A/B",
+                "1.2",
+                Some("abc1"),
+                "zip"
+            ),
+            "m/a/b/1.2.0.0/abc1.zip"
+        );
+        assert_eq!(
+            dist_url(
+                "%reference%|%version%",
+                "a/b",
+                "dev-feat/x",
+                Some("v1.0"),
+                "tar"
+            ),
+            format!(
+                "{:x}|{:x}",
+                md5::compute("v1.0"),
+                md5::compute("dev-feat/x")
+            )
+        );
+        assert_eq!(dist_url("x/%reference%", "a/b", "1.0", None, "zip"), "x/");
     }
 
     #[test]

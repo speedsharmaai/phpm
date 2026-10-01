@@ -782,6 +782,7 @@ name = "phpm"
 version = "0.0.0"
 dependencies = [
  "clap",
+ "md5",
  "phpm-autoload",
  "phpm-diffvendor",
  "phpm-lock",
