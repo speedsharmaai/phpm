@@ -56,7 +56,10 @@
     <code>public/</code>, <code>config/</code> and <code>bootstrap/</code>) byte for byte, file modes included.
     <strong>pure</strong> is <code>--no-scripts --no-plugins --ignore-platform-reqs</code>: phpm's own install.
     <strong>default</strong> is <code>--ignore-platform-reqs</code>: what a user gets, including steps phpm hands to Composer.
-    Projects Composer itself cannot install are listed but left out of the ratio. Two differences that come from Composer itself are left out and noted on the row: the random APCu prefix in <code>autoload_real.php</code>, and autoloader files whose order on a first install follows the order packages finished installing (left out only when <code>composer dump-autoload</code> then gives phpm's bytes).</p>
+    Projects Composer itself cannot install are listed but left out of the ratio. Two kinds of difference that come from Composer itself are left out and noted on the row: the random APCu prefix
+    in <code>autoload_real.php</code>, and anything that a second <code>composer install</code> on Composer's own tree
+    turns into phpm's bytes (on a first install Composer orders some files by the order packages finished
+    installing, later runs by <code>installed.json</code>).</p>
   <div class="cards" id="cards"></div>
 
   <h2>History</h2>
