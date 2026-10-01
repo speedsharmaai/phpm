@@ -395,6 +395,9 @@ mod tests {
         let out = Command::new("git")
             .args(["rev-parse", "HEAD"])
             .current_dir(dir)
+            .env_remove("GIT_DIR")
+            .env_remove("GIT_WORK_TREE")
+            .env_remove("GIT_INDEX_FILE")
             .output()
             .unwrap();
         String::from_utf8(out.stdout).unwrap().trim().to_owned()

@@ -50,3 +50,7 @@ golden-bless:
     PHPM_BLESS=1 cargo nextest run -p phpm-lock --locked --run-ignored only -E 'test(/^composer_live/)' --test-threads 1
 
 ci: fmt-check lint docs test deny shear msrv typos md actions cov
+
+# warm placement time for a fixture; the first run fills the store
+place fixture="laravel-skeleton" *args="":
+    cargo run --release --locked -p phpm-store --example place -- fixtures/{{fixture}} {{args}}
