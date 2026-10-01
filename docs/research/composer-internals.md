@@ -93,17 +93,26 @@ with a cache mirror. 2.10: no automatic dist→source fallback unless
 
 Files in `vendor/composer/`: `autoload_namespaces.php`, `autoload_psr4.php`,
 `autoload_classmap.php`, `autoload_files.php` and `include_paths.php` (only if
-non-empty, else deleted), `autoload_static.php`, `platform_check.php`,
-`autoload_real.php`, `ClassLoader.php` + `LICENSE` (verbatim), and
-`vendor/autoload.php`. **[EXACT]** all of them.
+non-empty, else deleted), `autoload_static.php`, `platform_check.php` (only if
+there is something to check, else deleted), `autoload_real.php`,
+`ClassLoader.php` + `LICENSE` (verbatim; the phar's `LICENSE` has a blank
+first and last line), and `vendor/autoload.php`. **[EXACT]** all of them, and
+`phpm-autoload` matches Composer 2.10.3 byte for byte on all five fixtures,
+dev and `--no-dev` (`just golden`).
 
 - **Suffix** (`ComposerAutoloaderInit<suffix>`): `config.autoloader-suffix` →
   suffix already in `vendor/autoload.php` → lock content-hash if hex → random.
+  An empty `autoloader-suffix` counts as unset.
 - **Order.** `PackageSorter::sortPackages`: weighted reverse-dependency sort,
   weight = -Σ(1 - weight(user)), ties by `strnatcasecmp`, relies on PHP 8's
-  stable usort. psr-0/psr-4/classmap in reverse order (root first), files in
+  stable usort. The root is not in the sorted set, so only installed
+  packages' `require` counts. A dependency cycle (league/flysystem ↔
+  flysystem-local in Laravel and Monica) makes the weights depend on the
+  installed repository's order; install and dump-autoload agree on all
+  fixtures. psr-0/psr-4/classmap in reverse order (root first), files in
   forward order. psr-0 and psr-4 then `krsort`. Root `autoload-dev` merged with
-  `array_merge_recursive` in dev mode.
+  `array_merge_recursive` in dev mode. With `--no-dev` and an empty dev list
+  Composer falls back to keeping what the root's `require` reaches.
 - **Files identifier:** `md5(packageName . ':' . path)`.
 - **Path code:** `$vendorDir . '/x'` / `$baseDir . '/x'`, `'phar://' .` prefix
   when the path contains `.phar`.
@@ -111,14 +120,18 @@ non-empty, else deleted), `autoload_static.php`, `platform_check.php`,
   paths replaced by `__DIR__ . '/..' . '/...'`, re-indented (leading spaces
   doubled, trailing stripped). `prefixLengthsPsr4` bucketed by first character
   in insertion order. `var_export` quirks: `array (`, `=>` then newline for
-  nested arrays, `0 =>`.
+  nested arrays, `0 =>`. `$files` comes first, read back from
+  `autoload_files.php`; every other property is written only if non-empty.
 - Classmap always contains `Composer\InstalledVersions`, ksorted.
 - **platform_check.php:** highest lower bound of `php`/`php-64bit` over non-dev
-  packages → `PHP_VERSION_ID >= NNNNN`. `ext-*` only if `platform-check: true`
+  packages and the root → `PHP_VERSION_ID >= NNNNN` (`>` for an exclusive
+  bound). Needs composer/semver's `parseConstraints` lower bounds and PHP's
+  `version_compare`. `--ignore-platform-reqs` removes the file. `ext-*` only if `platform-check: true`
   (default `php-only`). Extensions provided/replaced are skipped; pcntl and
   readline are CLI-only.
 - **`-o`:** scan every PSR-0/4 dir into the classmap, krsort-namespace order,
-  `avoidDuplicateScans`. **`--classmap-authoritative`** implies `-o` and adds
+  `avoidDuplicateScans`; a vendor dir inside a scanned PSR dir is excluded.
+  **`--classmap-authoritative`** implies `-o` and adds
   `setClassMapAuthoritative(true)`. **`--apcu-autoloader`** random prefix, **[FREE]**.
 
 ### Class discovery (`PhpFileParser::findClasses`)
@@ -126,18 +139,33 @@ non-empty, else deleted), `autoload_static.php`, `platform_check.php`,
 Not a token walk:
 
 1. `php_strip_whitespace()`, PHP's own lexer, drops comments and whitespace.
+   Run by the CLI it also skips a leading `#!` line; `short_open_tag` comes
+   from php.ini (off in the shipped php.ini files, assumed off). phpm ports
+   the lexer states that change the output (heredoc/nowdoc, interpolation,
+   `?>`, `yield from`, casts, the token after a heredoc's closing label);
+   `__halt_compiler` data is lexed as code, as PHP does. Checked against
+   `php` on every file of the Laravel vendor tree and on random token soup.
 2. Quick regex precheck.
 3. `PhpFileCleaner` removes strings, heredocs, nowdocs.
 4. A large regex captures `class|interface|trait|enum` and `namespace`. `enum`
    only when Composer runs on PHP ≥ 8.1. Anonymous classes skipped, XHP names
-   rewritten, enum backing types stripped.
+   rewritten, enum backing types stripped. Class names are bytes:
+   symfony/cache declares a class named `\xA9`.
 
 PSR mode: `filterByNamespace` keeps classes matching the rule; violations
-inside vendor are silent. `exclude-from-classmap`: `**` → `.+?`, `*` →
+inside vendor are silent. For psr-4 it only compares the path after cutting
+`strlen(namespace)` bytes off the class name, so a class outside the
+namespace with a matching tail is kept. `exclude-from-classmap`: `**` → `.+?`, `*` →
 `[^/]+?`, anchored to the install dir realpath plus `($|/)`, matched against
-realpath and non-realpath. Extensions: php, inc, hh. Symfony Finder with
-followLinks, **unsorted**, so duplicate classes are "first found wins" by
-readdir order. That order has to be reproduced or detected and reported.
+realpath and non-realpath; patterns whose constant prefix is unrelated to the
+scanned dir are dropped first. Extensions: php, inc, hh. Symfony Finder with
+followLinks, dot files/dirs and VCS dirs skipped, **unsorted**, so duplicate
+classes are "first found wins" by readdir order. phpm walks with `read_dir`,
+which returns the same order PHP's `readdir` sees on the same filesystem
+(differential test). On APFS that order is a hash of the name, independent of
+creation order, so a vendor/ phpm builds scans in the order Composer's would;
+on ext4 small directories follow creation order. None of the five fixtures
+has a duplicate class.
 
 ## 3. composer.lock and content-hash
 
@@ -268,7 +296,8 @@ filter and audit round trips. Scripts like `package:discover` cannot be sped up.
 5. Platform detection via the real `php`, overrides and ignore flags.
 6. Root version guessing via git/hg/svn.
 7. 2.10 malware filter and audit.
-8. readdir order for duplicate classes.
+8. readdir order for duplicate classes (reproduced by reading the directory;
+   creation order can still differ on ext4).
 9. Zip semantics: top-dir strip, exec bits, `.DS_Store`, shared install paths.
 10. GitHub: empty shasum, 60 req/h unauthenticated, codeload 400 retries,
     auth precedence.

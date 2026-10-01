@@ -23,7 +23,7 @@ not bound by the network.
 | `installed.json`, `installed.php`, `InstalledVersions.php` | done | byte-identical to Composer 2.10.3 on all 5 fixtures, dev and `--no-dev` |
 | Download, global store, extraction | done | file contents and modes identical to Composer's per package |
 | Placement into `vendor/` (clonefile per package on APFS) | done | **0.13 s** for Laravel's 109 packages, vs ~2.6 s Composer spends re-extracting |
-| Autoload files (`autoload_*.php`, `ClassLoader.php`, `platform_check.php`) | in progress | non-optimised output merged; classmap scanning (`-o`) next |
+| Autoload files (`autoload_*.php`, `ClassLoader.php`, `platform_check.php`) | done | byte-identical on 5/5 fixtures, dev and `--no-dev`, with `-o` |
 | `phpm install` command, bin proxies, no-op fast path | in progress | |
 | Head-to-head benchmark and the Phase 01 gate | next | |
 
