@@ -23,6 +23,10 @@
 </p>
 
 <p align="center">
+  <a href="https://speedsharmaai.github.io/phpm/">speedsharmaai.github.io/phpm</a>
+</p>
+
+<p align="center">
   <img src="docs/design/poster/x-card.png" alt="phpm: 18x faster warm installs than Composer, byte-identical vendor/ output, measured on the Laravel skeleton against Composer, riff and vivacity">
 </p>
 
@@ -127,7 +131,7 @@ store, one syscall per package — uv's design, applied to PHP. See
 
 A nightly sweep installs phpm and Composer side by side across 330 pinned
 open-source PHP projects and diffs `vendor/` byte for byte, modes included —
-[live results and methodology](https://speedsharmaai.github.io/phpm/).
+[live results and methodology](https://speedsharmaai.github.io/phpm/sweep/).
 
 | Mode | Identical | Ratio | Gate |
 |---|---|---|---|
