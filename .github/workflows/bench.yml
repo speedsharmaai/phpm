@@ -1,0 +1,62 @@
+name: bench
+
+on:
+  workflow_dispatch:
+    inputs:
+      fixtures:
+        description: Space-separated fixture names
+        default: laravel-skeleton ytmate
+        required: true
+
+permissions: {}
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      FIXTURES: ${{ inputs.fixtures }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: "8.4"
+          tools: composer:2.10.3
+          coverage: none
+      - uses: taiki-e/install-action@83ac0ad63c0167e6f06796fab0fce28db1bf3db0 # v2.87.22
+        with:
+          tool: hyperfine@1.20.0
+      - run: cargo build --release --locked -p phpm
+      - name: Benchmark
+        run: |
+          export PHPM_BIN="$PWD/target/release/phpm"
+          for f in $FIXTURES; do
+            tools/bench/bench.sh "$f" composer phpm
+          done | tee bench.log
+      - name: Summary
+        run: |
+          {
+            echo "## Composer vs phpm on $(uname -sr), $(df -T . | awk 'NR==2 {print $2}')"
+            echo
+            echo '| Fixture | Scenario | Composer | phpm | Speed-up |'
+            echo '|---|---|---|---|---|'
+            for f in $FIXTURES; do
+              for s in cold warm noop; do
+                c=$(jq '.results[0].mean' "target/bench/$f/composer-$s.json")
+                p=$(jq '.results[0].mean' "target/bench/$f/phpm-$s.json")
+                awk -v f="$f" -v s="$s" -v c="$c" -v p="$p" \
+                  'BEGIN { printf "| %s | %s | %.3f s | %.4f s | %.1fx |\n", f, s, c, p, c / p }'
+              done
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bench-linux
+          path: |
+            bench.log
+            target/bench/*/*.json
+          retention-days: 90
