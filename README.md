@@ -22,15 +22,19 @@ not bound by the network.
 *Updated 2026-10-01.* Phases 03 and 04 run in parallel.
 
 - **Phase 03, compatibility sweep (in progress).** 330 open-source PHP
-  projects pinned from GitHub search. Every night CI installs each one with
-  Composer and with phpm and compares the trees byte for byte. First full run
-  ([results page](https://speedsharmaai.github.io/phpm/)): **269 of 312
-  installable projects identical (86.2%)** with scripts and plugins off, 199
-  of 280 (71.1%) with them on. The gate is 95%. The sweep has already found
-  and fixed four bugs (dist URL placeholders, a repository named `packagist`,
-  plugins Composer cannot load, and Composer's own run-to-run differences
-  being counted against phpm); the next run includes those fixes.
-- **Phase 04, plugin adapters (started).** Native support for
+  projects pinned from GitHub search, installed nightly with Composer and
+  with phpm, compared byte for byte
+  ([results page](https://speedsharmaai.github.io/phpm/)). Latest run:
+  **286 of 312 installable projects identical (91.7%)** with scripts and
+  plugins off, 248 of 281 (88.3%) with them on. The gate is 95%.
+  The sweep has found and fixed real bugs, including one serious one: on
+  filesystems without copy-on-write cloning (most Linux setups), a plugin
+  writing into a hard-linked file could corrupt the shared package store
+  for every later install. phpm now copies instead of hard-linking whenever
+  scripts or plugins will run. Remaining gaps are filed and mostly niche
+  (committed `vendor/` directories, source-only packages with no dist,
+  a few Windows path and retry cases).
+- **Phase 04, plugin adapters (in progress).** Native support for
   composer/installers (WordPress, Drupal paths), Drupal scaffold,
   symfony/runtime, phpstan's extension installer and the PHPCS installer, so
   Bedrock and Drupal install without falling back to Composer.
