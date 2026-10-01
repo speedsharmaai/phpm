@@ -7,8 +7,9 @@ repository. `phpm_lock::COMPOSER_VERSION` names the release.
 | File | Source |
 |---|---|
 | `InstalledVersions.php` | `vendor/composer/InstalledVersions.php` after `composer install` |
-| `LICENSE` | Composer's MIT licence |
+| `ClassLoader.php` | `vendor/composer/ClassLoader.php` after `composer install` |
+| `LICENSE` | `vendor/composer/LICENSE`, Composer's MIT licence with the blank first and last lines the phar adds |
 
 `just golden` checks the copy against a fresh Composer install. When the
-reference Composer version changes, update both files and the constant
-together.
+reference Composer version changes, update the files and the constant
+together. `phpm-autoload` writes `ClassLoader.php` and `LICENSE` from here.

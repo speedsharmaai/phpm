@@ -1,0 +1,25 @@
+[package]
+name = "phpm-autoload"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description = "Composer's autoload files, written byte for byte"
+repository.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+indexmap = { workspace = true }
+md5 = { workspace = true }
+phpm-lock = { path = "../phpm-lock" }
+phpm-php = { path = "../phpm-php" }
+regex = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+phpm-testkit = { path = "../phpm-testkit" }
+tempfile = { workspace = true }
+
+[lints]
+workspace = true

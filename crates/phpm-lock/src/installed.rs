@@ -17,6 +17,12 @@ use std::sync::LazyLock;
 /// Composer's `vendor/composer/InstalledVersions.php`, copied verbatim.
 pub const INSTALLED_VERSIONS_PHP: &str = include_str!("../composer/InstalledVersions.php");
 
+/// Composer's `vendor/composer/ClassLoader.php`, copied verbatim.
+pub const CLASS_LOADER_PHP: &str = include_str!("../composer/ClassLoader.php");
+
+/// The `vendor/composer/LICENSE` Composer writes next to them.
+pub const COMPOSER_LICENSE: &str = include_str!("../composer/LICENSE");
+
 /// The Composer release the vendored files and the output format match.
 pub const COMPOSER_VERSION: &str = "2.10.3";
 

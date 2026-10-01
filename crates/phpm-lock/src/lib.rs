@@ -12,7 +12,8 @@ pub mod version;
 
 pub use error::Error;
 pub use installed::{
-    COMPOSER_VERSION, INSTALLED_VERSIONS_PHP, InstallContext, InstalledFiles, installed_files,
+    CLASS_LOADER_PHP, COMPOSER_LICENSE, COMPOSER_VERSION, INSTALLED_VERSIONS_PHP, InstallContext,
+    InstalledFiles, installed_files,
 };
 pub use manifest::{ComposerJson, InstallPreferences, Lock, LockAlias};
 pub use paths::{find_shortest_path, normalize_path};
