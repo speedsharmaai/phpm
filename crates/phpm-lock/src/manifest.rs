@@ -93,6 +93,10 @@ impl Lock {
         self.list("packages-dev")
     }
 
+    pub fn content_hash(&self) -> Option<&str> {
+        self.data.get("content-hash").and_then(Value::as_str)
+    }
+
     pub fn aliases(&self) -> Vec<LockAlias> {
         let Some(Value::Array(items)) = self.data.get("aliases") else {
             return Vec::new();
@@ -260,6 +264,9 @@ mod tests {
             }]
         );
         assert!(Lock::parse("{}").unwrap().aliases().is_empty());
+        assert_eq!(lock.content_hash(), None);
+        let hashed = Lock::parse(r#"{"content-hash":"ab12"}"#).unwrap();
+        assert_eq!(hashed.content_hash(), Some("ab12"));
     }
 
     #[test]

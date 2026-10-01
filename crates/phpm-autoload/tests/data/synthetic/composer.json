@@ -1,0 +1,26 @@
+{
+    "name": "acme/app",
+    "type": "project",
+    "require": {
+        "php": "^8.2",
+        "a/lib": "^1.0",
+        "c/meta": "^1.0",
+        "ext-ctype": "*"
+    },
+    "require-dev": {
+        "d/dev": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {"App\\": "app/"},
+        "psr-0": {"": "legacy/"},
+        "files": ["helpers.php"]
+    },
+    "autoload-dev": {
+        "psr-4": {"Tests\\": "tests/", "App\\": "app-dev/"}
+    },
+    "config": {
+        "platform-check": true,
+        "prepend-autoloader": false,
+        "use-include-path": true
+    }
+}

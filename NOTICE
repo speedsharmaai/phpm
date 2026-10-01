@@ -5,6 +5,8 @@ This product includes files from Composer (https://getcomposer.org),
 copied verbatim from Composer 2.10.3:
 
   crates/phpm-lock/composer/InstalledVersions.php
+  crates/phpm-lock/composer/ClassLoader.php
+  crates/phpm-lock/composer/LICENSE
 
 Composer is Copyright (c) Nils Adermann, Jordi Boggiano and is licensed under
 the MIT licence; see crates/phpm-lock/composer/LICENSE.

@@ -3,4 +3,4 @@ fixtures/** -text
 **/snapshots/** -text
 crates/*/tests/golden/** -text
 crates/*/tests/data/** -text
-crates/*/composer/*.php -text
+crates/*/composer/** -text

@@ -12,6 +12,7 @@ license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
 indexmap = "2.14"
+md5 = "0.8"
 proptest = "1.11"
 regex = { version = "1.11", default-features = false, features = ["perf", "std"] }
 serde_json = { version = "1.0.149", features = ["preserve_order"] }
