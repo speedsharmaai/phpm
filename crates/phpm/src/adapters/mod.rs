@@ -3,6 +3,7 @@
 //! name and the versions whose source was read and compared; any other
 //! plugin, or any input an adapter cannot reproduce, stays with Composer.
 
+mod dealerdirect_phpcs;
 mod hooks;
 pub(crate) mod installers;
 mod php;
@@ -27,6 +28,7 @@ pub(crate) enum Role {
     Pest,
     SymfonyRuntime,
     PhpstanExtensionInstaller,
+    DealerdirectPhpcs,
 }
 
 /// Versions whose plugin source was read and compared against the adapter.
@@ -61,7 +63,7 @@ struct Known {
     does: &'static str,
 }
 
-const KNOWN: [Known; 5] = [
+const KNOWN: [Known; 6] = [
     Known {
         name: "composer/installers",
         versions: Versions::Exact(&["2.3.0.0"]),
@@ -96,6 +98,13 @@ const KNOWN: [Known; 5] = [
         role: Role::PhpstanExtensionInstaller,
         does: "phpm writes GeneratedConfig.php",
     },
+    Known {
+        name: "dealerdirect/phpcodesniffer-composer-installer",
+        // every release changed src/Plugin.php; only 1.2.1 was checked.
+        versions: Versions::Exact(&["1.2.1.0"]),
+        role: Role::DealerdirectPhpcs,
+        does: "phpm sets PHP_CodeSniffer's installed_paths",
+    },
 ];
 
 /// The adapter for a plugin package at a verified version.
@@ -109,6 +118,8 @@ pub(crate) fn known_version(name: &str, pretty_version: &str) -> Option<Role> {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Context<'a> {
     pub(crate) root_extra: Option<&'a Map<String, Value>>,
+    /// The root package's own `type`.
+    pub(crate) root_type: Option<&'a str>,
     /// The project directory, forward slashes, symlinks resolved.
     pub(crate) root: &'a str,
     /// The absolute vendor directory, forward slashes.
@@ -227,6 +238,9 @@ fn check(role: Role, entries: &[&Map<String, Value>], ctx: Context<'_>) -> Resul
         Role::PhpstanExtensionInstaller => {
             hooks::phpstan_check(entries, ctx.root_extra, ctx.vendor)
         }
+        Role::DealerdirectPhpcs => {
+            hooks::dealerdirect_check(entries, ctx.root_type, ctx.root_extra, ctx.root, ctx.vendor)
+        }
         Role::Installers | Role::WordPressCore => Ok(()),
     }
 }
@@ -327,6 +341,7 @@ mod tests {
     fn ctx(extra: &Map<String, Value>) -> Context<'_> {
         Context {
             root_extra: Some(extra),
+            root_type: None,
             root: "/p",
             vendor: "/p/vendor",
             vendor_relative: "vendor",
@@ -530,6 +545,43 @@ mod tests {
         assert!(
             matches!(&plugins.active[0].adapter, Adapter::Declined(why) if why.contains("dev-main"))
         );
+    }
+
+    #[test]
+    fn dealerdirect_phpcs_runs_natively_alone_and_declines_without_phpcs() {
+        let own = obj(
+            json!({"name": "dealerdirect/phpcodesniffer-composer-installer", "version": "v1.2.1", "type": "composer-plugin"}),
+        );
+        let phpcs = obj(
+            json!({"name": "squizlabs/php_codesniffer", "version": "4.0.4", "type": "library"}),
+        );
+        let entries = [own.clone(), phpcs];
+        let refs: Vec<&Map<String, Value>> = entries.iter().collect();
+        let mut plugins = Plugins {
+            active: vec![plugin("dealerdirect/phpcodesniffer-composer-installer")],
+            skipped: Vec::new(),
+        };
+        let covered = cover(&mut plugins, &refs, ctx(&Map::new()));
+        assert_eq!(covered.hooks.roles, [Role::DealerdirectPhpcs]);
+        assert!(matches!(
+            plugins.active[0].adapter,
+            Adapter::Native("phpm sets PHP_CodeSniffer's installed_paths")
+        ));
+
+        let entries = [own];
+        let refs: Vec<&Map<String, Value>> = entries.iter().collect();
+        let mut plugins = Plugins {
+            active: vec![plugin("dealerdirect/phpcodesniffer-composer-installer")],
+            skipped: Vec::new(),
+        };
+        assert_eq!(
+            cover(&mut plugins, &refs, ctx(&Map::new())),
+            Covered::default()
+        );
+        assert!(matches!(
+            &plugins.active[0].adapter,
+            Adapter::Declined(why) if why.contains("squizlabs/php_codesniffer is not installed")
+        ));
     }
 
     #[test]

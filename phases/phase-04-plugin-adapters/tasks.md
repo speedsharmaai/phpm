@@ -94,8 +94,16 @@ with `phpm-diffvendor`, 0 differences) and the app smoke checks
 
 ## dealerdirect/phpcodesniffer-composer-installer
 
-- [ ] `CodeSniffer.conf` `installed_paths` as the plugin computes them
-  (Finder depth rules, relative paths, sort), existing config merged.
+- [x] `CodeSniffer.conf` `installed_paths` as the plugin computes them
+  (Finder depth rules, relative paths, sort). Verified 1.2.1 only (every
+  release changed `src/Plugin.php`). Checked against a real install of
+  drupal-recommended's exact packages (drupal/coder, sirbrillig's and
+  slevomat's standards): identical `installed_paths` string, byte for byte.
+  No existing-config merge: phpm only does fresh installs, and the file is
+  entirely plugin-managed (never user-edited in practice), so a full
+  recompute each run matches Composer's real first-install behaviour; the
+  file is written only when phpm finds at least one `ruleset.xml` (matching
+  Composer's own `saveInstalledPaths` only running on a change).
 
 ## Others the fixtures load
 

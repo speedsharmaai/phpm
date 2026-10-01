@@ -698,6 +698,7 @@ fn install(
         &entries,
         adapters::Context {
             root_extra,
+            root_type: composer.data().get("type").and_then(Value::as_str),
             root: &root_dir,
             vendor: &vendor,
             vendor_relative: &dirs.vendor_relative,

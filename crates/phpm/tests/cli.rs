@@ -1456,3 +1456,75 @@ fn writes_generated_config_natively_for_phpstan_extension_installer() {
         "{code}"
     );
 }
+
+/// dealerdirect/phpcodesniffer-composer-installer v1.2.1 as the only active
+/// plugin, with `squizlabs/php_codesniffer` and one coding-standard package
+/// whose zip ships a real `ruleset.xml` one level deep.
+#[cfg(unix)]
+fn dealerdirect_project() -> Project {
+    let mut files = BTreeMap::new();
+    files.insert(
+        "/dealerdirect/phpcodesniffer-composer-installer.zip".to_owned(),
+        zip("dd", &[("src/Plugin.php", 0o644, "<?php\n")]),
+    );
+    files.insert(
+        "/squizlabs/php_codesniffer.zip".to_owned(),
+        zip("phpcs", &[("src/Config.php", 0o644, "<?php\n")]),
+    );
+    files.insert(
+        "/x/coding-standard.zip".to_owned(),
+        zip(
+            "cs",
+            &[("Standard/ruleset.xml", 0o644, "<ruleset name=\"x\"/>\n")],
+        ),
+    );
+    Project::serving(files, |composer, lock| {
+        composer["require"] = json!({
+            "dealerdirect/phpcodesniffer-composer-installer": "^1.2",
+            "squizlabs/php_codesniffer": "^4.0",
+        });
+        composer["config"] =
+            json!({"allow-plugins": {"dealerdirect/phpcodesniffer-composer-installer": true}});
+        let base = lock["packages"][0]["dist"]["url"]
+            .as_str()
+            .unwrap()
+            .trim_end_matches("/a/lib.zip")
+            .to_owned();
+        let mut installer = package(
+            &base,
+            "dealerdirect/phpcodesniffer-composer-installer",
+            &json!({"type": "composer-plugin", "extra": {"class": "PHPCSStandards\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\Plugin"}}),
+        );
+        installer["version"] = json!("v1.2.1");
+        let mut phpcs = package(&base, "squizlabs/php_codesniffer", &json!({}));
+        phpcs["version"] = json!("4.0.4");
+        let standard = package(
+            &base,
+            "x/coding-standard",
+            &json!({"type": "phpcodesniffer-standard"}),
+        );
+        lock["packages"] = json!([installer, phpcs, standard]);
+        lock["packages-dev"] = json!([]);
+    })
+}
+
+#[test]
+#[cfg(unix)]
+fn sets_installed_paths_natively_for_dealerdirect_phpcs() {
+    let p = dealerdirect_project();
+    let out = ok(&p.phpm_env(
+        &["install", "--explain"],
+        &[("PHPM_COMPOSER", "/nonexistent/composer")],
+    ));
+    assert!(
+        out.contains("decision plugins: native, dealerdirect/phpcodesniffer-composer-installer (phpm sets PHP_CodeSniffer's installed_paths)"),
+        "{out}"
+    );
+    assert!(!out.contains("Composer runs"), "{out}");
+    let conf =
+        std::fs::read_to_string(p.vendor("squizlabs/php_codesniffer/CodeSniffer.conf")).unwrap();
+    assert_eq!(
+        conf,
+        "<?php\n $phpCodeSnifferConfig = array (\n  'installed_paths' => '../../x/coding-standard',\n);\n?>"
+    );
+}
