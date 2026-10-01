@@ -2,7 +2,7 @@ use crate::error::Error;
 use crate::package::pretty_alias;
 use crate::version::{normalize, normalize_branch};
 use phpm_php::strnatcasecmp;
-use regex::bytes::Regex;
+use regex::bytes::{Regex, RegexBuilder};
 use serde_json::{Map, Value};
 use std::path::Path;
 use std::process::Command;
@@ -20,20 +20,23 @@ pub struct RootVersion {
     pub reference: Option<String>,
 }
 
-static CURRENT_BRANCH: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(
-        r"(?-u)^(?:\* ) *(\(no branch\)|\(detached from \S+\)|\(HEAD detached at \S+\)|\S+) *([a-f0-9]+) .*$",
-    )
-    .expect("valid pattern")
-});
-static REMOTE_HEAD: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"(?-u)^ *.+/HEAD ").expect("valid pattern"));
-static ANY_BRANCH: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?-u)^(?:\* )? *((?:remotes/(?:origin|upstream)/)?[^\s/]+) *([a-f0-9]+) .*$")
+fn bytes_regex(pattern: &str) -> Regex {
+    RegexBuilder::new(pattern)
+        .unicode(false)
+        .build()
         .expect("valid pattern")
+}
+
+static CURRENT_BRANCH: LazyLock<Regex> = LazyLock::new(|| {
+    bytes_regex(
+        r"^(?:\* ) *(\(no branch\)|\(detached from \S+\)|\(HEAD detached at \S+\)|\S+) *([a-f0-9]+) .*$",
+    )
 });
-static REMOTE_PREFIX: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"(?-u)^remotes/\S+/").expect("valid pattern"));
+static REMOTE_HEAD: LazyLock<Regex> = LazyLock::new(|| bytes_regex(r"^ *.+/HEAD "));
+static ANY_BRANCH: LazyLock<Regex> = LazyLock::new(|| {
+    bytes_regex(r"^(?:\* )? *((?:remotes/(?:origin|upstream)/)?[^\s/]+) *([a-f0-9]+) .*$")
+});
+static REMOTE_PREFIX: LazyLock<Regex> = LazyLock::new(|| bytes_regex(r"^remotes/\S+/"));
 
 fn text(bytes: &[u8]) -> String {
     String::from_utf8_lossy(bytes).into_owned()
@@ -75,10 +78,13 @@ fn is_feature_branch(config: &Map<String, Value>, branch: &str) -> bool {
         .map(|v| v.iter().filter_map(Value::as_str).collect())
         .unwrap_or_default();
     let pattern = format!(
-        r"(?-u)^({}|master|main|latest|next|current|support|tip|trunk|default|develop|\d+\..+)$",
+        r"^({}|master|main|latest|next|current|support|tip|trunk|default|develop|\d+\..+)$",
         custom.join("|")
     );
-    Regex::new(&pattern).map_or(true, |re| !re.is_match(branch.as_bytes()))
+    RegexBuilder::new(&pattern)
+        .unicode(false)
+        .build()
+        .map_or(true, |re| !re.is_match(branch.as_bytes()))
 }
 
 fn mentions_self_version(v: &Value) -> bool {
