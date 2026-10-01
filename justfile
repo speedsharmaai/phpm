@@ -49,6 +49,10 @@ golden:
 golden-bless:
     PHPM_BLESS=1 cargo nextest run -p phpm-lock -p phpm-autoload --locked --run-ignored only -E 'test(/^composer_live/)' --test-threads 1 --no-fail-fast
 
+# composer vs phpm on every fixture, whole vendor/ compared
+e2e:
+    cargo nextest run -p phpm --locked --run-ignored only -E 'test(/^e2e_/)' --test-threads 2
+
 ci: fmt-check lint docs test deny shear msrv typos md actions cov
 
 # warm placement time for a fixture; the first run fills the store

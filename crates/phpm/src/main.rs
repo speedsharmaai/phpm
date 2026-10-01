@@ -1,24 +1,104 @@
-use std::io::{self, Write};
+mod bins;
+mod cli;
+mod error;
+mod fsutil;
+mod install;
+mod out;
+mod project;
+mod state;
+
+use std::ffi::OsString;
 use std::process::ExitCode;
 
-fn version_line() -> String {
-    format!("phpm {}", env!("CARGO_PKG_VERSION"))
+use clap::Parser;
+use clap::error::ErrorKind;
+
+use crate::cli::{Cli, Command};
+use crate::install::Request;
+use crate::out::{Out, Verbosity};
+use crate::project::Env;
+
+fn run(args: impl IntoIterator<Item = OsString>, env: Env<'_>, out: &mut Out<'_>) -> ExitCode {
+    let cli = match Cli::try_parse_from(args) {
+        Ok(cli) => cli,
+        Err(e) => {
+            let text = e.render().to_string();
+            if matches!(e.kind(), ErrorKind::DisplayHelp | ErrorKind::DisplayVersion) {
+                out.stdout(&text);
+            } else {
+                out.raw_error(&text);
+            }
+            return ExitCode::from(u8::try_from(e.exit_code()).unwrap_or(2));
+        }
+    };
+    out.set_verbosity(if cli.quiet {
+        Verbosity::Quiet
+    } else if cli.verbose > 0 {
+        Verbosity::Verbose
+    } else {
+        Verbosity::Normal
+    });
+    let Command::Install(args) = cli.command;
+    let request = Request {
+        working_dir: cli.working_dir,
+        dev: !args.no_dev,
+        link_mode: args.link_mode.map(Into::into),
+        optimize: args.optimize_autoloader,
+        classmap_authoritative: args.classmap_authoritative,
+        no_autoloader: args.no_autoloader,
+        no_scripts: args.no_scripts,
+        no_plugins: args.no_plugins,
+        ignore_platform_reqs: args.ignore_platform_reqs,
+        ignore_platform_req: args.ignore_platform_req,
+    };
+    match install::run(&request, env, out) {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(e) => {
+            out.error(&e.message);
+            e.exit_code()
+        }
+    }
 }
 
 fn main() -> ExitCode {
-    let mut out = io::stdout().lock();
-    match writeln!(out, "{}", version_line()) {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(_) => ExitCode::FAILURE,
-    }
+    let env = |key: &str| std::env::var(key).ok();
+    run(std::env::args_os(), &env, &mut Out::terminal())
 }
 
 #[cfg(test)]
 mod tests {
-    use super::version_line;
+    use super::run;
+    use crate::out::tests::capture;
+    use std::ffi::OsString;
+    use std::process::ExitCode;
+
+    fn call(args: &[&str]) -> (ExitCode, String, String) {
+        let (mut out, stdout, stderr) = capture();
+        let env = |_: &str| None;
+        let code = run(args.iter().map(OsString::from), &env, &mut out);
+        (code, stdout.text(), stderr.text())
+    }
 
     #[test]
-    fn version_line_names_the_tool() {
-        assert!(version_line().starts_with("phpm "));
+    fn prints_the_version_on_stdout() {
+        let (code, stdout, stderr) = call(&["phpm", "--version"]);
+        assert_eq!(code, ExitCode::SUCCESS);
+        assert_eq!(stdout, format!("phpm {}\n", env!("CARGO_PKG_VERSION")));
+        assert!(stderr.is_empty());
+    }
+
+    #[test]
+    fn usage_errors_exit_2() {
+        let (code, stdout, stderr) = call(&["phpm", "install", "--bogus"]);
+        assert_eq!(code, ExitCode::from(2));
+        assert!(stdout.is_empty());
+        assert!(stderr.contains("--bogus"), "{stderr}");
+    }
+
+    #[test]
+    fn a_missing_project_is_a_usage_error() {
+        let (code, _, stderr) = call(&["phpm", "install", "-d", "/nonexistent/phpm/project"]);
+        assert_eq!(code, ExitCode::from(2));
+        assert!(stderr.starts_with("error: working directory"), "{stderr}");
     }
 }
