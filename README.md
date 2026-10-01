@@ -31,7 +31,7 @@
 </p>
 
 > **Pre-release, built in the open.** `phpm install` works today: it is
-> byte-identical to Composer on 96.8% of a 312-project nightly sweep, and
+> byte-identical to Composer on 98.1% of a 312-project nightly sweep, and
 > faster everywhere it was measured. There is no packaged release yet — build
 > from source (see [Installation](#installation)). Every phase, decision and
 > benchmark behind that number is public; start at [phases](phases/README.md).
@@ -135,8 +135,9 @@ open-source PHP projects and diffs `vendor/` byte for byte, modes included —
 
 | Mode | Identical | Ratio | Gate |
 |---|---|---|---|
-| Plugins and scripts off | 302 / 312 installable | **96.8%** | 95% — **passed** |
-| Plugins and scripts on (Composer fallback included) | 263 / 281 installable | **93.6%** | — |
+| Plugins and scripts off | 306 / 312 installable | **98.1%** | 95% — **passed** |
+| Plugins and scripts on (Composer fallback included) | 267 / 281 installable | **95.0%** | — |
+| Windows, plugins and scripts off | 18 / 19 installable | **94.7%** | — |
 
 The sweep is also how real bugs get found before users hit them: it caught a
 case where, on filesystems without copy-on-write cloning (most Linux
@@ -233,7 +234,7 @@ tools/bench/      hyperfine harness: Composer vs phpm vs other installers
 | 00 | Quality foundation: lints, hooks, CI on 3 OSes, coverage, CodeQL, Scorecard, Sonar | done |
 | 01 | Spike: `phpm install`, byte-identical, benchmarked, gate | **passed** |
 | 02 | Parity core: platform checks, auth, scripts, malware filter, Composer fallback, faster cold fetch | **done** |
-| 03 | Compatibility sweep: nightly diff against Composer across 330 projects | **passed** — 96.8% identical, gate 95% |
+| 03 | Compatibility sweep: nightly diff against Composer across 330 projects | **passed** — 98.1% identical, gate 95% |
 | 04 | Plugin adapters: composer/installers, Drupal scaffold, symfony/runtime, phpstan installer, PHPCS installer, php-http/discovery | **done** |
 | 05 | Real-world benchmarks: Composer vs phpm on the largest open-source PHP apps | in progress |
 | 06 | Launch: release, Homebrew, setup-php, Docker, GitHub Action | |
