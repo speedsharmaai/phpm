@@ -669,6 +669,30 @@ fn hardlink_mode_leaves_the_store_untouched() {
 }
 
 #[cfg(unix)]
+#[test]
+fn scripts_writing_into_vendor_never_reach_the_store() {
+    let p = Project::with(|composer, _| {
+        composer["scripts"] = json!({
+            "post-install-cmd": "echo changed > vendor/a/lib/src/Lib.php && chmod 600 vendor/a/lib/src/Lib.php",
+        });
+    });
+    ok(&p.phpm(&["install"]));
+    assert_eq!(
+        std::fs::read_to_string(p.vendor("a/lib/src/Lib.php")).unwrap(),
+        "changed\n"
+    );
+    let stored = walk(&p.cache)
+        .into_iter()
+        .find(|f| f.ends_with("src/Lib.php"))
+        .unwrap();
+    assert_eq!(
+        std::fs::read_to_string(&stored).unwrap(),
+        "<?php\nnamespace A;\nclass Lib {}\n"
+    );
+    assert_eq!(mode(&stored), 0o644);
+}
+
+#[cfg(unix)]
 fn walk(dir: &std::path::Path) -> Vec<PathBuf> {
     let mut out = Vec::new();
     for entry in std::fs::read_dir(dir).unwrap() {

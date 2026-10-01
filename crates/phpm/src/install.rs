@@ -10,7 +10,9 @@ use std::time::Instant;
 
 use phpm_autoload::PlatformRequirements;
 use phpm_lock::{ComposerJson, INSTALLED_VERSIONS_PHP, InstallContext, Lock, normalize_path};
-use phpm_store::{Auth, Dist, FetchOptions, Fetcher, LinkMode, Package, Placement, Store, place};
+use phpm_store::{
+    Auth, Dist, FetchOptions, Fetcher, LinkMode, Package, Placement, Store, place, place_unshared,
+};
 use serde_json::{Map, Value};
 
 use crate::bins::{BinInstaller, php_basename, php_dirname};
@@ -823,8 +825,19 @@ fn install(
         .iter()
         .map(|p| store.placement(p))
         .collect::<Result<Vec<_>, _>>()?;
-    let mode = req.link_mode.unwrap_or_else(LinkMode::platform_default);
-    let used = place(Path::new(&vendor), &placements, mode)?;
+    // Scripts and Composer steps write into vendor/; through a hard link that
+    // write would land in the store and in every project placed from it.
+    let shared_ok = req.link_mode.is_some() || !(runs_scripts || plan.needs_composer().is_some());
+    let mode = match req.link_mode {
+        Some(m) => m,
+        None if !shared_ok && LinkMode::platform_default() == LinkMode::Hardlink => LinkMode::Copy,
+        None => LinkMode::platform_default(),
+    };
+    let used = if shared_ok {
+        place(Path::new(&vendor), &placements, mode)?
+    } else {
+        place_unshared(Path::new(&vendor), &placements, mode)?
+    };
     if used != mode {
         out.detail(&format!("{mode:?} is not available here, used {used:?}"));
     }

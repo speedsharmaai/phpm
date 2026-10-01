@@ -59,6 +59,34 @@ pub struct Placement {
 /// Runs on all cores. Returns the slowest mode that had to be used, so a
 /// caller can say "fell back to copy" once instead of per package.
 pub fn place(vendor_dir: &Path, packages: &[Placement], mode: LinkMode) -> Result<LinkMode> {
+    place_with(vendor_dir, packages, mode, true)
+}
+
+/// Like [`place`], but a clone that fails falls back to copies, never to hard
+/// links: for installs where scripts or Composer will run in `vendor/` and a
+/// write through a hard link would change the store for every project.
+pub fn place_unshared(
+    vendor_dir: &Path,
+    packages: &[Placement],
+    mode: LinkMode,
+) -> Result<LinkMode> {
+    place_with(vendor_dir, packages, mode, false)
+}
+
+/// The mode to try after `mode` failed.
+fn next_mode(mode: LinkMode, hardlinks: bool) -> LinkMode {
+    match mode {
+        LinkMode::Clone if hardlinks => LinkMode::Hardlink,
+        LinkMode::Clone | LinkMode::Hardlink | LinkMode::Copy => LinkMode::Copy,
+    }
+}
+
+fn place_with(
+    vendor_dir: &Path,
+    packages: &[Placement],
+    mode: LinkMode,
+    hardlinks: bool,
+) -> Result<LinkMode> {
     for p in packages {
         check_install_path(&p.install_path)?;
     }
@@ -76,7 +104,7 @@ pub fn place(vendor_dir: &Path, packages: &[Placement], mode: LinkMode) -> Resul
                     let i = next.fetch_add(1, Ordering::Relaxed);
                     let Some(p) = packages.get(i) else { break };
                     let dst = vendor_dir.join(&p.install_path);
-                    if let Err(e) = place_one(&p.source, &dst, &effective) {
+                    if let Err(e) = place_one(&p.source, &dst, &effective, hardlinks) {
                         let mut slot = first_error
                             .lock()
                             .unwrap_or_else(std::sync::PoisonError::into_inner);
@@ -111,7 +139,7 @@ fn check_install_path(path: &Path) -> Result<()> {
     }
 }
 
-fn place_one(src: &Path, dst: &Path, effective: &AtomicU8) -> Result<()> {
+fn place_one(src: &Path, dst: &Path, effective: &AtomicU8, hardlinks: bool) -> Result<()> {
     if fs::symlink_metadata(dst).is_ok() {
         remove_tree(dst).at(dst)?;
     }
@@ -129,7 +157,7 @@ fn place_one(src: &Path, dst: &Path, effective: &AtomicU8) -> Result<()> {
             Ok(()) => return Ok(()),
             Err(e) if mode != LinkMode::Copy && can_fall_back(mode, &e) => {
                 let _ = remove_tree(dst);
-                effective.fetch_max(mode.as_u8() + 1, Ordering::Relaxed);
+                effective.fetch_max(next_mode(mode, hardlinks).as_u8(), Ordering::Relaxed);
             }
             Err(e) => return Err(e).at(dst),
         }
@@ -306,7 +334,7 @@ fn sorted_dirs(dir: &Path) -> Result<Vec<PathBuf>> {
 mod tests {
     #[cfg(unix)]
     use super::remove_tree;
-    use super::{LinkMode, Placement, place, prune};
+    use super::{LinkMode, Placement, next_mode, place, prune};
     use crate::testutil::TempDir;
     use std::fs;
     use std::path::{Path, PathBuf};
@@ -357,6 +385,34 @@ mod tests {
                 Path::new("../src/A.php")
             );
         }
+    }
+
+    #[test]
+    fn a_failed_clone_skips_hard_links_when_asked() {
+        assert_eq!(next_mode(LinkMode::Clone, true), LinkMode::Hardlink);
+        assert_eq!(next_mode(LinkMode::Clone, false), LinkMode::Copy);
+        assert_eq!(next_mode(LinkMode::Hardlink, true), LinkMode::Copy);
+        assert_eq!(next_mode(LinkMode::Copy, false), LinkMode::Copy);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn unshared_placement_never_shares_inodes_with_the_store() {
+        use super::place_unshared;
+        use std::os::unix::fs::MetadataExt;
+        let tmp = TempDir::new("link-unshared");
+        let vendor = tmp.path().join("vendor");
+        let list = placements(tmp.path(), &["a/one"]);
+        let used = place_unshared(&vendor, &list, LinkMode::Clone).unwrap();
+        assert_ne!(used, LinkMode::Hardlink);
+        let placed = fs::metadata(vendor.join("a/one/src/A.php")).unwrap();
+        let stored = fs::metadata(list[0].source.join("src/A.php")).unwrap();
+        assert_ne!(placed.ino(), stored.ino());
+        fs::write(vendor.join("a/one/src/A.php"), b"changed").unwrap();
+        assert_eq!(
+            fs::read(list[0].source.join("src/A.php")).unwrap(),
+            b"<?php\n"
+        );
     }
 
     #[test]
