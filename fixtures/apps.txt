@@ -1,0 +1,7 @@
+# The application each fixture's lock belongs to, for runs with scripts and
+# plugins: fixture, GitHub repository, commit.
+laravel-skeleton laravel/laravel 06d016a364a37430eec9cbc52209adce3d7667ce
+symfony-demo symfony/demo 8d2e2ef75c3e18df173d8bf2379a14abb58c4c31
+monica monicahq/monica 6e6ec217457e946e330ba7cd3b28107f4332c7b1
+drupal-recommended drupal/recommended-project dbcffd856e8e0ea69cc30b615318899a37d2ea7d
+bedrock roots/bedrock b905a0a21a71e51524760e7839d7908e023ce618

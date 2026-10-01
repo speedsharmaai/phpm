@@ -19,4 +19,8 @@ Composer's byte for byte.
 | `drupal-recommended` | drupal/recommended-project@dbcffd8 (11.x, 2026-05-11), its committed lock | 2026-10-01 | 69 | 85 | composer/installers, drupal/core-composer-scaffold, drupal/core-project-message, drupal/core-recipe-unpack, symfony/runtime, php-http/discovery, tbachert/spi; dev: phpstan/extension-installer, dealerdirect/phpcodesniffer-composer-installer | new in Phase 02 |
 | `bedrock` | roots/bedrock@b905a0a (2026-09-22) has no lock; generated with `composer update --no-install` on Composer 2.10.3 | 2026-10-01 | 15 | 58 | composer/installers, roots/wordpress-core-installer; dev: pestphp/pest-plugin | new in Phase 02 |
 
+`apps.txt` pins the application each lock belongs to (repository and
+commit). `just e2e-apps` and `BENCH_SCRIPTS=1 tools/bench/bench.sh` install
+the fixture inside that app, with scripts and plugins on.
+
 Reference tool: Composer 2.10.3 on PHP 8.4.
