@@ -812,6 +812,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "phpm-bench-real"
+version = "0.0.0"
+dependencies = [
+ "proptest",
+ "serde",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
 name = "phpm-diffvendor"
 version = "0.0.0"
 
