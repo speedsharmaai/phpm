@@ -5,9 +5,13 @@ authors.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 description = "An extremely fast, Composer-compatible PHP installer"
+homepage.workspace = true
 repository.workspace = true
 license.workspace = true
 publish = false
+
+[package.metadata.dist]
+dist = true
 
 [dependencies]
 clap = { version = "4.6.6", default-features = false, features = ["derive", "error-context", "help", "std", "usage"] }
