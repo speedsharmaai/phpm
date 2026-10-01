@@ -1,0 +1,222 @@
+name: sweep
+
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: sweep
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  PROJECTS_PER_SHARD: 30
+  WINDOWS_SHARD: 1/17
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      shards: ${{ steps.shards.outputs.list }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - run: cargo build --release --locked -p phpm -p phpm-sweep
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bin-linux
+          path: |
+            target/release/phpm
+            target/release/sweep
+          retention-days: 3
+      - id: shards
+        run: |
+          n=$(jq '.projects | length' sweep/corpus.json)
+          count=$(( (n + PROJECTS_PER_SHARD - 1) / PROJECTS_PER_SHARD ))
+          echo "list=$(jq -cn --argjson c "$count" '[range(1; $c + 1) | "\(.)/\($c)"]')" >> "$GITHUB_OUTPUT"
+
+  build-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - run: cargo build --release --locked -p phpm -p phpm-sweep
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bin-windows
+          path: |
+            target/release/phpm.exe
+            target/release/sweep.exe
+          retention-days: 3
+
+  linux:
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.build.outputs.shards) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: "8.4"
+          tools: composer:2.10.3
+          coverage: none
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: bin-linux
+          path: bin
+      - id: key
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: echo "name=sweep-linux-${SHARD%/*}-of-${SHARD#*/}" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/sweep-cache
+          key: ${{ steps.key.outputs.name }}-${{ github.run_id }}
+          restore-keys: ${{ steps.key.outputs.name }}-
+      - name: Sweep
+        env:
+          SHARD: ${{ matrix.shard }}
+          SWEEP_CACHE: ${{ runner.temp }}/sweep-cache
+          SWEEP_TIMEOUT: "900"
+        run: |
+          chmod +x bin/phpm bin/sweep
+          export PHPM_BIN="$PWD/bin/phpm" SWEEP_BIN="$PWD/bin/sweep"
+          mkdir -p records
+          for mode in pure default; do
+            tools/sweep/run batch sweep/corpus.json "$mode" --shard "$SHARD" --out "records/linux-${SHARD%/*}.jsonl"
+          done
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: records-linux-${{ strategy.job-index }}
+          path: records/*.jsonl
+          retention-days: 30
+
+  windows:
+    needs: build-windows
+    runs-on: windows-latest
+    timeout-minutes: 300
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: "8.4"
+          tools: composer:2.10.3
+          coverage: none
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: bin-windows
+          path: bin
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/sweep-cache
+          key: sweep-windows-${{ github.run_id }}
+          restore-keys: sweep-windows-
+      - name: Sweep
+        shell: bash
+        env:
+          SWEEP_CACHE: ${{ runner.temp }}/sweep-cache
+          SWEEP_TIMEOUT: "900"
+        run: |
+          composer_bin=$(powershell -NoProfile -Command '(Get-Command composer).Source')
+          export SWEEP_COMPOSER="${composer_bin//\\//}"
+          SWEEP_FIXTURES=$(cygpath -m "$PWD/fixtures")
+          PHPM_BIN=$(cygpath -m "$PWD/bin/phpm.exe")
+          export SWEEP_FIXTURES PHPM_BIN SWEEP_BIN="$PWD/bin/sweep.exe"
+          mkdir -p records
+          tools/sweep/run batch sweep/corpus.json pure --shard "$WINDOWS_SHARD" --out records/windows.jsonl
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: records-windows
+          path: records/*.jsonl
+          retention-days: 30
+
+  publish:
+    needs: [linux, windows]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: bin-linux
+          path: bin
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: records-*
+          path: records
+          merge-multiple: true
+      - name: Results
+        env:
+          REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
+          SHA: ${{ github.sha }}
+          RUN: ${{ github.run_id }}
+        run: |
+          chmod +x bin/sweep
+          mkdir -p site
+          curl -fsSL "https://${OWNER}.github.io/${REPO#*/}/history.json" -o site/history.json || rm -f site/history.json
+          bin/sweep publish site "$(date -u +%F)" \
+            --meta phpm="$SHA" --meta composer=2.10.3 --meta php=8.4 --meta run="$RUN" \
+            records/*.jsonl | tee summary.txt
+          cp tools/sweep/page/* site/
+          {
+            echo "## Compatibility sweep"
+            echo
+            sed 's/^/- /' summary.txt
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: results
+          path: site/results.json
+          retention-days: 90
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site
+
+  deploy:
+    needs: publish
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
