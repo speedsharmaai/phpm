@@ -31,6 +31,14 @@ pub struct FetchOptions {
     pub other_concurrency: usize,
     pub retries: u32,
     pub retry_delay: Duration,
+    /// Time allowed to establish a connection before giving up.
+    pub connect_timeout: Duration,
+    /// Time allowed per read with no data before giving up. Composer's
+    /// `CurlDownloader` retries `CURLE_OPERATION_TIMEDOUT` the same as any
+    /// other transient curl error; reqwest surfaces both this and a connect
+    /// timeout as an ordinary `Error`, so they already flow through the
+    /// same retry path as any other transport failure.
+    pub read_timeout: Duration,
     pub max_bytes: u64,
     /// Hosts whose HTTP 400 is retried (codeload answers 400 on some reused connections).
     pub retry_400_hosts: Vec<String>,
@@ -51,6 +59,8 @@ impl Default for FetchOptions {
             other_concurrency: 10,
             retries: 3,
             retry_delay: Duration::from_millis(500),
+            connect_timeout: Duration::from_secs(30),
+            read_timeout: Duration::from_secs(60),
             max_bytes: 512 << 20,
             retry_400_hosts: vec!["codeload.github.com".into()],
             dist_connections: 8,
@@ -87,8 +97,8 @@ impl Fetcher {
         let build = || {
             reqwest::Client::builder()
                 .user_agent(USER_AGENT)
-                .connect_timeout(Duration::from_secs(30))
-                .read_timeout(Duration::from_secs(60))
+                .connect_timeout(options.connect_timeout)
+                .read_timeout(options.read_timeout)
                 .pool_max_idle_per_host(options.github_concurrency)
                 .redirect(reqwest::redirect::Policy::none())
                 .build()
@@ -521,6 +531,8 @@ mod tests {
     use super::{FetchOptions, Fetcher, USER_AGENT};
     use crate::auth::Auth;
     use reqwest::Url;
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicUsize, Ordering};
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
     use tokio::net::TcpListener;
 
@@ -650,6 +662,79 @@ mod tests {
     fn user_agent_names_the_project() {
         assert!(USER_AGENT.starts_with("phpm/"));
         assert!(USER_AGENT.ends_with("(+https://github.com/speedsharmaai/phpm)"));
+    }
+
+    /// Accepts connections, stalling past the client's read timeout without
+    /// answering on the first `stalls` of them, then replies 200 with `body`.
+    /// Returns the base URL and the number of connections actually accepted.
+    async fn stalling_server(
+        stalls: usize,
+        stall_for: std::time::Duration,
+        body: &'static str,
+    ) -> (String, Arc<AtomicUsize>) {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let base = format!("http://{}", listener.local_addr().unwrap());
+        let hits = Arc::new(AtomicUsize::new(0));
+        let counted = Arc::clone(&hits);
+        tokio::spawn(async move {
+            // Each connection is handled on its own task so a stalled one
+            // never blocks the listener from accepting the next retry.
+            while let Ok(Ok((mut sock, _))) =
+                tokio::time::timeout(std::time::Duration::from_secs(5), listener.accept()).await
+            {
+                let hit = counted.fetch_add(1, Ordering::SeqCst) + 1;
+                tokio::spawn(async move {
+                    let mut buf = [0_u8; 4096];
+                    let _ = sock.read(&mut buf).await;
+                    if hit <= stalls {
+                        tokio::time::sleep(stall_for).await;
+                        return;
+                    }
+                    let reply = format!(
+                        "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+                        body.len()
+                    );
+                    let _ = sock.write_all(reply.as_bytes()).await;
+                });
+            }
+        });
+        (base, hits)
+    }
+
+    #[tokio::test]
+    async fn retries_a_download_that_times_out_then_succeeds() {
+        let stall = std::time::Duration::from_millis(200);
+        let (base, hits) = stalling_server(2, stall, "ok").await;
+        let fetcher = Fetcher::new(FetchOptions {
+            read_timeout: std::time::Duration::from_millis(20),
+            retry_delay: std::time::Duration::from_millis(1),
+            ..FetchOptions::default()
+        })
+        .unwrap();
+        let bytes = fetcher
+            .fetch(&format!("{base}/pkg.zip"), None)
+            .await
+            .unwrap();
+        assert_eq!(bytes, b"ok");
+        assert_eq!(hits.load(Ordering::SeqCst), 3);
+    }
+
+    #[tokio::test]
+    async fn gives_up_after_retries_are_exhausted_on_repeated_timeouts() {
+        let stall = std::time::Duration::from_millis(200);
+        let (base, _hits) = stalling_server(usize::MAX, stall, "ok").await;
+        let fetcher = Fetcher::new(FetchOptions {
+            read_timeout: std::time::Duration::from_millis(20),
+            retry_delay: std::time::Duration::from_millis(1),
+            retries: 1,
+            ..FetchOptions::default()
+        })
+        .unwrap();
+        let err = fetcher
+            .fetch(&format!("{base}/pkg.zip"), None)
+            .await
+            .unwrap_err();
+        assert!(err.to_string().contains("pkg.zip"), "{err}");
     }
 
     #[tokio::test]
