@@ -17,7 +17,9 @@ opt() {
   echo "$default"
 }
 
-# Prepare the project's tree at its pin (or a fixture's lockfile) in $1.
+# Prepare the project's tree at its pin in $1; a fixture's composer.json
+# and composer.lock go on top, same as the sweep (a fixture stands in when
+# the app itself commits no lock, e.g. laravel/laravel).
 prepare_source() {
   local src="$1" repo="$2" commit="$3" fixture="$4"
   mkdir -p "$src"
@@ -31,10 +33,12 @@ prepare_source() {
       sleep 10
     done
     git -C "$src" -c advice.detachedHead=false checkout -q FETCH_HEAD
-  else
+  fi
+  if [ -n "$fixture" ]; then
     cp "$bench_real_root/fixtures/$fixture/fixture.json" "$src/composer.json"
     cp "$bench_real_root/fixtures/$fixture/fixture.lock" "$src/composer.lock"
   fi
+  [ -n "$repo$fixture" ] || { echo "$src: neither a repository nor a fixture" >&2; return 1; }
   [ -f "$src/composer.lock" ] || { echo "$src: no composer.lock" >&2; return 1; }
 }
 
@@ -74,7 +78,7 @@ run_project() {
 
   local name="${repo:-fixtures/$fixture}"
   if ! prepare_source "$work/src" "$repo" "$commit" "$fixture" 2>"$work/fetch.err"; then
-    jq -n --arg group "$group" --arg repo "${repo:-null}" --arg fixture "${fixture:-null}" \
+    jq -nc --arg group "$group" --arg repo "${repo:-null}" --arg fixture "${fixture:-null}" \
       --arg os "$os" --arg error "$(cat "$work/fetch.err")" \
       '{group: $group, repo: (if $repo == "null" then null else $repo end),
         fixture: (if $fixture == "null" then null else $fixture end),
@@ -92,7 +96,7 @@ run_project() {
   echo "== $name ($os)" >&2
   if ! (cd "$work/composer" && HOME="$work/home" "${COMPOSER_BIN:-composer}" install --no-scripts --no-plugins --ignore-platform-reqs --no-interaction --no-progress -q) \
     >"$work/composer-install.log" 2>&1; then
-    jq -n --arg group "$group" --arg repo "${repo:-null}" --arg os "$os" --arg error "composer install failed, see log" \
+    jq -nc --arg group "$group" --arg repo "${repo:-null}" --arg os "$os" --arg error "composer install failed, see log" \
       '{group: $group, repo: (if $repo == "null" then null else $repo end), os: $os, identity: "install-failed", error: $error}'
     return
   fi
@@ -118,7 +122,7 @@ run_project() {
     fallback_plugins=$(fallback_plugin_names "$work/phpm-explain.log" | jq -R -s -c 'split("\n") | map(select(length > 0))')
   fi
 
-  jq -n \
+  jq -nc \
     --arg group "$group" --arg repo "${repo:-null}" --arg fixture "${fixture:-null}" \
     --argjson stars "${stars:-null}" --arg os "$os" --argjson packages "${packages:-null}" \
     --argjson cold "{\"composer_seconds\": $(mean_of "$work/composer-cold.json"), \"phpm_seconds\": $(mean_of "$work/phpm-cold.json")}" \

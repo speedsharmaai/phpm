@@ -54,7 +54,7 @@ phpm_with_cache=$(job_seconds "$work/p1" "$phpm_cmd" "$PHPM_CACHE_DIR" true)
 phpm_without_cache=$(job_seconds "$work/p2" "$phpm_cmd" "$PHPM_CACHE_DIR" false)
 
 emit() {
-  jq -n --arg os "$os" --arg project "$repo" --argjson cache "$1" \
+  jq -nc --arg os "$os" --arg project "$repo" --argjson cache "$1" \
     --argjson composer_job_seconds "$2" --argjson phpm_job_seconds "$3" \
     '{os: $os, project: $project, cache: $cache,
       composer_job_seconds: $composer_job_seconds, phpm_job_seconds: $phpm_job_seconds}'

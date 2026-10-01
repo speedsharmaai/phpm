@@ -60,7 +60,7 @@ phpm_cmd="${PHPM_BIN:-phpm} install --no-scripts --no-plugins --ignore-platform-
 read -r composer_seconds composer_bytes < <(run_batch "$composer_cmd" wt-composer)
 read -r phpm_seconds phpm_bytes < <(run_batch "$phpm_cmd" wt-phpm)
 
-record=$(jq -n \
+record=$(jq -nc \
   --arg os "$os" --arg project "$fixture" --argjson worktrees "$count" \
   --argjson composer_total_seconds "$composer_seconds" --argjson phpm_total_seconds "$phpm_seconds" \
   --argjson composer_disk_bytes "$composer_bytes" --argjson phpm_disk_bytes "$phpm_bytes" \
