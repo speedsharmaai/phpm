@@ -34,7 +34,11 @@ job_seconds() {
     mkdir -p "$cache_dir"
   fi
   SECONDS=0
-  (cd "$dir" && eval "$cmd") >"$dir.log" 2>&1
+  if ! (cd "$dir" && eval "$cmd") >"$dir.log" 2>&1; then
+    echo "$cmd failed in $dir, last 30 log lines:" >&2
+    tail -30 "$dir.log" >&2
+    return 1
+  fi
   find "$dir/vendor" -name '*.php' >"$dir.files" 2>/dev/null || true
   while read -r f; do php -l "$f" >/dev/null 2>&1; done < <(head -200 "$dir.files")
   echo "$SECONDS"
