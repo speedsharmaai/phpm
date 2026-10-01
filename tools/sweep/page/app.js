@@ -97,8 +97,12 @@ function table(results) {
     const problem = firstProblem(rs);
     const cells = groups.map((g) => {
       const r = by[g];
-      return r ? `<td><span class="tag ${esc(r.outcome)}">${esc(r.outcome)}</span>${
-        r.differences ? ` <span class="why">${r.differences}</span>` : ""}</td>` : "<td></td>";
+      if (!r) return "<td></td>";
+      const count = r.differences ? ` <span class="why">${r.differences}</span>` : "";
+      const notes = r.normalized?.length
+        ? ` <span class="why" title="${esc(r.normalized.join("\n"))}">(${r.normalized.length} left out, see title)</span>`
+        : "";
+      return `<td><span class="tag ${esc(r.outcome)}">${esc(r.outcome)}</span>${count}${notes}</td>`;
     }).join("");
     return { k, problem, html: `<tr><td>${link}</td><td class="num">${first.stars ?? ""}</td>
       <td class="num">${first.packages ?? ""}</td>${cells}<td>${path}</td>

@@ -18,7 +18,7 @@ pub const USAGE: &str = "usage:
 
 env: PHPM_BIN (phpm), SWEEP_COMPOSER (composer), SWEEP_TIMEOUT (900 s),
      SWEEP_WORK (kept when set), SWEEP_CACHE, SWEEP_FIXTURES (fixtures),
-     SWEEP_GIT_BASE (https://github.com/)";
+     SWEEP_GIT_BASE (https://github.com/), SWEEP_FETCH_TRIES (3)";
 
 pub type Env<'a> = &'a dyn Fn(&str) -> Option<String>;
 
@@ -82,6 +82,12 @@ fn config(env: Env<'_>) -> Result<(Config, Option<tempfile::TempDir>), String> {
             .map_err(|_| format!("SWEEP_TIMEOUT must be seconds, not {t}"))?,
         None => 900,
     };
+    let fetch_attempts = match env("SWEEP_FETCH_TRIES") {
+        Some(t) => t
+            .parse()
+            .map_err(|_| format!("SWEEP_FETCH_TRIES must be a number, not {t}"))?,
+        None => 3,
+    };
     let (work, guard, keep) = if let Some(w) = env("SWEEP_WORK").filter(|w| !w.is_empty()) {
         (PathBuf::from(w), None, true)
     } else {
@@ -89,7 +95,9 @@ fn config(env: Env<'_>) -> Result<(Config, Option<tempfile::TempDir>), String> {
         (t.path().to_path_buf(), Some(t), false)
     };
     fs::create_dir_all(&work).map_err(|e| format!("{}: {e}", work.display()))?;
-    let work = fs::canonicalize(&work).map_err(|e| format!("{}: {e}", work.display()))?;
+    let work = fs::canonicalize(&work)
+        .map(without_verbatim_prefix)
+        .map_err(|e| format!("{}: {e}", work.display()))?;
     let caches = env("SWEEP_CACHE").map_or_else(|| work.join("cache"), PathBuf::from);
     Ok((
         Config {
@@ -101,9 +109,20 @@ fn config(env: Env<'_>) -> Result<(Config, Option<tempfile::TempDir>), String> {
             work,
             caches,
             keep,
+            fetch_attempts,
+            retry_pause: Duration::from_secs(10),
         },
         guard,
     ))
+}
+
+/// `C:\x` for `\\?\C:\x`: `canonicalize` gives verbatim paths on Windows,
+/// and a project at one is not what users run Composer in.
+fn without_verbatim_prefix(path: PathBuf) -> PathBuf {
+    match path.to_str().and_then(|s| s.strip_prefix(r"\\?\")) {
+        Some(rest) if !rest.starts_with("UNC") => PathBuf::from(rest),
+        _ => path,
+    }
 }
 
 fn dash(s: &str) -> Option<String> {
@@ -241,10 +260,11 @@ fn publish(args: &[String], out: &mut dyn Write) -> Result<(), String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{USAGE, main, progress, split_args};
+    use super::{USAGE, main, progress, split_args, without_verbatim_prefix};
     use crate::record::{Mode, Outcome, PhpmPath, Record};
     use serde_json::Value;
     use std::fs;
+    use std::path::PathBuf;
 
     fn call(args: &[&str], env: &[(&str, String)]) -> (u8, String, String) {
         let args: Vec<String> = args.iter().map(|s| (*s).to_owned()).collect();
@@ -271,12 +291,24 @@ mod tests {
             compared: vec![],
             differences: 0,
             first_differences: vec![],
+            normalized: vec![],
             phpm_path: PhpmPath::Native,
             phpm_reasons: vec![],
             composer: None,
             phpm: None,
             error: None,
         }
+    }
+
+    #[test]
+    fn verbatim_windows_paths_lose_their_prefix() {
+        let plain = |s: &str| without_verbatim_prefix(PathBuf::from(s));
+        assert_eq!(plain(r"\\?\C:\work"), PathBuf::from(r"C:\work"));
+        assert_eq!(
+            plain(r"\\?\UNC\server\share"),
+            PathBuf::from(r"\\?\UNC\server\share")
+        );
+        assert_eq!(plain("/tmp/work"), PathBuf::from("/tmp/work"));
     }
 
     #[test]
@@ -323,6 +355,14 @@ mod tests {
             )
             .2
             .contains("SWEEP_TIMEOUT must be seconds")
+        );
+        assert!(
+            call(
+                &["run", "a/b", "c", "pure"],
+                &[("SWEEP_FETCH_TRIES", "x".to_owned())]
+            )
+            .2
+            .contains("SWEEP_FETCH_TRIES must be a number")
         );
         assert!(call(&["batch", "c.json"], &[]).2.contains("usage"));
         assert!(
@@ -371,6 +411,7 @@ mod tests {
                 format!("file://{}/none/", tmp.path().display()),
             ),
             ("SWEEP_COMPOSER", "  ".to_owned()),
+            ("SWEEP_FETCH_TRIES", "1".to_owned()),
         ];
         let (code, out, _) = call(&["run", "o/r", "abc", "pure", "--stars", "4"], &env);
         assert_eq!(code, 0);

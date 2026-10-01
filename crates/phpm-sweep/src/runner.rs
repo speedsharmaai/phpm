@@ -32,6 +32,28 @@ pub struct Config {
     /// Composer's and phpm's caches, shared by every project of a run.
     pub caches: PathBuf,
     pub keep: bool,
+    /// Tries per fetch, `retry_pause` times the try number apart.
+    pub fetch_attempts: u32,
+    pub retry_pause: Duration,
+}
+
+/// `f` until it succeeds, at most `attempts` times; the last error otherwise.
+pub fn retry<T>(
+    attempts: u32,
+    pause: Duration,
+    mut f: impl FnMut() -> Result<T, String>,
+) -> Result<T, String> {
+    let mut tried = 1;
+    loop {
+        match f() {
+            Ok(v) => return Ok(v),
+            Err(e) if tried >= attempts => return Err(e),
+            Err(_) => {
+                std::thread::sleep(pause * tried);
+                tried += 1;
+            }
+        }
+    }
 }
 
 struct Finished {
@@ -150,7 +172,9 @@ fn prepare(p: &Project, cfg: &Config, src: &Path) -> Result<(), String> {
         let commit = p.commit.as_deref().ok_or("no commit pinned")?;
         let url = format!("{}{repo}.git", cfg.git_base);
         git(&["init", "-q"], src)?;
-        git(&["fetch", "-q", "--depth", "1", &url, commit], src)?;
+        retry(cfg.fetch_attempts, cfg.retry_pause, || {
+            git(&["fetch", "-q", "--depth", "1", &url, commit], src)
+        })?;
         git(
             &[
                 "-c",
@@ -268,28 +292,109 @@ fn describe(dir: &str, d: &Difference) -> String {
 
 /// Every difference between the two trees under `dirs`, and the dirs that
 /// existed on either side.
+/// `autoload_real.php` with the `APCu` prefix blanked: Composer picks a random
+/// one per dump unless `apcu-autoloader-prefix` is set.
+// Composer: Autoload/AutoloadGenerator.php getAutoloadRealFile, bin2hex(random_bytes(10))
+fn mask_apcu_prefix(text: &[u8]) -> Vec<u8> {
+    const CALL: &[u8] = b"$loader->setApcuPrefix('";
+    let mut out = text.to_vec();
+    let mut from = 0;
+    while let Some(i) = out[from..].windows(CALL.len()).position(|w| w == CALL) {
+        let start = from + i + CALL.len();
+        let end = start + 20;
+        let random = out
+            .get(start..end)
+            .is_some_and(|h| h.iter().all(u8::is_ascii_hexdigit))
+            && out.get(end) == Some(&b'\'');
+        if random {
+            out[start..end].fill(b'0');
+        }
+        from = start;
+    }
+    out
+}
+
+/// Whether a content difference is only Composer's random `APCu` prefix.
+fn only_apcu_prefix(composer: &Path, phpm: &Path, rel: &Path) -> bool {
+    if rel.file_name().is_none_or(|n| n != "autoload_real.php") {
+        return false;
+    }
+    match (fs::read(composer.join(rel)), fs::read(phpm.join(rel))) {
+        (Ok(a), Ok(b)) => mask_apcu_prefix(&a) == mask_apcu_prefix(&b),
+        _ => false,
+    }
+}
+
+/// The dirs that existed on either side, every difference between them, and
+/// the differences left out because Composer itself is not deterministic there.
 fn compare_trees(
     composer: &Path,
     phpm: &Path,
     dirs: &[String],
-) -> io::Result<(Vec<String>, Vec<String>)> {
+) -> io::Result<(Vec<String>, Vec<String>, Vec<String>)> {
     let mut compared = Vec::new();
     let mut diffs = Vec::new();
+    let mut normalized = Vec::new();
     for dir in dirs {
         let (c, p) = (composer.join(dir), phpm.join(dir));
         match (c.is_dir(), p.is_dir()) {
             (false, false) => continue,
             (true, false) => diffs.push(format!("{dir}/: only from composer")),
             (false, true) => diffs.push(format!("{dir}/: only from phpm")),
-            (true, true) => diffs.extend(
-                compare(&c, &p, &Ignore::default())?
-                    .iter()
-                    .map(|d| describe(dir, d)),
-            ),
+            (true, true) => {
+                for d in compare(&c, &p, &Ignore::default())? {
+                    match &d {
+                        Difference::ContentDiffers { path, .. }
+                            if only_apcu_prefix(&c, &p, path) =>
+                        {
+                            normalized.push(format!(
+                                "{dir}/{}: Composer's random APCu prefix",
+                                slash(path)
+                            ));
+                        }
+                        _ => diffs.push(describe(dir, &d)),
+                    }
+                }
+            }
         }
         compared.push(dir.clone());
     }
-    Ok((compared, diffs))
+    Ok((compared, diffs, normalized))
+}
+
+/// Files Composer writes from its package map, whose order on a first
+/// install follows the order packages finished installing, not the
+/// `installed.json` order every later dump uses.
+const AUTOLOAD_FILES: &[&str] = &[
+    "include_paths.php",
+    "autoload_files.php",
+    "autoload_static.php",
+    "autoload_psr4.php",
+    "autoload_namespaces.php",
+    "autoload_classmap.php",
+];
+
+/// Whether a difference is in one of those files under the vendor dir.
+fn in_autoloader(diff: &str, vendor: &str) -> bool {
+    diff.split_once(": ")
+        .and_then(|(path, _)| path.strip_prefix(&format!("{vendor}/composer/")))
+        .is_some_and(|name| AUTOLOAD_FILES.contains(&name))
+}
+
+/// `composer dump-autoload` that only rewrites the autoloader.
+fn redump_argv(composer: &[String]) -> Vec<String> {
+    let args = [
+        "dump-autoload",
+        "--no-interaction",
+        "--no-scripts",
+        "--no-plugins",
+        "--ignore-platform-reqs",
+    ];
+    composer
+        .iter()
+        .cloned()
+        .chain(args.iter().map(|s| (*s).to_owned()))
+        .collect()
 }
 
 fn clean(dir: &Path) -> io::Result<()> {
@@ -313,6 +418,7 @@ pub fn run_project(p: &Project, mode: Mode, cfg: &Config) -> Record {
         compared: Vec::new(),
         differences: 0,
         first_differences: Vec::new(),
+        normalized: Vec::new(),
         phpm_path: PhpmPath::Unknown,
         phpm_reasons: Vec::new(),
         composer: None,
@@ -408,9 +514,30 @@ fn install_both(p: &Project, mode: Mode, cfg: &Config, rec: &mut Record) -> Resu
         return Ok(());
     }
 
-    let (compared, diffs) =
-        compare_trees(&composer_out, &phpm_out, &compared_dirs(&composer_json)).map_err(io_err)?;
+    let dirs = compared_dirs(&composer_json);
+    let (compared, mut diffs, mut normalized) =
+        compare_trees(&composer_out, &phpm_out, &dirs).map_err(io_err)?;
+    if !diffs.is_empty() && diffs.iter().all(|d| in_autoloader(d, &dirs[0])) {
+        fs::rename(&composer_out, &project).map_err(io_err)?;
+        let dump = exec(
+            &redump_argv(&cfg.composer),
+            &project,
+            &env,
+            &cfg.work.join("redump-log"),
+            cfg.timeout,
+        );
+        fs::rename(&project, &composer_out).map_err(io_err)?;
+        if dump.is_ok_and(|d| d.run().ok()) {
+            let (_, again, _) = compare_trees(&composer_out, &phpm_out, &dirs).map_err(io_err)?;
+            if again.is_empty() {
+                normalized.extend(diffs.drain(..).map(|d| {
+                    format!("{d} (Composer's first-install package order; identical after composer dump-autoload)")
+                }));
+            }
+        }
+    }
     rec.compared = compared;
+    rec.normalized = normalized;
     rec.differences = diffs.len();
     rec.first_differences = diffs.into_iter().take(FIRST_DIFFERENCES).collect();
     rec.outcome = if rec.differences == 0 {
@@ -423,10 +550,78 @@ fn install_both(p: &Project, mode: Mode, cfg: &Config, rec: &mut Record) -> Resu
 
 #[cfg(test)]
 mod tests {
-    use super::{compared_dirs, count_packages, describe, without_git_env};
+    use super::{
+        compared_dirs, count_packages, describe, in_autoloader, mask_apcu_prefix, redump_argv,
+        retry, without_git_env,
+    };
     use phpm_diffvendor::Difference;
     use serde_json::json;
     use std::path::PathBuf;
+
+    #[test]
+    fn autoloader_differences_are_recognised() {
+        assert!(in_autoloader(
+            "vendor/composer/include_paths.php: bytes differ at offset 3",
+            "vendor"
+        ));
+        assert!(in_autoloader(
+            "lib/composer/autoload_files.php: bytes differ at offset 3",
+            "lib"
+        ));
+        assert!(!in_autoloader(
+            "vendor/composer/installed.json: bytes differ at offset 3",
+            "vendor"
+        ));
+        assert!(!in_autoloader(
+            "vendor/a/composer/autoload_files.php: x",
+            "vendor"
+        ));
+        assert!(!in_autoloader("garbage", "vendor"));
+        assert_eq!(
+            redump_argv(&["php".to_owned(), "c.phar".to_owned()])[..3],
+            ["php", "c.phar", "dump-autoload"]
+        );
+    }
+
+    #[test]
+    fn masks_only_a_random_apcu_prefix() {
+        let real = b"x\n        $loader->setApcuPrefix('cd8701d0e42551dfc35f');\n";
+        let masked = mask_apcu_prefix(real);
+        assert_eq!(
+            masked,
+            b"x\n        $loader->setApcuPrefix('00000000000000000000');\n"
+        );
+        let mine = b"$loader->setApcuPrefix('my-own-prefix');";
+        assert_eq!(mask_apcu_prefix(mine), mine);
+        let short = b"$loader->setApcuPrefix('abc";
+        assert_eq!(mask_apcu_prefix(short), short);
+    }
+
+    #[test]
+    fn retries_until_success_or_the_last_attempt() {
+        let mut calls = 0;
+        let ok = retry(3, std::time::Duration::ZERO, || {
+            calls += 1;
+            if calls < 2 {
+                Err("flaky".to_owned())
+            } else {
+                Ok(calls)
+            }
+        });
+        assert_eq!(ok, Ok(2));
+        let mut calls = 0;
+        let err: Result<(), String> = retry(3, std::time::Duration::ZERO, || {
+            calls += 1;
+            Err(format!("try {calls}"))
+        });
+        assert_eq!(err, Err("try 3".to_owned()));
+        assert_eq!(
+            retry(0, std::time::Duration::ZERO, || Err::<(), _>(
+                "x".to_owned()
+            )),
+            Err("x".to_owned())
+        );
+    }
 
     #[test]
     fn git_hook_variables_never_reach_children() {
@@ -548,6 +743,8 @@ mod tests {
                     work: self.root.join("work"),
                     caches: self.root.join("caches"),
                     keep: false,
+                    fetch_attempts: 2,
+                    retry_pause: Duration::ZERO,
                 }
             }
 
@@ -661,6 +858,63 @@ mod tests {
                     "vendor/a/g.txt: only from phpm",
                     "public/: only from composer",
                 ]
+            );
+        }
+
+        #[test]
+        fn a_random_apcu_prefix_is_not_a_difference() {
+            let e = Env::new();
+            let app = e.app();
+            let real = |prefix: &str| {
+                format!(
+                    "mkdir -p vendor/composer && echo \"\\$loader->setApcuPrefix('{prefix}');\" > vendor/composer/autoload_real.php"
+                )
+            };
+            let cfg = e.config(
+                &real("cd8701d0e42551dfc35f"),
+                &format!("{}\n{NATIVE}", real("13248f148288792ea009")),
+            );
+            let r = run_project(&app, Mode::Pure, &cfg);
+            assert_eq!(r.outcome, Outcome::Identical, "{r:?}");
+            assert_eq!(
+                r.normalized,
+                ["vendor/composer/autoload_real.php: Composer's random APCu prefix"]
+            );
+            let cfg = e.config(
+                &real("cd8701d0e42551dfc35f"),
+                &format!("{}\n{NATIVE}", real("mine")),
+            );
+            let r = run_project(&app, Mode::Pure, &cfg);
+            assert_eq!(r.outcome, Outcome::Different);
+        }
+
+        #[test]
+        fn first_install_order_is_checked_against_a_redump() {
+            let e = Env::new();
+            let app = e.app();
+            let order = |first: &str, later: &str| {
+                format!(
+                    "mkdir -p vendor/composer\nif [ \"$1\" = dump-autoload ]; then echo {later} > vendor/composer/autoload_files.php; else echo {first} > vendor/composer/autoload_files.php; fi"
+                )
+            };
+            let cfg = e.config(
+                &order("one-two", "two-one"),
+                &format!("{}\n{NATIVE}", order("two-one", "two-one")),
+            );
+            let r = run_project(&app, Mode::Pure, &cfg);
+            assert_eq!(r.outcome, Outcome::Identical, "{r:?}");
+            assert_eq!(r.normalized.len(), 1);
+            assert!(r.normalized[0].contains("identical after composer dump-autoload"));
+
+            let cfg = e.config(
+                &order("one-two", "one-two"),
+                &format!("{}\n{NATIVE}", order("two-one", "two-one")),
+            );
+            let r = run_project(&app, Mode::Pure, &cfg);
+            assert_eq!(r.outcome, Outcome::Different);
+            assert_eq!(
+                r.first_differences,
+                ["vendor/composer/autoload_files.php: bytes differ at offset 0"]
             );
         }
 
