@@ -30,7 +30,12 @@ pub(crate) fn read_head(path: &Path, len: u64) -> io::Result<Vec<u8>> {
 
 /// Write `bytes` unless the file already holds exactly them.
 pub(crate) fn write_if_changed(path: &Path, bytes: &[u8]) -> io::Result<()> {
-    if fs::read(path).is_ok_and(|old| old == bytes) {
+    // `fs::write` follows a symlink and overwrites whatever it points to;
+    // a bin proxy that used to be a symlink (an older Composer, or one
+    // hand-made) needs removing first so the write lands on `path` itself.
+    if fs::symlink_metadata(path).is_ok_and(|m| m.is_symlink()) {
+        fs::remove_file(path)?;
+    } else if fs::read(path).is_ok_and(|old| old == bytes) {
         return Ok(());
     }
     fs::write(path, bytes)
@@ -172,6 +177,20 @@ mod tests {
         assert_eq!(fs::metadata(&f).unwrap().modified().unwrap(), before);
         write_if_changed(&f, b"b").unwrap();
         assert_eq!(fs::read(&f).unwrap(), b"b");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn replaces_a_symlink_instead_of_writing_through_it() {
+        let tmp = tempfile::tempdir().unwrap();
+        let target = tmp.path().join("target");
+        fs::write(&target, b"real content").unwrap();
+        let link = tmp.path().join("link");
+        std::os::unix::fs::symlink(&target, &link).unwrap();
+        write_if_changed(&link, b"proxy").unwrap();
+        assert!(!fs::symlink_metadata(&link).unwrap().is_symlink());
+        assert_eq!(fs::read(&link).unwrap(), b"proxy");
+        assert_eq!(fs::read(&target).unwrap(), b"real content");
     }
 
     #[cfg(unix)]
