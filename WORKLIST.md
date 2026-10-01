@@ -2,20 +2,24 @@
 
 The one-screen view. Details live in [phases](phases/README.md).
 
-Current state: **Phase 02 done (2026-10-01).** Exit criteria met: identical
-`vendor/` on every fixture, plugin apps working through the Composer
-fallback, Laravel with scripts 5.3-5.9x faster warm than Composer, malware
-filter proven against a blocked package. Cold installs ahead of riff by median
-on both fixtures (clearly on Laravel, a tie on ytmate). Fuzzing runs weekly.
+Current state: **Phase 02 and Phase 04 done; Phase 03 in progress.**
+Phase 04 (2026-10-02): Bedrock and a real Drupal site install fully
+natively, no Composer fallback for any step, 0 `vendor/`/`web/`/`recipes/`
+differences, warm 14.1x and 7.7x faster than Composer, no-op 256x and 233x
+faster. Phase 02 exit criteria met 2026-10-01: identical `vendor/` on every
+fixture, plugin apps working through the Composer fallback, Laravel with
+scripts 5.3-5.9x faster warm than Composer, malware filter proven against a
+blocked package. Fuzzing runs weekly.
 
 ## Next three things
 
 1. **Phase 03: compatibility sweep.** The corpus runner and the nightly sweep
-   page have started (#43, #45, #46, #49); next is the published number.
-2. **Rename fixture lockfiles** so GitHub's dependency graph stops treating
+   page have started (#43, #45, #46, #49); next is the published number
+   against the 95% gate.
+2. **Phase 05: real-world benchmarks.** Corpus pinned (#76) and the results
+   aggregator built (#78); next is running it and publishing the page.
+3. **Rename fixture lockfiles** so GitHub's dependency graph stops treating
    them as dependencies; then turn automated security-fix PRs back on.
-3. **Market check (owner).** Ask r/PHP, r/laravel and ten developers whether
-   install time is a top-three pain. Decides whether Phase 06 has an audience.
 
 ## Owner actions
 
@@ -23,6 +27,8 @@ on both fixtures (clearly on Laravel, a tie on ytmate). Fuzzing runs weekly.
 - [x] SSH signing key registered; `main` requires verified signatures
 - [ ] OpenSSF Best Practices registration at bestpractices.dev
 - [ ] Trademark search for `phpm`
+- [ ] Market check: ask r/PHP, r/laravel and ten developers whether install
+  time is a top-three pain. Decides whether Phase 06 has an audience.
 
 ## Phase 01 · Spike
 
@@ -46,6 +52,32 @@ on both fixtures (clearly on Laravel, a tie on ytmate). Fuzzing runs weekly.
 - [x] Cold fetch: direct codeload, more connections, class scans during download (#47)
 - [x] cargo-fuzz targets and a weekly workflow; two bugs found and fixed (#48, #50)
 - [x] **Exit criteria met: [progress](phases/phase-02-parity-core/progress.md#close)**
+
+## Phase 04 · Plugin adapters
+
+- [x] Task doc and adapter registry: per-plugin native coverage decided
+  before anything is placed, every active plugin must be covered or
+  Composer runs the whole install (#60)
+- [x] composer/installers: every installer type, root `installer-paths`,
+  `installer-name`, `installer-disable`; 855 golden cases (#64)
+- [x] pestphp/pest-plugin: `vendor/pest-plugins.json` in local repository
+  order (#69)
+- [x] symfony/runtime: `vendor/autoload_runtime.php`, every stable tag
+  v7.0.0-v8.1.0 verified (#70)
+- [x] phpstan/extension-installer: `GeneratedConfig.php`, compacted
+  constraint, 1.4.0-1.4.3 verified (#72)
+- [x] dealerdirect/phpcodesniffer-composer-installer: `CodeSniffer.conf`
+  `installed_paths`, checked against a real drupal-recommended install (#74)
+- [x] drupal/core-composer-scaffold (file mappings, `DrupalInstalled.php`,
+  xxh3 hash), drupal/core-project-message and drupal/core-recipe-unpack
+  (no-ops), php-http/discovery (stale-file cleanup, declines when pinned) (#81)
+- [x] **Exit criteria met: Bedrock and drupal-recommended install fully
+  natively, 0 differences, warm 14.1x/7.7x faster than Composer, no-op
+  256x/233x faster:
+  [progress](phases/phase-04-plugin-adapters/progress.md#close)**
+
+symfony/flex, cweagans/composer-patches and wikimedia/composer-merge-plugin
+stay on fallback by scope (decision 0004), not fidelity.
 
 ## Phase 03 and beyond
 

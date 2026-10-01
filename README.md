@@ -34,7 +34,7 @@
 
 ## Now
 
-*Updated 2026-10-01.* Phases 03 and 04 run in parallel.
+*Updated 2026-10-02.* Phase 03 continues; Phase 04 is done.
 
 - **Phase 03, compatibility sweep (in progress).** 330 open-source PHP
   projects pinned from GitHub search, installed nightly with Composer and
@@ -49,10 +49,17 @@
   scripts or plugins will run. Remaining gaps are filed and mostly niche
   (committed `vendor/` directories, source-only packages with no dist,
   a few Windows path and retry cases).
-- **Phase 04, plugin adapters (in progress).** Native support for
-  composer/installers (WordPress, Drupal paths), Drupal scaffold,
-  symfony/runtime, phpstan's extension installer and the PHPCS installer, so
-  Bedrock and Drupal install without falling back to Composer.
+- **Phase 04, plugin adapters (done).** Native adapters for
+  composer/installers (WordPress, Drupal paths), drupal/core-composer-scaffold
+  (plus drupal/core-project-message and drupal/core-recipe-unpack, both
+  no-ops), symfony/runtime, phpstan's extension installer, the PHPCS
+  installer and php-http/discovery. Bedrock and a real Drupal site
+  (drupal/recommended-project) now install **fully natively**, no Composer
+  fallback for any step: warm installs **14.1x** and **7.7x** faster than
+  Composer, no-ops **256x** and **233x** faster, `vendor/`/`web/`/`recipes/`
+  byte-identical ([progress](phases/phase-04-plugin-adapters/progress.md)).
+  symfony/flex, cweagans/composer-patches and
+  wikimedia/composer-merge-plugin stay on fallback by scope, not fidelity.
 
 ## Numbers
 
@@ -85,8 +92,23 @@ warm and 633x on a no-op at the Phase 01 gate.
 
 `vendor/` is byte-identical to Composer's, bytes and file modes, on all five
 fixtures (Laravel, Symfony demo, Monica, and two production apps), including
-the optimised class map; the plugin-heavy apps (Symfony, Drupal, Bedrock,
-Monica) install through the Composer fallback with 0 differences.
+the optimised class map. As of Phase 04, Bedrock and drupal-recommended
+install fully natively (0 differences, no Composer fallback for any step).
+Symfony demo still falls back for symfony/flex (out of scope by decision
+0004); Monica's own plugins (php-http/discovery, phpstan/extension-installer)
+are both now native too, but `post-autoload-dump` still falls back because
+Monica's composer.json runs `Illuminate\Foundation\ComposerScripts::postAutoloadDump`,
+a PHP-callable script — a Phase 02 fallback reason, unrelated to plugins.
+
+Bedrock and drupal-recommended with scripts and plugins on, same machine,
+`BENCH_SCRIPTS=1 tools/bench/bench.sh`
+([progress](phases/phase-04-plugin-adapters/progress.md),
+[raw results](bench/results/2026-10-01-phase-04-close/)):
+
+| Fixture | Composer warm | phpm warm | Speed-up | Composer no-op | phpm no-op | Speed-up |
+|---|---|---|---|---|---|---|
+| bedrock | 4.496 s | **319 ms** | **14.1x** | 1.204 s | **4.7 ms** | **256x** |
+| drupal-recommended | 15.119 s | **1.973 s** | **7.7x** | 1.260 s | **5.4 ms** | **233x** |
 
 ## Try it from source
 
@@ -104,7 +126,7 @@ cd /path/to/your/php/project
 | 01 | Spike: `phpm install`, byte-identical, benchmarked, gate | **passed** |
 | 02 | Parity core: platform checks, auth, scripts, malware filter, Composer fallback, faster cold fetch | **done** |
 | 03 | Compatibility sweep: nightly diff against Composer across 330 projects | in progress: 86.2% identical, gate 95% |
-| 04 | Plugin adapters: composer/installers, Drupal scaffold, symfony/runtime, phpstan installer | in progress |
+| 04 | Plugin adapters: composer/installers, Drupal scaffold, symfony/runtime, phpstan installer, PHPCS installer, php-http/discovery | **done** |
 | 05 | Real-world benchmarks: Composer vs phpm on the largest open-source PHP apps | |
 | 06 | Launch: release, Homebrew, setup-php, Docker, GitHub Action | |
 | 07 | Resolver: `update` and `require` | |
