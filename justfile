@@ -61,7 +61,11 @@ e2e-apps:
 sweep-test:
     tools/sweep/test.sh
 
-ci: fmt-check lint docs test deny shear msrv typos md actions sweep-test cov
+# shellcheck and jq checks for tools/bench-real
+bench-real-test:
+    tools/bench-real/test.sh
+
+ci: fmt-check lint docs test deny shear msrv typos md actions sweep-test bench-real-test cov
 
 # warm placement time for a fixture; the first run fills the store
 place fixture="laravel-skeleton" *args="":

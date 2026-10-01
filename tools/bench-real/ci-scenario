@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# A project's own CI install step, simulated with and without a warm
+# `actions/cache`, before and after phpm: total job time (install plus a
+# lint pass over vendor/, not just the install line).
+#
+#   tools/bench-real/ci-scenario <owner/name> <commit> --os NAME [--out FILE]
+set -euo pipefail
+
+here="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=tools/bench-real/lib.sh
+. "$here/lib.sh"
+
+repo="${1:?owner/name}"
+commit="${2:?commit}"
+shift 2
+os=$(opt os "" "$@")
+out=$(opt out "" "$@")
+[ -n "$os" ] || { echo "usage: $0 <owner/name> <commit> --os NAME [--out FILE]" >&2; exit 2; }
+
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+prepare_source "$work/src" "$repo" "$commit" ""
+
+# The job's total wall time: install, then a lint pass over the first 200
+# vendor/ PHP files, the same real cost for both tools' output.
+job_seconds() {
+  local dir="$1" cmd="$2" cache_dir="$3" warm="$4"
+  rm -rf "$dir"
+  cp -R "$work/src" "$dir"
+  if [ "$warm" = true ]; then
+    mkdir -p "$cache_dir"
+  else
+    rm -rf "$cache_dir"
+    mkdir -p "$cache_dir"
+  fi
+  SECONDS=0
+  (cd "$dir" && eval "$cmd") >"$dir.log" 2>&1
+  find "$dir/vendor" -name '*.php' >"$dir.files" 2>/dev/null || true
+  while read -r f; do php -l "$f" >/dev/null 2>&1; done < <(head -200 "$dir.files")
+  echo "$SECONDS"
+}
+
+export COMPOSER_CACHE_DIR="$work/composer-cache" PHPM_CACHE_DIR="$work/phpm-cache"
+composer_cmd="${COMPOSER_BIN:-composer} install --no-scripts --no-plugins --ignore-platform-reqs --no-interaction --no-progress -q"
+phpm_cmd="${PHPM_BIN:-phpm} install --no-scripts --no-plugins --ignore-platform-reqs"
+
+# A warm-up run per tool first, so "with cache" measures a true cache hit.
+job_seconds "$work/warm-composer" "$composer_cmd" "$COMPOSER_CACHE_DIR" true >/dev/null
+composer_with_cache=$(job_seconds "$work/c1" "$composer_cmd" "$COMPOSER_CACHE_DIR" true)
+composer_without_cache=$(job_seconds "$work/c2" "$composer_cmd" "$COMPOSER_CACHE_DIR" false)
+
+job_seconds "$work/warm-phpm" "$phpm_cmd" "$PHPM_CACHE_DIR" true >/dev/null
+phpm_with_cache=$(job_seconds "$work/p1" "$phpm_cmd" "$PHPM_CACHE_DIR" true)
+phpm_without_cache=$(job_seconds "$work/p2" "$phpm_cmd" "$PHPM_CACHE_DIR" false)
+
+emit() {
+  jq -n --arg os "$os" --arg project "$repo" --argjson cache "$1" \
+    --argjson composer_job_seconds "$2" --argjson phpm_job_seconds "$3" \
+    '{os: $os, project: $project, cache: $cache,
+      composer_job_seconds: $composer_job_seconds, phpm_job_seconds: $phpm_job_seconds}'
+}
+
+records=$(
+  emit true "$composer_with_cache" "$phpm_with_cache"
+  emit false "$composer_without_cache" "$phpm_without_cache"
+)
+if [ -n "$out" ]; then
+  mkdir -p "$(dirname "$out")"
+  echo "$records" >>"$out"
+else
+  echo "$records"
+fi

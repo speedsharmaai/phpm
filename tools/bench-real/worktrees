@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# Ten git worktrees of one fixture: total wall time and total disk for
+# `composer install` x10 (10 full vendor/ copies) vs `phpm install` x10 from
+# a warm store (clonefile/hardlink sharing). The AI-agent-workflow number.
+#
+#   tools/bench-real/worktrees <fixture> --os NAME [--count N] [--out FILE]
+set -euo pipefail
+
+here="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=tools/bench-real/lib.sh
+. "$here/lib.sh"
+
+fixture="${1:?fixture name, e.g. laravel-skeleton}"
+shift
+os=$(opt os "" "$@")
+count=$(opt count 10 "$@")
+out=$(opt out "" "$@")
+[ -n "$os" ] || { echo "usage: $0 <fixture> --os NAME [--count N] [--out FILE]" >&2; exit 2; }
+
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+
+base="$work/base"
+mkdir -p "$base"
+cp "$bench_real_root/fixtures/$fixture/fixture.json" "$base/composer.json"
+cp "$bench_real_root/fixtures/$fixture/fixture.lock" "$base/composer.lock"
+git -C "$base" init -q
+git -C "$base" -c user.email=bench@phpm.local -c user.name=bench add -A
+git -C "$base" -c user.email=bench@phpm.local -c user.name=bench commit -q -m fixture
+
+available_kb() { df -Pk "$1" | awk 'NR==2 {print $4}'; }
+
+# Total seconds and bytes of real disk consumed (by free-space delta, so
+# copy-on-write clones that share blocks with the store are not
+# double-counted) for `count` worktrees run through $cmd_tpl.
+run_batch() {
+  local cmd_tpl="$1" dir_prefix="$2"
+  local before after elapsed bytes
+  before=$(available_kb "$work")
+  SECONDS=0
+  for ((i = 1; i <= count; i++)); do
+    git -C "$base" worktree add -q "$work/$dir_prefix-$i" -b "$dir_prefix-$i" >/dev/null 2>&1
+    (cd "$work/$dir_prefix-$i" && eval "$cmd_tpl") >"$work/$dir_prefix-$i.log" 2>&1
+  done
+  elapsed=$SECONDS
+  after=$(available_kb "$work")
+  bytes=$(((before - after) * 1024))
+  [ "$bytes" -lt 0 ] && bytes=0
+  echo "$elapsed $bytes"
+}
+
+export COMPOSER_CACHE_DIR="$work/cache/composer" PHPM_CACHE_DIR="$work/cache/phpm"
+composer_cmd="${COMPOSER_BIN:-composer} install --no-scripts --no-plugins --ignore-platform-reqs --no-interaction --no-progress -q"
+phpm_cmd="${PHPM_BIN:-phpm} install --no-scripts --no-plugins --ignore-platform-reqs"
+
+# Warm each tool's own cache or store first; that warm-up is not timed.
+(cd "$base" && eval "$composer_cmd") >/dev/null 2>&1
+(cd "$base" && eval "$phpm_cmd") >/dev/null 2>&1
+
+read -r composer_seconds composer_bytes < <(run_batch "$composer_cmd" wt-composer)
+read -r phpm_seconds phpm_bytes < <(run_batch "$phpm_cmd" wt-phpm)
+
+record=$(jq -n \
+  --arg os "$os" --arg project "$fixture" --argjson worktrees "$count" \
+  --argjson composer_total_seconds "$composer_seconds" --argjson phpm_total_seconds "$phpm_seconds" \
+  --argjson composer_disk_bytes "$composer_bytes" --argjson phpm_disk_bytes "$phpm_bytes" \
+  '{os: $os, project: $project, worktrees: $worktrees,
+    composer_total_seconds: $composer_total_seconds, phpm_total_seconds: $phpm_total_seconds,
+    composer_disk_bytes: $composer_disk_bytes, phpm_disk_bytes: $phpm_disk_bytes}')
+
+if [ -n "$out" ]; then
+  mkdir -p "$(dirname "$out")"
+  echo "$record" >>"$out"
+else
+  echo "$record"
+fi
