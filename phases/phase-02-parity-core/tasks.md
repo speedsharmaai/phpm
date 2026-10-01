@@ -5,16 +5,16 @@ the same PR, `just ci` green, Sonar green.
 
 ## Fixtures
 
-- [ ] Add plugin-heavy fixtures: `drupal-recommended` (drupal/recommended-project), `bedrock` (roots/bedrock), and keep `symfony-demo` and `monica` without `--no-plugins` from now on. Stored as `fixture.json` / `fixture.lock`.
+- [x] Add plugin-heavy fixtures: `drupal-recommended` (drupal/recommended-project), `bedrock` (roots/bedrock), and keep `symfony-demo` and `monica` without `--no-plugins` from now on. Stored as `fixture.json` / `fixture.lock`.
 
 ## Track A: Composer fallback and scripts (decision 0004)
 
-- [ ] Detect what needs PHP: `composer-plugin` packages allowed by `config.allow-plugins`, global plugins in `COMPOSER_HOME`, PHP-callable scripts (`Class::method`) on install events.
-- [ ] Fallback: phpm does fetch, store, place, installed.*, bins; then runs real `composer dump-autoload` (plus `--optimize`/`--classmap-authoritative` flags as configured) and `composer run-script` for the install events, so plugins activate and events fire. Stop with a clear error, writing nothing partial, when a fallback is needed and `composer` is not on PATH.
-- [ ] String scripts and `@php`, `@composer`, `@putenv`, script references (`@other-script`) run natively with Composer's environment (`COMPOSER_DEV_MODE`, `COMPOSER_BINARY`, PATH with `vendor/bin` first); event order `pre-install-cmd`, `pre-autoload-dump`, `post-autoload-dump`, `post-install-cmd`.
-- [ ] `--explain`: one line per package and per decision (native, fallback, why).
-- [ ] Laravel skeleton with scripts (`package:discover`): working app, still ≥ 5x faster warm than Composer including the fallback cost.
-- [ ] Symfony demo with flex and runtime, monica with its plugins: working app after fallback; `vendor/` matches Composer except files plugins write differently (list them).
+- [x] Detect what needs PHP: `composer-plugin` packages allowed by `config.allow-plugins`, global plugins in `COMPOSER_HOME`, PHP-callable scripts (`Class::method`) on install events.
+- [x] Fallback: phpm does fetch, store, place, installed.*, bins; then runs real `composer dump-autoload` (plus `--optimize`/`--classmap-authoritative` flags as configured) and `composer run-script` for the install events, so plugins activate and events fire. Stop with a clear error, writing nothing partial, when a fallback is needed and `composer` is not on PATH.
+- [x] String scripts and `@php`, `@composer`, `@putenv`, script references (`@other-script`) run natively with Composer's environment (`COMPOSER_DEV_MODE`, `COMPOSER_BINARY`, PATH with `vendor/bin` first); event order `pre-install-cmd`, `pre-autoload-dump`, `post-autoload-dump`, `post-install-cmd`.
+- [x] `--explain`: one line per package and per decision (native, fallback, why).
+- [x] Laravel skeleton with scripts (`package:discover`): working app, still ≥ 5x faster warm than Composer including the fallback cost.
+- [x] Symfony demo with flex and runtime, monica with its plugins: working app after fallback; `vendor/` matches Composer except files plugins write differently (list them).
 
 ## Track B: platform, auth, repositories, policy
 
@@ -32,7 +32,7 @@ the same PR, `just ci` green, Sonar green.
 
 ## Exit
 
-- [ ] All Phase 01 fixtures still byte-identical; new plugin fixtures produce working apps.
+- [x] All Phase 01 fixtures still byte-identical; new plugin fixtures produce working apps.
 - [ ] Laravel with scripts ≥ 5x faster warm than Composer.
 - [x] Malware filter proven against a blocked package.
 - [ ] `progress.md` with what was checked.

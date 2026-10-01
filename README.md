@@ -30,6 +30,12 @@ Laravel skeleton, 109 packages, M1 Pro, APFS, Composer 2.10.3, hyperfine
 | vivacity 0.19.1 | 582 ms | 407 ms | identical |
 | **phpm** | **229 ms** | **4.9 ms** | **identical** |
 
+With the skeleton's scripts on (`package:discover`, a PHP callable, so that
+event goes through real Composer) phpm installs warm in 0.82 s against
+Composer's 4.93 s, median of 10, plus 0.35-0.75 s for the malware-filter
+check while it still costs a network round trip
+([progress](phases/phase-02-parity-core/progress.md)).
+
 On Linux (GitHub `ubuntu-latest`, ext4) phpm is 14x faster than Composer warm
 and 633x on a no-op. Cold installs are network-bound: phpm is 1.1-2.4x faster
 than Composer there, and not yet ahead of riff on macOS.
