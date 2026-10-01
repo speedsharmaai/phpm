@@ -86,6 +86,21 @@ pub(crate) struct InstallArgs {
     #[arg(long, value_name = "REQ")]
     pub(crate) ignore_platform_req: Vec<String>,
 
+    /// Run an audit after the install; exit 5 if it finds problems
+    #[arg(long)]
+    pub(crate) audit: bool,
+
+    /// Audit output format: table, plain, json or summary
+    #[arg(long, value_name = "FORMAT", default_value = "summary", value_parser = ["table", "plain", "json", "summary"])]
+    pub(crate) audit_format: String,
+
+    /// Disable all policy blocking (malware filter) for this run
+    #[arg(long)]
+    pub(crate) no_blocking: bool,
+
+    #[arg(long, hide = true)]
+    pub(crate) no_security_blocking: bool,
+
     #[arg(long, hide = true)]
     pub(crate) dev: bool,
 
@@ -154,6 +169,10 @@ mod tests {
             "hardlink",
             "--ignore-platform-req",
             "ext-*",
+            "--audit",
+            "--audit-format",
+            "json",
+            "--no-blocking",
         ]);
         let a = args(&cli);
         assert!(a.no_dev && a.optimize_autoloader && a.classmap_authoritative);
@@ -165,6 +184,10 @@ mod tests {
         assert_eq!(cli.verbose, 2);
         assert_eq!(a.link_mode, Some(LinkModeArg::Hardlink));
         assert_eq!(a.ignore_platform_req, ["ext-*"]);
+        assert!(a.audit && a.no_blocking && !a.no_security_blocking);
+        assert_eq!(a.audit_format, "json");
+        let err = Cli::try_parse_from(["phpm", "install", "--audit-format", "xml"]).unwrap_err();
+        assert_eq!(err.kind(), ErrorKind::InvalidValue);
     }
 
     #[test]

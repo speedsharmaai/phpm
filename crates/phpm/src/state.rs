@@ -80,6 +80,15 @@ impl std::fmt::Display for Stamp {
 pub(crate) struct State {
     pub(crate) inputs: String,
     pub(crate) files: Vec<(PathBuf, Stamp)>,
+    /// Unix time after which the filter lists behind this install must be
+    /// checked again, from the repository's cache headers.
+    pub(crate) expires: Option<u64>,
+}
+
+fn unix_now() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |d| d.as_secs())
 }
 
 const HEADER: &str = "phpm-state 1";
@@ -91,11 +100,16 @@ impl State {
             .iter()
             .map(|p| Stamp::of(p).map(|s| (p.clone(), s)))
             .collect::<Option<Vec<_>>>()?;
-        Some(Self { inputs, files })
+        Some(Self {
+            inputs,
+            files,
+            expires: None,
+        })
     }
 
     pub(crate) fn is_current(&self, inputs: &str) -> bool {
         self.inputs == inputs
+            && self.expires.is_none_or(|t| unix_now() < t)
             && self
                 .files
                 .iter()
@@ -104,6 +118,9 @@ impl State {
 
     fn render(&self) -> String {
         let mut out = format!("{HEADER}\ninputs {}\n", self.inputs);
+        if let Some(t) = self.expires {
+            let _ = writeln!(out, "expires {t}");
+        }
         for (path, s) in &self.files {
             let _ = writeln!(
                 out,
@@ -124,7 +141,12 @@ impl State {
         }
         let inputs = lines.next()?.strip_prefix("inputs ")?.to_owned();
         let mut files = Vec::new();
+        let mut expires = None;
         for line in lines {
+            if let Some(t) = line.strip_prefix("expires ") {
+                expires = Some(t.parse().ok()?);
+                continue;
+            }
             let mut parts = line.strip_prefix("file ")?.splitn(4, ' ');
             let len = parts.next()?.parse().ok()?;
             let mtime_ns = parts.next()?.parse().ok()?;
@@ -139,7 +161,11 @@ impl State {
                 },
             ));
         }
-        Some(Self { inputs, files })
+        Some(Self {
+            inputs,
+            files,
+            expires,
+        })
     }
 
     pub(crate) fn load(path: &Path) -> Option<Self> {
@@ -259,6 +285,18 @@ mod tests {
         assert!(State::load(Path::new("/nonexistent/phpm/state")).is_none());
         let ok = State::parse("phpm-state 1\ninputs a\nfile 1 2 3 /p q\n").unwrap();
         assert_eq!(ok.files[0].0, Path::new("/p q"));
+        assert!(State::parse("phpm-state 1\ninputs a\nexpires x\n").is_none());
+    }
+
+    #[test]
+    fn expires_with_the_filter_lists() {
+        let mut state = State::capture("abc".into(), &[]).unwrap();
+        state.expires = Some(1);
+        assert!(!state.is_current("abc"));
+        state.expires = Some(u64::MAX);
+        assert!(state.is_current("abc"));
+        let again = State::parse(&state.render()).unwrap();
+        assert_eq!(again.expires, Some(u64::MAX));
     }
 
     #[test]

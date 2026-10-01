@@ -115,6 +115,14 @@ impl Project {
     }
 
     fn with(edit: impl FnOnce(&mut Value, &mut Value)) -> Self {
+        Self::serving(BTreeMap::new(), edit)
+    }
+
+    /// Like `with`, with `extra` files on the test server too.
+    fn serving(
+        extra: BTreeMap<String, Vec<u8>>,
+        edit: impl FnOnce(&mut Value, &mut Value),
+    ) -> Self {
         let tmp = tempfile::tempdir().unwrap();
         let base_dir = tmp.path().canonicalize().unwrap();
         let root = base_dir.join("app");
@@ -145,6 +153,7 @@ impl Project {
             "/c/dev.zip".to_owned(),
             zip("c-dev-1", &[("run", 0o755, "#!/bin/sh\necho dev\n")]),
         );
+        files.extend(extra);
         let server = Server::start(files);
         let base = server.base.clone();
         let mut composer = json!({
@@ -776,4 +785,211 @@ fn installs_path_packages_and_local_artifacts() {
             .unwrap()
             .is_symlink()
     );
+}
+
+/// A composer repository on the test server whose malware list flags a/lib 1.0.0.
+fn malware_repo() -> BTreeMap<String, Vec<u8>> {
+    let mut files = BTreeMap::new();
+    files.insert(
+        "/packages.json".to_owned(),
+        json!({
+            "metadata-url": "/p2/%package%.json",
+            "filter": {"metadata": true, "lists": {"malware": {"enabled": true}}, "summary-url": "/lists/summary.json"},
+            "security-advisories": {"metadata": true, "api-url": "/api/security-advisories/"},
+        })
+        .to_string()
+        .into_bytes(),
+    );
+    files.insert(
+        "/lists/summary.json".to_owned(),
+        json!({"filter": {"malware": {"a/lib": "1.0.0", "z/other": "*"}}})
+            .to_string()
+            .into_bytes(),
+    );
+    files.insert(
+        "/p2/a/lib.json".to_owned(),
+        json!({"packages": {}, "filter": {"malware": [
+            {"constraint": "1.0.0", "url": "https://example.test/a/lib/malware/", "reason": "malware", "id": "PKFE-test", "source": "phpm-test"},
+            {"constraint": "2.0.0", "reason": "other version"},
+        ]}})
+        .to_string()
+        .into_bytes(),
+    );
+    files.insert(
+        "/api/security-advisories/".to_owned(),
+        json!({"advisories": {"b/tool": [{
+            "advisoryId": "PKSA-test", "packageName": "b/tool", "affectedVersions": ">=1.0,<1.1",
+            "title": "Test advisory", "cve": "CVE-2026-0001", "link": "https://example.test/adv",
+            "reportedAt": "2026-01-01 00:00:00", "sources": [{"name": "GitHub", "remoteId": "GHSA-test"}], "severity": "high",
+        }]}})
+        .to_string()
+        .into_bytes(),
+    );
+    files
+}
+
+fn with_repo(files: BTreeMap<String, Vec<u8>>, policy: &Value) -> Project {
+    let p = Project::serving(files, |_, _| {});
+    let mut composer: Value =
+        serde_json::from_slice(&std::fs::read(p.root.join("composer.json")).unwrap()).unwrap();
+    composer["repositories"] = json!([
+        {"type": "composer", "url": p.server.base},
+        {"packagist.org": false},
+    ]);
+    composer["config"] = json!({"policy": policy});
+    std::fs::write(p.root.join("composer.json"), composer.to_string()).unwrap();
+    p
+}
+
+fn hits(p: &Project, path: &str) -> usize {
+    p.server
+        .hits
+        .lock()
+        .unwrap()
+        .get(path)
+        .copied()
+        .unwrap_or(0)
+}
+
+#[test]
+fn the_malware_filter_blocks_a_flagged_locked_package() {
+    let p = with_repo(malware_repo(), &json!({}));
+    let out = p.phpm(&["install"]);
+    assert_eq!(out.status.code(), Some(2), "{}", stderr(&out));
+    let err = stderr(&out);
+    assert!(
+        err.contains("Your lock file does not contain a compatible set of packages. Please run composer update.\n\n  Problem 1\n    - Package a/lib 1.0.0 (in the lock file) was not loaded, because it was flagged as malware reported by phpm-test (see https://example.test/a/lib/malware/) reason: malware. To ignore filters for this package, add the package to the \"policy.malware.ignore\" config. To turn the feature off entirely, you can set \"policy.malware.block\" to false."),
+        "{err}"
+    );
+    assert!(!p.root.join("vendor").exists());
+    assert_eq!(hits(&p, "/a/lib.zip"), 0);
+    assert_eq!(hits(&p, "/lists/summary.json"), 1);
+    assert_eq!(hits(&p, "/p2/a/lib.json"), 1);
+    assert_eq!(hits(&p, "/p2/b/tool.json"), 0);
+
+    let again = p.phpm(&["install"]);
+    assert_eq!(again.status.code(), Some(2));
+    assert_eq!(
+        hits(&p, "/packages.json"),
+        1,
+        "the root file is reused for 600s"
+    );
+
+    ok(&p.phpm(&["install", "--no-blocking"]));
+    std::fs::remove_dir_all(p.root.join("vendor")).unwrap();
+    ok(&p.phpm_env(&["install"], &[("COMPOSER_POLICY_MALWARE_BLOCK", "0")]));
+}
+
+#[test]
+fn ignored_packages_and_sources_install() {
+    for policy in [
+        json!({"malware": {"ignore": {"a/lib": "reviewed"}}}),
+        json!({"malware": {"ignore": {"a/*": {"constraint": "^1.0"}}}}),
+        json!({"malware": {"ignore-source": ["phpm-test"]}}),
+        json!({"malware": {"block-scope": "update"}}),
+        json!({"malware": false}),
+    ] {
+        let p = with_repo(malware_repo(), &policy);
+        let out = ok(&p.phpm(&["install"]));
+        assert!(out.contains("Installed"), "{policy}: {out}");
+    }
+}
+
+#[test]
+fn an_unreachable_filter_list_warns_and_installs() {
+    let mut files = malware_repo();
+    files.insert(
+        "/packages.json".to_owned(),
+        json!({"filter": {"metadata": true, "lists": {"malware": {"enabled": true}}, "summary-url": "/lists/missing.json"}})
+            .to_string()
+            .into_bytes(),
+    );
+    let p = with_repo(files, &json!({}));
+    let out = ok(&p.phpm(&["install"]));
+    assert!(
+        out.contains("Filter list data could not be fetched from some sources (ignored per policy.ignore-unreachable); matches may be incomplete:"),
+        "{out}"
+    );
+    assert!(out.contains("missing.json returned 404"), "{out}");
+}
+
+#[test]
+fn audit_reports_advisories_and_exits_5() {
+    let p = with_repo(malware_repo(), &json!({"malware": {"ignore": ["a/lib"]}}));
+    let out = p.phpm(&["install", "--audit"]);
+    assert_eq!(out.status.code(), Some(5), "{}", stderr(&out));
+    let stdout = String::from_utf8_lossy(&out.stdout).into_owned();
+    assert_eq!(
+        stdout,
+        "Found 1 security vulnerability advisory affecting 1 package.\nRun \"composer audit\" for a full list of advisories.\n"
+    );
+    let plain = p.phpm(&["install", "--audit", "--audit-format", "plain"]);
+    let stdout = String::from_utf8_lossy(&plain.stdout).into_owned();
+    assert!(
+        stdout.contains("Package: b/tool\nSeverity: high\nAdvisory ID: PKSA-test\nCVE: CVE-2026-0001\nTitle: Test advisory\n"),
+        "{stdout}"
+    );
+    let json_out = p.phpm(&["install", "--audit", "--audit-format", "json"]);
+    let doc: Value = serde_json::from_slice(&json_out.stdout).unwrap();
+    assert_eq!(doc["advisories"]["b/tool"][0]["advisoryId"], "PKSA-test");
+
+    let mut composer: Value =
+        serde_json::from_slice(&std::fs::read(p.root.join("composer.json")).unwrap()).unwrap();
+    composer["config"]["audit"] = json!({"ignore": {"GHSA-test": "accepted"}});
+    std::fs::write(p.root.join("composer.json"), composer.to_string()).unwrap();
+    let ignored = p.phpm(&["install", "--audit"]);
+    assert_eq!(ignored.status.code(), Some(0), "{}", stderr(&ignored));
+    let stdout = String::from_utf8_lossy(&ignored.stdout).into_owned();
+    assert!(
+        stdout.starts_with("Found 1 ignored security vulnerability advisory affecting 1 package."),
+        "{stdout}"
+    );
+}
+
+#[test]
+fn filter_api_urls_are_posted_to() {
+    let mut files = BTreeMap::new();
+    files.insert(
+        "/packages.json".to_owned(),
+        json!({"filter": {"metadata": true, "lists": {"malware": {"enabled": true}, "advisories": {"enabled": true}}, "api-url": "/api/filter"}})
+            .to_string()
+            .into_bytes(),
+    );
+    files.insert(
+        "/api/filter".to_owned(),
+        json!({"filter": {"malware": [{"package": "b/tool", "constraint": "*", "source": "api"}]}})
+            .to_string()
+            .into_bytes(),
+    );
+    let p = with_repo(files, &json!({}));
+    let out = p.phpm(&["install"]);
+    assert_eq!(out.status.code(), Some(2), "{}", stderr(&out));
+    assert!(
+        stderr(&out).contains("Package b/tool 1.0.0 (in the lock file) was not loaded, because it was flagged as malware reported by api."),
+        "{}",
+        stderr(&out)
+    );
+}
+
+#[test]
+#[ignore = "asks the real Packagist; aikido/endpoint-test is a harmless package on its malware list"]
+fn live_packagist_blocks_the_aikido_test_package() {
+    let p = Project::with(|composer, lock| {
+        composer["require"] = json!({"aikido/endpoint-test": "0.0.1"});
+        lock["packages"] = json!([{
+            "name": "aikido/endpoint-test",
+            "version": "0.0.1",
+            "dist": {"type": "zip", "url": "https://api.github.com/repos/Aikido-demo-apps/endpoint-php-test/zipball/2e7234b3021c26c1839fd06e2a7625d29f3bb229", "reference": "2e7234b3021c26c1839fd06e2a7625d29f3bb229", "shasum": ""},
+            "type": "library",
+        }]);
+        lock["packages-dev"] = json!([]);
+    });
+    let out = p.phpm(&["install"]);
+    assert_eq!(out.status.code(), Some(2), "{}", stderr(&out));
+    assert!(
+        stderr(&out).contains("- Package aikido/endpoint-test 0.0.1 (in the lock file) was not loaded, because it was flagged as malware reported by aikido"),
+        "{}",
+        stderr(&out)
+    );
+    assert!(!p.root.join("vendor").exists());
 }

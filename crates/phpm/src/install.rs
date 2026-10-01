@@ -23,6 +23,7 @@ use crate::out::Out;
 use crate::pathrepo::{self, PathDist};
 use crate::platform::{Filter, Platform, Requirements};
 use crate::plugins::{self, Global, Plugins};
+use crate::policy::{self, Abandonment, AuditFormat, Audited, Locked as PolicyLocked, Policy};
 use crate::prefetch;
 use crate::project::{Env, ProjectFiles, dirs, locate, with_vendor_dir};
 use crate::runner::{self, Runner};
@@ -44,14 +45,17 @@ pub(crate) struct Request {
     pub(crate) ignore_platform_reqs: bool,
     pub(crate) ignore_platform_req: Vec<String>,
     pub(crate) explain: bool,
-    pub(crate) no_audit: bool,
+    /// `--audit`, with its format.
+    pub(crate) audit: Option<AuditFormat>,
+    /// `--no-blocking` / `--no-security-blocking`.
+    pub(crate) no_blocking: bool,
 }
 
 impl Request {
     /// The flags that change what ends up in `vendor/`, for the state digest.
     fn flags(&self) -> String {
         format!(
-            "dev={} link={:?} o={} a={} no-autoloader={} no-scripts={} no-plugins={} ignore-all={} ignore={:?}",
+            "dev={} link={:?} o={} a={} no-autoloader={} no-scripts={} no-plugins={} ignore-all={} ignore={:?} no-blocking={}",
             self.dev,
             self.link_mode,
             self.optimize,
@@ -61,6 +65,7 @@ impl Request {
             self.no_plugins,
             self.ignore_platform_reqs,
             self.ignore_platform_req,
+            self.no_blocking,
         )
     }
 
@@ -76,8 +81,12 @@ impl Request {
 }
 
 /// Environment variables that change phpm's output.
-const ENV_INPUTS: [&str; 7] = [
+const ENV_INPUTS: [&str; 11] = [
     "COMPOSER",
+    "COMPOSER_POLICY",
+    "COMPOSER_POLICY_MALWARE_BLOCK",
+    "COMPOSER_NO_BLOCKING",
+    "COMPOSER_NO_SECURITY_BLOCKING",
     "COMPOSER_MIRROR_PATH_REPOS",
     "COMPOSER_VENDOR_DIR",
     "COMPOSER_BIN_DIR",
@@ -138,6 +147,7 @@ pub(crate) fn run(req: &Request, env: Env<'_>, out: &mut Out<'_>) -> Result<(), 
         .ok()
         .map(|cache| state_path(&cache, &files.root));
     if let Some(file) = &state_file
+        && req.audit.is_none()
         && State::load(file).is_some_and(|s| s.is_current(&inputs))
     {
         if req.explain {
@@ -152,13 +162,18 @@ pub(crate) fn run(req: &Request, env: Env<'_>, out: &mut Out<'_>) -> Result<(), 
         return Ok(());
     }
 
-    let written = install(req, env, &files, &json, &lock, out)?;
+    let done = install(req, env, &files, &json, &lock, out)?;
     if let Some(file) = state_file
-        && let Some(written) = written
-        && let Some(state) = State::capture(inputs, &written)
-        && let Err(e) = state.save(&file)
+        && let Some(written) = &done.written
+        && let Some(mut state) = State::capture(inputs, written)
     {
-        out.detail(&format!("could not save {}: {e}", file.display()));
+        state.expires = done.expires;
+        if let Err(e) = state.save(&file) {
+            out.detail(&format!("could not save {}: {e}", file.display()));
+        }
+    }
+    if done.audit_failed {
+        return Err(Error::new(5, ""));
     }
     out.detail(&format!("done in {:.1?}", started.elapsed()));
     Ok(())
@@ -425,6 +440,60 @@ fn top_files(dir: &Path) -> Vec<PathBuf> {
 
 /// Runs the install and returns the files whose stamps make the next run a
 /// no-op, or `None` when Composer ran the whole install.
+/// The network side of an install, made on first use: most no-change
+/// installs never need it.
+struct Net {
+    fetcher: Fetcher,
+    runtime: tokio::runtime::Runtime,
+}
+
+fn net<'a>(
+    slot: &'a mut Option<Net>,
+    root: &Path,
+    config: Option<&Map<String, Value>>,
+) -> Result<&'a Net, Error> {
+    if slot.is_none() {
+        *slot = Some(Net {
+            fetcher: Fetcher::new(FetchOptions {
+                auth: Auth::load(Some(root), config)?,
+                ..FetchOptions::default()
+            })?,
+            runtime: runtime()?,
+        });
+    }
+    Ok(slot.as_ref().expect("the slot was filled just above"))
+}
+
+/// The policy view of a lock entry.
+fn policy_locked(entry: &Map<String, Value>) -> PolicyLocked {
+    let pretty_name = text(entry, "name").unwrap_or_default();
+    let pretty = text(entry, "version").unwrap_or_default();
+    PolicyLocked {
+        name: pretty_name.to_ascii_lowercase(),
+        version: phpm_lock::version::normalize(&pretty).unwrap_or_else(|_| pretty.clone()),
+        pretty_name,
+        pretty,
+    }
+}
+
+// Composer: Installer.php run, "Package %s is abandoned"
+fn abandoned(entry: &Map<String, Value>) -> Option<Abandonment> {
+    match entry.get("abandoned") {
+        Some(Value::String(s)) if !s.is_empty() => Some(Abandonment(Some(s.clone()))),
+        Some(Value::Bool(true) | Value::String(_)) => Some(Abandonment(None)),
+        _ => None,
+    }
+}
+
+/// What an install leaves for the state file and the exit code.
+#[derive(Debug)]
+struct Installed {
+    /// `None` when Composer ran the whole install.
+    written: Option<Vec<PathBuf>>,
+    expires: Option<u64>,
+    audit_failed: bool,
+}
+
 fn install(
     req: &Request,
     env: Env<'_>,
@@ -432,7 +501,7 @@ fn install(
     json: &[u8],
     lock: &[u8],
     out: &mut Out<'_>,
-) -> Result<Option<Vec<PathBuf>>, Error> {
+) -> Result<Installed, Error> {
     let composer = ComposerJson::parse(&utf8(json, &files.composer_file)?)?;
     let lock = Lock::parse(&utf8(lock, &files.lock_file)?)?;
     let mut entries = lock.packages()?;
@@ -440,6 +509,39 @@ fn install(
         entries.extend(lock.packages_dev()?);
     }
     check_platform(req, env, &composer, &lock, out)?;
+    let config = composer
+        .data()
+        .get("config")
+        .and_then(Value::as_object)
+        .cloned();
+    let policy = Policy::from_config(config.as_ref(), env, req.no_blocking)?;
+    let repos = policy::repos(&composer);
+    let policy_packages: Vec<PolicyLocked> = entries.iter().map(|e| policy_locked(e)).collect();
+    let cache_dir = phpm_store::cache_dir().ok();
+    let mut network: Option<Net> = None;
+    let mut expires = None;
+    if policy.blocks_install() && !repos.is_empty() {
+        let started = Instant::now();
+        let n = net(&mut network, &files.root, config.as_ref())?;
+        let client = policy::Client {
+            fetcher: &n.fetcher,
+            cache: cache_dir.clone(),
+        };
+        let outcome = n.runtime.block_on(policy::check_install(
+            &client,
+            &repos,
+            &policy,
+            &policy_packages,
+        ))?;
+        for line in &outcome.warnings {
+            out.info(line);
+        }
+        expires = outcome.expires;
+        out.detail(&format!(
+            "checked the malware filter lists in {:.1?}",
+            started.elapsed()
+        ));
+    }
     let dirs = dirs(&composer, &files.root, env)?;
     let composer = with_vendor_dir(composer, &files.root, &dirs.vendor);
     let vendor = normalize_path(&dirs.vendor);
@@ -542,7 +644,11 @@ fn install(
     if let (Some(why), Some(composer)) = (&plan.full_install, &fallback) {
         out.info(&format!("Composer runs this install: {why}"));
         composer.run(&fallback::install_args(req), out)?;
-        return Ok(None);
+        return Ok(Installed {
+            written: None,
+            expires,
+            audit_failed: false,
+        });
     }
     let runner = runs_scripts.then(|| {
         Runner::new(
@@ -584,14 +690,10 @@ fn install(
         .map(|p| (*p).clone())
         .collect();
     if !missing.is_empty() {
-        let fetcher = Fetcher::new(FetchOptions {
-            auth: Auth::load(
-                Some(&files.root),
-                composer.data().get("config").and_then(Value::as_object),
-            )?,
-            ..FetchOptions::default()
-        })?;
-        let fetched = runtime()?.block_on(store.fetch_missing(&fetcher, &missing))?;
+        let n = net(&mut network, &files.root, config.as_ref())?;
+        let fetched = n
+            .runtime
+            .block_on(store.fetch_missing(&n.fetcher, &missing))?;
         out.info(&format!(
             "Downloaded {} packages in {:.2?}",
             fetched.len(),
@@ -689,6 +791,20 @@ fn install(
     out.detail(&format!("wrote bin proxies in {:.1?}", started.elapsed()));
 
     out.info(&summary(placements.len() + from_paths.len(), removed));
+    let all = lock.packages()?.into_iter().chain(lock.packages_dev()?);
+    for entry in all {
+        if let Some(Abandonment(replacement)) = abandoned(entry) {
+            let hint = replacement.map_or_else(
+                || "No replacement was suggested".to_owned(),
+                |r| format!("Use {r} instead"),
+            );
+            out.info(&format!(
+                "Package {} is abandoned, you should avoid using it. {hint}.",
+                text(entry, "name").unwrap_or_default()
+            ));
+        }
+    }
+
     if [
         &plan.autoload,
         &plan.pre_autoload,
@@ -752,7 +868,45 @@ fn install(
         out,
     )?;
     written.extend(wanted.iter().map(PathBuf::from));
-    Ok(Some(written))
+    let mut audit_failed = false;
+    if let Some(format) = req.audit {
+        let audited: Vec<Audited> = entries
+            .iter()
+            .map(|e| Audited {
+                locked: policy_locked(e),
+                abandoned: abandoned(e),
+            })
+            .collect();
+        if audited.is_empty() {
+            out.info("No installed packages - skipping audit.");
+        } else {
+            let n = net(&mut network, &files.root, config.as_ref())?;
+            let client = policy::Client {
+                fetcher: &n.fetcher,
+                cache: cache_dir,
+            };
+            match n.runtime.block_on(policy::run_audit(
+                &client, &repos, &policy, &audited, format,
+            )) {
+                Ok(report) => {
+                    for line in &report.stderr {
+                        out.info(line);
+                    }
+                    out.stdout(&report.stdout);
+                    audit_failed = report.failed;
+                }
+                Err(reason) => {
+                    out.error("Failed to audit installed packages.");
+                    out.detail(&reason);
+                }
+            }
+        }
+    }
+    Ok(Installed {
+        written: Some(written),
+        expires,
+        audit_failed,
+    })
 }
 
 /// Where the install's script events and Composer calls go.

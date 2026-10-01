@@ -213,20 +213,34 @@ impl Fetcher {
         Ok((bare, headers))
     }
 
-    async fn attempt(&self, start: &Url) -> Result<Vec<u8>, Failure> {
+    /// Send `method` to `start`, following redirects by hand so the
+    /// credentials are worked out again for every host.
+    async fn send(
+        &self,
+        start: &Url,
+        method: &reqwest::Method,
+        body: Option<&[u8]>,
+        extra: &[(&str, String)],
+    ) -> Result<reqwest::Response, Failure> {
         let mut url = start.clone();
-        let mut response = None;
         for _ in 0..=MAX_REDIRECTS {
             let (bare, headers) = self.headers_for(&url).await?;
-            let mut request = self.client.get(bare.clone());
+            let mut request = self.client.request(method.clone(), bare.clone());
             for (name, value) in headers {
                 request = request.header(name, value);
+            }
+            for (name, value) in extra {
+                request = request.header(*name, value);
+            }
+            if let Some(body) = body {
+                request = request.body(body.to_vec());
             }
             let r = request
                 .send()
                 .await
                 .map_err(|e| Failure::Retry(chain(&e)))?;
             if r.status().is_redirection()
+                && *method == reqwest::Method::GET
                 && let Some(next) = r
                     .headers()
                     .get(reqwest::header::LOCATION)
@@ -236,18 +250,94 @@ impl Fetcher {
                 url = next;
                 continue;
             }
-            response = Some(r);
-            break;
+            return Ok(r);
         }
+        Err(Failure::Fatal(Error::Download {
+            url: sanitize(start.as_str()),
+            reason: format!("more than {MAX_REDIRECTS} redirects"),
+        }))
+    }
+
+    /// A metadata request: GET (conditional when `if_modified_since` is
+    /// set) or POST, retried like dists. 304 and 404 are answers, not errors.
+    pub async fn request(
+        &self,
+        url: &str,
+        if_modified_since: Option<&str>,
+        post: Option<(&str, Vec<u8>)>,
+    ) -> Result<Response> {
+        let shown = sanitize(url);
+        let err = |reason: String| Error::Download {
+            url: shown.clone(),
+            reason,
+        };
+        let parsed = Url::parse(url).map_err(|e| err(e.to_string()))?;
+        let _permit = self
+            .packagist
+            .acquire()
+            .await
+            .map_err(|e| err(e.to_string()))?;
+        let mut extra: Vec<(&str, String)> = Vec::new();
+        if let Some(since) = if_modified_since {
+            extra.push(("If-Modified-Since", since.to_owned()));
+        }
+        let (method, body) = match &post {
+            Some((content_type, body)) => {
+                extra.push(("Content-Type", (*content_type).to_owned()));
+                (reqwest::Method::POST, Some(body.as_slice()))
+            }
+            None => (reqwest::Method::GET, None),
+        };
+        let mut attempt = 0;
+        loop {
+            let outcome = match self.send(&parsed, &method, body, &extra).await {
+                Ok(r) => {
+                    let status = r.status();
+                    if status.is_server_error() || status == StatusCode::TOO_MANY_REQUESTS {
+                        Err(Failure::Retry(format!("HTTP {status}")))
+                    } else {
+                        let header = |name: reqwest::header::HeaderName| {
+                            r.headers()
+                                .get(name)
+                                .and_then(|v| v.to_str().ok())
+                                .map(str::to_owned)
+                        };
+                        let last_modified = header(reqwest::header::LAST_MODIFIED);
+                        let max_age =
+                            header(reqwest::header::CACHE_CONTROL).and_then(|c| max_age(&c));
+                        match r.bytes().await {
+                            Ok(bytes) => Ok(Response {
+                                status: status.as_u16(),
+                                body: bytes.to_vec(),
+                                last_modified,
+                                max_age,
+                            }),
+                            Err(e) => Err(Failure::Retry(chain(&e))),
+                        }
+                    }
+                }
+                Err(f) => Err(f),
+            };
+            match outcome {
+                Ok(response) => return Ok(response),
+                Err(Failure::Retry(_)) if attempt < self.options.retries => {
+                    tokio::time::sleep(self.options.retry_delay * 2_u32.pow(attempt)).await;
+                    attempt += 1;
+                }
+                Err(Failure::Retry(reason)) => return Err(err(reason)),
+                Err(Failure::Fatal(e)) => return Err(e),
+            }
+        }
+    }
+
+    async fn attempt(&self, start: &Url) -> Result<Vec<u8>, Failure> {
         let fatal = |reason: String| {
             Failure::Fatal(Error::Download {
                 url: sanitize(start.as_str()),
                 reason,
             })
         };
-        let Some(mut response) = response else {
-            return Err(fatal(format!("more than {MAX_REDIRECTS} redirects")));
-        };
+        let mut response = self.send(start, &reqwest::Method::GET, None, &[]).await?;
         let status = response.status();
         if !status.is_success() {
             let reason = format!("HTTP {status}");
@@ -312,6 +402,23 @@ fn local_path(url: &str) -> Option<std::path::PathBuf> {
             .all(|c| c.is_ascii_alphanumeric() || matches!(c, b'+' | b'.' | b'-'))
     });
     (!scheme).then(|| url.into())
+}
+
+/// A metadata response.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Response {
+    pub status: u16,
+    pub body: Vec<u8>,
+    pub last_modified: Option<String>,
+    /// `Cache-Control: max-age`, in seconds.
+    pub max_age: Option<u64>,
+}
+
+fn max_age(cache_control: &str) -> Option<u64> {
+    cache_control
+        .split(',')
+        .filter_map(|d| d.trim().strip_prefix("max-age="))
+        .find_map(|v| v.trim().parse().ok())
 }
 
 fn chain(err: &dyn std::error::Error) -> String {
