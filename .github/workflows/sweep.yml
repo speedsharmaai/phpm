@@ -226,6 +226,10 @@ jobs:
     permissions:
       pages: write
       id-token: write
+    # Shared with bench-real.yml's own deploy job: see its comment.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
