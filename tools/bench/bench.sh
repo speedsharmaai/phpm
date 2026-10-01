@@ -6,6 +6,10 @@
 # tools: composer phpm riff viv vivacity (default: all that are on PATH or set)
 # Binaries: PHPM_BIN, RIFF_BIN, VIV_BIN, VIVACITY_BIN (default: name on PATH).
 # Output: target/bench/<fixture>/<tool>-{cold,warm,noop}.json
+#
+# BENCH_SCRIPTS=1 installs into the fixture's real app (fixtures/apps.txt)
+# with scripts and plugins on, composer and phpm only; output files are
+# named <tool>-scripts-{cold,warm,noop}.json.
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -18,6 +22,22 @@ src="$root/fixtures/$fixture"
 [ -f "$src/fixture.lock" ] || { echo "no fixture: $src" >&2; exit 2; }
 work="$root/target/bench/$fixture"
 mkdir -p "$work"
+
+scripts="${BENCH_SCRIPTS:-}"
+suffix=""
+app_src=""
+if [ -n "$scripts" ]; then
+  suffix="-scripts"
+  read -r repo commit < <(awk -v f="$fixture" '$1 == f { print $2, $3 }' "$root/fixtures/apps.txt")
+  [ -n "${commit:-}" ] || { echo "no app for $fixture in fixtures/apps.txt" >&2; exit 2; }
+  app_src="$work/app-src"
+  if [ "$(git -C "$app_src" rev-parse HEAD 2>/dev/null)" != "$commit" ]; then
+    rm -rf "${app_src:?}"
+    git init -q "$app_src"
+    git -C "$app_src" fetch -q --depth 1 "https://github.com/$repo" "$commit"
+    git -C "$app_src" checkout -q FETCH_HEAD
+  fi
+fi
 
 plugin_free=true
 if grep -q '"type": "composer-plugin"' "$src/fixture.lock"; then plugin_free=false; fi
@@ -34,6 +54,14 @@ for var in PHPM_BIN RIFF_BIN VIV_BIN VIVACITY_BIN; do
 done
 
 cmd_for() {
+  if [ -n "$scripts" ]; then
+    case "$1" in
+      composer) echo "composer install --no-interaction --no-progress -q" ;;
+      phpm) echo "${PHPM_BIN:-phpm} install -q" ;;
+      *) echo "skip" ;;
+    esac
+    return
+  fi
   case "$1" in
     composer) echo "composer install --no-scripts --no-plugins --no-interaction --no-progress -q" ;;
     phpm) echo "${PHPM_BIN:-phpm} install --no-scripts --no-plugins" ;;
@@ -53,27 +81,32 @@ mkdir -p "$fake_home"
 
 for t in "${tools[@]}"; do
   bin=$(cmd_for "$t" | cut -d' ' -f1)
+  [ "$bin" = skip ] && { echo "skip $t: no scripts mode"; continue; }
   command -v "$bin" >/dev/null || { echo "skip $t: $bin not found"; continue; }
-  dir="$work/${t:?}"
+  dir="$work/${t:?}$suffix"
   rm -rf "${dir:?}"
-  mkdir -p "$dir"
+  if [ -n "$app_src" ]; then
+    cp -Rp "$app_src" "$dir"
+  else
+    mkdir -p "$dir"
+  fi
   cp "$src/fixture.json" "$dir/composer.json"
   cp "$src/fixture.lock" "$dir/composer.lock"
   cmd=$(cmd_for "$t")
   clear_caches="rm -rf ${work:?}/cache ${fake_home:?}/Library/Caches"
 
   echo "== $t ($fixture)"
-  (cd "$dir" && HOME="$fake_home" $cmd) >"$work/$t.log" 2>&1 || { echo "  failed, see $work/$t.log"; continue; }
+  (cd "$dir" && HOME="$fake_home" $cmd) >"$work/$t$suffix.log" 2>&1 || { echo "  failed, see $work/$t$suffix.log"; continue; }
 
   cd "$dir"
   HOME="$fake_home" hyperfine -N --runs 3 --warmup 0 \
     --prepare "bash -c 'rm -rf ${dir:?}/vendor; $clear_caches'" \
-    -n "$t cold" "$cmd" --export-json "$work/$t-cold.json" | grep -E 'Time|Range'
+    -n "$t$suffix cold" "$cmd" --export-json "$work/$t$suffix-cold.json" | grep -E 'Time|Range'
   HOME="$fake_home" hyperfine -N --runs 5 --warmup 1 \
     --prepare "rm -rf ${dir:?}/vendor" \
-    -n "$t warm" "$cmd" --export-json "$work/$t-warm.json" | grep -E 'Time|Range'
+    -n "$t$suffix warm" "$cmd" --export-json "$work/$t$suffix-warm.json" | grep -E 'Time|Range'
   HOME="$fake_home" hyperfine -N --runs 10 --warmup 1 \
-    -n "$t no-op" "$cmd" --export-json "$work/$t-noop.json" | grep -E 'Time|Range'
+    -n "$t$suffix no-op" "$cmd" --export-json "$work/$t$suffix-noop.json" | grep -E 'Time|Range'
 done
 
 echo "plugin-free fixture: $plugin_free"
