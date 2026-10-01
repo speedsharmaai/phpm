@@ -13,6 +13,10 @@ on:
         description: Projects per shard (lower = more, smaller, faster jobs)
         default: "8"
         required: true
+      max_shards:
+        description: Only run the first N shards (blank = all). Pair with a low projects_per_shard for a quick validation slice.
+        default: ""
+        required: false
 
 permissions: {}
 
@@ -57,10 +61,17 @@ jobs:
       - id: shards
         env:
           PROJECTS_PER_SHARD: ${{ inputs.projects_per_shard || '8' }}
+          MAX_SHARDS: ${{ inputs.max_shards || '' }}
         run: |
           n=$(jq '.projects | length' bench-real/corpus.json)
           count=$(( (n + PROJECTS_PER_SHARD - 1) / PROJECTS_PER_SHARD ))
-          echo "list=$(jq -cn --argjson c "$count" '[range(1; $c + 1) | "\(.)/\($c)"]')" >> "$GITHUB_OUTPUT"
+          all=$(jq -cn --argjson c "$count" '[range(1; $c + 1) | "\(.)/\($c)"]')
+          if [ -n "$MAX_SHARDS" ]; then
+            list=$(jq -c --argjson n "$MAX_SHARDS" '.[0:$n]' <<<"$all")
+          else
+            list=$all
+          fi
+          echo "list=$list" >> "$GITHUB_OUTPUT"
 
   build-macos:
     if: contains(github.event.inputs.oses || 'ubuntu-latest,macos-latest,windows-latest', 'macos-latest')
@@ -150,7 +161,12 @@ jobs:
           retention-days: 90
 
   bench-macos:
-    needs: build-macos
+    needs: [build-linux, build-macos]
+    if: contains(github.event.inputs.oses || 'ubuntu-latest,macos-latest,windows-latest', 'macos-latest')
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.build-linux.outputs.shards) }}
     runs-on: macos-latest
     timeout-minutes: 300
     permissions:
@@ -172,20 +188,28 @@ jobs:
           name: bin-macos-latest
           path: bin
       - name: Bench
+        env:
+          SHARD: ${{ matrix.shard }}
         run: |
           chmod +x bin/phpm bin/diffvendor
           export PHPM_BIN="$PWD/bin/phpm" DIFFVENDOR_BIN="$PWD/bin/diffvendor"
           mkdir -p records
-          tools/bench-real/run batch bench-real/corpus.json --os macos-latest --out records/bench-macos-latest.jsonl
+          tools/bench-real/run batch bench-real/corpus.json --os macos-latest --shard "$SHARD" \
+            --out "records/bench-macos-latest-${SHARD%/*}.jsonl"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
-          name: records-bench-macos-latest
+          name: records-bench-macos-latest-${{ strategy.job-index }}
           path: records/*.jsonl
           retention-days: 90
 
   bench-windows:
-    needs: build-windows
+    needs: [build-linux, build-windows]
+    if: contains(github.event.inputs.oses || 'ubuntu-latest,macos-latest,windows-latest', 'windows-latest')
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.build-linux.outputs.shards) }}
     runs-on: windows-latest
     timeout-minutes: 300
     permissions:
@@ -208,6 +232,8 @@ jobs:
           path: bin
       - name: Bench
         shell: bash
+        env:
+          SHARD: ${{ matrix.shard }}
         run: |
           composer_bin=$(powershell -NoProfile -Command '(Get-Command composer).Source')
           export COMPOSER_BIN="${composer_bin//\\//}"
@@ -215,11 +241,12 @@ jobs:
           DIFFVENDOR_BIN=$(cygpath -m "$PWD/bin/diffvendor.exe")
           export PHPM_BIN DIFFVENDOR_BIN
           mkdir -p records
-          tools/bench-real/run batch bench-real/corpus.json --os windows-latest --out records/bench-windows-latest.jsonl
+          tools/bench-real/run batch bench-real/corpus.json --os windows-latest --shard "$SHARD" \
+            --out "records/bench-windows-latest-${SHARD%/*}.jsonl"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
-          name: records-bench-windows-latest
+          name: records-bench-windows-latest-${{ strategy.job-index }}
           path: records/*.jsonl
           retention-days: 90
 
