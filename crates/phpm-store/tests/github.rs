@@ -6,7 +6,7 @@
 #![allow(clippy::unwrap_used, reason = "test helpers panic on setup failures")]
 
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use tokio::process::Command;
 
 use phpm_diffvendor::{Ignore, compare};
 use phpm_store::{Auth, Dist, FetchOptions, Fetcher, LinkMode, Package, Store, place, prune};
@@ -64,6 +64,7 @@ async fn vendor_matches_composer_on_wicketyaari() {
         ])
         .current_dir(&composer_dir)
         .status()
+        .await
         .expect("composer must be on PATH");
     assert!(status.success());
 

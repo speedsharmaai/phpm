@@ -7,6 +7,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use sha1::{Digest, Sha1};
+use sha2::Sha256;
 
 use crate::error::{Error, IoContext, Result};
 use crate::extract::{Limits, extract};
@@ -105,15 +106,24 @@ fn unique_name() -> String {
 pub fn store_key(reference: Option<&str>, url: &str) -> String {
     match reference {
         Some(r) if !r.is_empty() => r.to_owned(),
-        _ => format!("url-{}", hex_sha1(url.as_bytes())),
+        _ => format!("url-{}", hex_sha256(url.as_bytes())),
     }
 }
 
+/// Composer's `dist.shasum` is SHA-1, so verifying it needs SHA-1.
 pub(crate) fn hex_sha1(bytes: &[u8]) -> String {
+    hex(&Sha1::digest(bytes)) // NOSONAR: verifies Composer's SHA-1 dist.shasum, not a security choice
+}
+
+fn hex_sha256(bytes: &[u8]) -> String {
+    hex(&Sha256::digest(bytes))
+}
+
+fn hex(digest: &[u8]) -> String {
     use std::fmt::Write;
-    Sha1::digest(bytes)
+    digest
         .iter()
-        .fold(String::with_capacity(40), |mut s, b| {
+        .fold(String::with_capacity(digest.len() * 2), |mut s, b| {
             let _ = write!(s, "{b:02x}");
             s
         })
@@ -149,7 +159,7 @@ fn key_dir(key: &str) -> String {
     if plain {
         key.to_owned()
     } else {
-        format!("sha1-{}", hex_sha1(key.as_bytes()))
+        format!("sha256-{}", hex_sha256(key.as_bytes()))
     }
 }
 
@@ -207,8 +217,8 @@ mod tests {
     #[test]
     fn hashes_keys_that_are_not_plain() {
         assert_eq!(key_dir("1.2.3"), "1.2.3");
-        assert!(key_dir("../../x").starts_with("sha1-"));
-        assert!(key_dir("").starts_with("sha1-"));
+        assert!(key_dir("../../x").starts_with("sha256-"));
+        assert!(key_dir("").starts_with("sha256-"));
         assert_eq!(name_dir("a/b").unwrap(), "a~b");
     }
 
@@ -217,7 +227,7 @@ mod tests {
         assert_eq!(store_key(Some("abc"), "u"), "abc");
         assert_eq!(
             store_key(None, "abc"),
-            "url-a9993e364706816aba3e25717850c26c9cd0d89d"
+            "url-ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
         );
         assert_eq!(store_key(Some(""), "abc"), store_key(None, "abc"));
     }

@@ -234,7 +234,7 @@ fn make_writable(dir: &Path) -> io::Result<()> {
             clippy::permissions_set_readonly_false,
             reason = "Windows: read-only attribute blocks deletion"
         )]
-        perms.set_readonly(false);
+        perms.set_readonly(false); // NOSONAR: only to delete our own vendor files on Windows
         fs::set_permissions(entry.path(), perms)?;
         if entry.file_type()?.is_dir() {
             make_writable(&entry.path())?;
