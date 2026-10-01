@@ -1,6 +1,6 @@
 # Phase 06: Launch
 
-Outline. Tasked only after Phase 03's gate.
+Tasks: [tasks.md](tasks.md). Release engineering starts while Phase 05 finishes; nothing public ships without the owner's explicit go-ahead.
 
 ## Why
 
