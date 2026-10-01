@@ -381,8 +381,11 @@ and on demand (`seconds` input), installing nightly in CI only, and uploads
 `just fuzz-check`) builds the crate on stable so an API change cannot break
 it silently.
 
-Found so far, before the first scheduled run, by running the targets built on
-stable (no coverage feedback) for 30-180 s each:
+Found by running the targets built on stable (no coverage feedback) for
+30-180 s each, then by two dispatched runs of the workflow (the first only
+after pointing cargo-fuzz at the gnu target; the binary from install-action
+defaults to musl, where the sanitizer cannot link). The second run, five
+minutes per target, was clean on all four.
 
 - `version`: `~` or `^` on a number past `PHP_INT_MAX` overflowed an `i64`
   (debug panic, release wrap-around). PHP turns the sum into a float and
@@ -398,3 +401,37 @@ stable (no coverage feedback) for 30-180 s each:
   84 out). And `normalize` is not idempotent in
   composer/semver either (`2222-222222222222222` normalises to
   `2222.222222222222222`, which normalises to `2222.222222222222222.0.0`).
+
+## Close
+
+Phase 02 exit criteria, all met on 2026-10-01:
+
+| Criterion | Result |
+|---|---|
+| Phase 01 fixtures byte-identical; plugin fixtures give working apps | `just e2e`: 6 of 6 at 0 differences; `just e2e-apps`: 5 of 5 at 0 differences, apps run (re-run after the Track C changes) |
+| Laravel with scripts at least 5x faster warm than Composer, fallback included | 5.5x mean / 5.9x median (quiet run), 5.3x mean and median in the closing run under load |
+| Malware filter tested against a blocked package | `aikido/endpoint-test`, same text and exit code 2 as Composer |
+
+Closing numbers, one session, phpm at `ff6828f`, `tools/bench/bench.sh`
+(cold n=3, warm n=5, no-op n=10). Other jobs were running on the machine
+during the ytmate and with-scripts rows (load average 8-13), so their spread
+is wide. Raw JSON: `bench/results/2026-10-01-phase-02-close/`.
+
+| Fixture | Scenario | Composer | phpm | riff | viv | vivacity |
+|---|---|---|---|---|---|---|
+| laravel-skeleton | warm | 4.179 s | **222 ms** (18.8x) | 2.486 s | 2.215 s | 684 ms |
+| laravel-skeleton | no-op | 1.606 s | **4.5 ms** | 1.514 s | 8.8 ms | 470 ms |
+| laravel-skeleton | warm, scripts on, median | 4.570 s | **865 ms** (5.3x) | | | |
+| laravel-skeleton | no-op, scripts on | 2.295 s | **4.7 ms** | | | |
+| ytmate | warm, median | 3.676 s | **311 ms** (11.8x) | 2.072 s | 2.213 s | 644 ms |
+| ytmate | no-op, median | 1.151 s | **8 ms** | 1.052 s | 14 ms | 487 ms |
+
+Cold, from the interleaved 8-round run above (median): laravel-skeleton
+Composer 21.08 s, phpm 8.67 s, riff 13.17 s, vivacity 14.21 s; ytmate
+Composer 17.85 s, phpm 11.65 s, riff 13.19 s, vivacity 11.70 s. The bench.sh
+cold rows in the closing JSON (n=3) agree on Laravel (phpm 7.09 s, riff
+10.10 s) and are noise on ytmate (one phpm run at 17 s).
+
+Still open, carried forward: the known gaps under Track A (event flags for
+callables, plugin listeners on `pre-install-cmd`), and the ytmate cold tie,
+which needs either a smaller archive or GitHub sending a length.

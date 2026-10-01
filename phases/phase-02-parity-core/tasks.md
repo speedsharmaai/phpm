@@ -28,11 +28,11 @@ the same PR, `just ci` green, Sonar green.
 
 - [x] Profile a cold laravel-skeleton install: DNS, TLS, connection reuse, per-host concurrency, time to first byte, extraction overlap. Compare with riff (4.7 s on ytmate vs phpm 5.6 s).
 - [x] Fix what the profile shows: HTTP/2 connection reuse to codeload, concurrency per host, extract while downloading; target cold ≤ riff on both fixtures.
-- [ ] cargo-fuzz targets: lockfile parser, version normaliser, class scanner (strip + find_classes), zip extraction. A scheduled CI workflow runs each for a few minutes on nightly; crashes become regression tests.
+- [x] cargo-fuzz targets: lockfile parser, version normaliser, class scanner (strip + find_classes), zip extraction. A scheduled CI workflow runs each for a few minutes on nightly; crashes become regression tests.
 
 ## Exit
 
 - [x] All Phase 01 fixtures still byte-identical; new plugin fixtures produce working apps.
 - [x] Laravel with scripts ≥ 5x faster warm than Composer.
 - [x] Malware filter proven against a blocked package.
-- [ ] `progress.md` with what was checked.
+- [x] `progress.md` with what was checked.

@@ -2,14 +2,16 @@
 
 The one-screen view. Details live in [phases](phases/README.md).
 
-Current state: **Phase 01 gate passed (2026-10-01). Phase 02 next.**
+Current state: **Phase 02 done (2026-10-01).** Exit criteria met: identical
+`vendor/` on every fixture, plugin apps working through the Composer
+fallback, Laravel with scripts 5.3-5.9x faster warm than Composer, malware
+filter proven against a blocked package. Cold installs ahead of riff by median
+on both fixtures (clearly on Laravel, a tie on ytmate). Fuzzing runs weekly.
 
 ## Next three things
 
-1. **Phase 02 tasks.** Write `phases/phase-02-parity-core/tasks.md` from the
-   scope plus what the gate found: Composer fallback for plugins and scripts,
-   platform checks, auth, malware filter and audit, faster cold fetch,
-   fuzzing.
+1. **Phase 03: compatibility sweep.** The corpus runner and the nightly sweep
+   page have started (#43, #45, #46, #49); next is the published number.
 2. **Rename fixture lockfiles** so GitHub's dependency graph stops treating
    them as dependencies; then turn automated security-fix PRs back on.
 3. **Market check (owner).** Ask r/PHP, r/laravel and ten developers whether
@@ -35,7 +37,16 @@ Current state: **Phase 01 gate passed (2026-10-01). Phase 02 next.**
 - [x] `phpm install`, bin proxies, no-op fast path, class scan cache (#22, #24)
 - [x] **Gate passed: [gate.md](phases/phase-01-spike/gate.md)**
 
-## Phase 02 and beyond
+## Phase 02 · Parity core
 
-Outlined, not tasked. Phase 02's order depends on what the gate and the diff
-harness show. See [phases/README.md](phases/README.md).
+- [x] Composer fallback for plugins and PHP-callable scripts, native string scripts (#32, #36)
+- [x] Platform checks, auth, path/artifact/private repositories (#31, #33, #34)
+- [x] Malware filter and `--audit`, proven against a blocked package (#35); cheap on warm installs (#41)
+- [x] Download notifications (#37), sent from a detached process (#42)
+- [x] Cold fetch: direct codeload, more connections, class scans during download (#47)
+- [x] cargo-fuzz targets and a weekly workflow; two bugs found and fixed (#48, #50)
+- [x] **Exit criteria met: [progress](phases/phase-02-parity-core/progress.md#close)**
+
+## Phase 03 and beyond
+
+See [phases/README.md](phases/README.md).
