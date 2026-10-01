@@ -106,6 +106,13 @@ impl Fetcher {
             url: shown.clone(),
             reason,
         };
+        if let Some(path) = local_path(url) {
+            let bytes = tokio::task::spawn_blocking(move || std::fs::read(path))
+                .await
+                .map_err(|e| download_err(e.to_string()))?
+                .map_err(|e| download_err(e.to_string()))?;
+            return verify(url, shasum, bytes);
+        }
         let parsed = Url::parse(url).map_err(|e| download_err(e.to_string()))?;
         let host = parsed.host_str().unwrap_or_default().to_owned();
         let gate = if PACKAGIST_HOSTS.contains(&host.as_str()) {
@@ -133,17 +140,7 @@ impl Fetcher {
             }
         };
 
-        if let Some(expected) = shasum.filter(|s| !s.is_empty()) {
-            let actual = hex_sha1(&bytes);
-            if !actual.eq_ignore_ascii_case(expected) {
-                return Err(Error::Checksum {
-                    url: shown,
-                    expected: expected.to_owned(),
-                    actual,
-                });
-            }
-        }
-        Ok(bytes)
+        verify(url, shasum, bytes)
     }
 
     // Composer: Util/Bitbucket.php requestToken, requestAccessToken
@@ -290,6 +287,33 @@ impl Fetcher {
     }
 }
 
+fn verify(url: &str, shasum: Option<&str>, bytes: Vec<u8>) -> Result<Vec<u8>> {
+    if let Some(expected) = shasum.filter(|s| !s.is_empty()) {
+        let actual = hex_sha1(&bytes);
+        if !actual.eq_ignore_ascii_case(expected) {
+            return Err(Error::Checksum {
+                url: sanitize(url),
+                expected: expected.to_owned(),
+                actual,
+            });
+        }
+    }
+    Ok(bytes)
+}
+
+/// A dist URL that is a file on disk (artifact repos): `file://` or a path.
+fn local_path(url: &str) -> Option<std::path::PathBuf> {
+    if let Some(rest) = url.strip_prefix("file://") {
+        return Some(rest.into());
+    }
+    let scheme = url.find("://").is_some_and(|i| {
+        url[..i]
+            .bytes()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, b'+' | b'.' | b'-'))
+    });
+    (!scheme).then(|| url.into())
+}
+
 fn chain(err: &dyn std::error::Error) -> String {
     let mut out = err.to_string();
     let mut source = err.source();
@@ -402,7 +426,36 @@ mod tests {
     #[tokio::test]
     async fn rejects_urls_it_cannot_parse() {
         let fetcher = Fetcher::new(FetchOptions::default()).unwrap();
-        let err = fetcher.fetch("not a url", None).await.unwrap_err();
-        assert!(err.to_string().starts_with("could not download not a url"));
+        let err = fetcher.fetch("ht tp://x y", None).await.unwrap_err();
+        assert!(
+            err.to_string()
+                .starts_with("could not download ht tp://x y"),
+            "{err}"
+        );
+    }
+
+    #[tokio::test]
+    async fn reads_local_artifacts_and_checks_their_sha1() {
+        let tmp = crate::testutil::TempDir::new("local-dist");
+        let file = tmp.path().join("a.zip");
+        std::fs::write(&file, b"abc").unwrap();
+        let fetcher = Fetcher::new(FetchOptions::default()).unwrap();
+        let path = file.to_string_lossy().into_owned();
+        assert_eq!(fetcher.fetch(&path, None).await.unwrap(), b"abc");
+        let sha = "a9993e364706816aba3e25717850c26c9cd0d89d";
+        assert_eq!(
+            fetcher
+                .fetch(&format!("file://{path}"), Some(sha))
+                .await
+                .unwrap(),
+            b"abc"
+        );
+        assert!(fetcher.fetch(&path, Some("00")).await.is_err());
+        let missing = tmp
+            .path()
+            .join("missing.zip")
+            .to_string_lossy()
+            .into_owned();
+        assert!(fetcher.fetch(&missing, None).await.is_err());
     }
 }

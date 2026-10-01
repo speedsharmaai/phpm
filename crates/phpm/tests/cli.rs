@@ -532,3 +532,58 @@ fn platform_checks_need_php_unless_ignored() {
         &[("PATH", empty.to_str().unwrap())],
     ));
 }
+
+#[test]
+#[cfg(unix)]
+fn installs_path_packages_and_local_artifacts() {
+    let p = Project::with(|composer, lock| {
+        composer["require"] = json!({"l/linked": "*", "l/copied": "*", "l/art": "*"});
+        lock["packages"] = json!([
+            {"name": "l/linked", "version": "1.0.0", "type": "library",
+             "dist": {"type": "path", "url": "packages/linked", "reference": "r1"},
+             "transport-options": {"relative": true},
+             "autoload": {"psr-4": {"Linked\\": "src/"}}},
+            {"name": "l/copied", "version": "1.0.0", "type": "library",
+             "dist": {"type": "path", "url": "packages/copied", "reference": "r2"},
+             "transport-options": {"symlink": false, "relative": true}},
+            {"name": "l/art", "version": "1.0.0", "type": "library",
+             "dist": {"type": "zip", "url": "artifacts/art.zip", "shasum": ""}},
+        ]);
+        lock["packages-dev"] = json!([]);
+    });
+    for pkg in ["linked", "copied"] {
+        let dir = p.root.join("packages").join(pkg);
+        std::fs::create_dir_all(dir.join("src")).unwrap();
+        std::fs::write(dir.join("src/A.php"), "<?php\n").unwrap();
+    }
+    std::fs::write(
+        p.root.join("packages/copied/.gitattributes"),
+        "/src export-ignore\n",
+    )
+    .unwrap();
+    std::fs::create_dir_all(p.root.join("artifacts")).unwrap();
+    std::fs::write(
+        p.root.join("artifacts/art.zip"),
+        zip("art-1", &[("lib/Art.php", 0o644, "<?php\n")]),
+    )
+    .unwrap();
+    let out = ok(&p.phpm(&["install", "-v"]));
+    assert!(out.contains("Installed 3 packages"), "{out}");
+    assert_eq!(
+        std::fs::read_link(p.vendor("l/linked")).unwrap(),
+        std::path::Path::new("../../packages/linked/")
+    );
+    assert!(p.vendor("l/copied").is_dir() && !p.vendor("l/copied/src").exists());
+    assert!(p.vendor("l/art/lib/Art.php").is_file());
+    assert_eq!(p.server.total_hits(), 0);
+    let again = ok(&p.phpm_env(&["install", "-v"], &[("COMPOSER_MIRROR_PATH_REPOS", "1")]));
+    assert!(again.contains("Nothing to install"), "{again}");
+    std::fs::remove_dir_all(p.root.join("vendor")).unwrap();
+    ok(&p.phpm_env(&["install"], &[("COMPOSER_MIRROR_PATH_REPOS", "1")]));
+    assert!(p.vendor("l/linked/src/A.php").is_file());
+    assert!(
+        !std::fs::symlink_metadata(p.vendor("l/linked"))
+            .unwrap()
+            .is_symlink()
+    );
+}

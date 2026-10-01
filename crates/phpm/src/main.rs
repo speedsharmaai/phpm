@@ -5,6 +5,7 @@ mod error;
 mod fsutil;
 mod install;
 mod out;
+mod pathrepo;
 mod platform;
 mod project;
 mod state;

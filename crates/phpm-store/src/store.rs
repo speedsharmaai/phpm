@@ -12,6 +12,7 @@ use sha2::Sha256;
 use crate::error::{Error, IoContext, Result};
 use crate::extract::{Limits, extract};
 use crate::link::remove_tree;
+use crate::untar::extract_tar;
 
 /// Where extracted packages live, shared by every project on the machine.
 #[derive(Debug, Clone)]
@@ -50,12 +51,28 @@ impl Store {
         self.insert_zip_with(name, key, zip, Limits::default())
     }
 
+    /// Extract a tar or tar.gz into the store, as `insert_zip` does a zip.
+    pub fn insert_tar(&self, name: &str, key: &str, tar: &[u8]) -> Result<PathBuf> {
+        self.insert_with(name, key, tar, Limits::default(), extract_tar)
+    }
+
     pub(crate) fn insert_zip_with(
         &self,
         name: &str,
         key: &str,
         zip: &[u8],
         limits: Limits,
+    ) -> Result<PathBuf> {
+        self.insert_with(name, key, zip, limits, extract)
+    }
+
+    fn insert_with(
+        &self,
+        name: &str,
+        key: &str,
+        zip: &[u8],
+        limits: Limits,
+        extract: fn(&str, &[u8], &Path, Limits) -> Result<()>,
     ) -> Result<PathBuf> {
         let dest = self.path(name, key)?;
         if dest.is_dir() {
