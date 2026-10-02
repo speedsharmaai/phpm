@@ -30,7 +30,8 @@
   <img src="docs/design/poster/x-card.png" alt="phpm: 18x faster warm installs than Composer, byte-identical vendor/ output, measured on the Laravel skeleton against Composer, riff and vivacity">
 </p>
 
-> **Early, built in the open.** `phpm install` is byte-identical to Composer
+> **Early, built in the open.** [v0.1.0](https://github.com/speedsharmaai/phpm/releases/tag/v0.1.0)
+> is out for macOS and Linux ([install](#installation)). `phpm install` is byte-identical to Composer
 > on 98.1% of a 312-project nightly sweep, and its warm installs beat
 > Composer's on every project measured on Linux and macOS. **Windows isn't
 > supported yet** ([open issues](https://github.com/speedsharmaai/phpm/issues?q=is%3Aissue+is%3Aopen+label%3Awindows),
@@ -199,8 +200,9 @@ natively — no Composer fallback for any step.
 
 Prebuilt binaries for macOS (arm64, x86_64) and Linux (arm64, x86_64,
 static musl, any distro) are on every
-[GitHub release](https://github.com/speedsharmaai/phpm/releases), with
-build provenance attestations (`gh attestation verify <file> -R speedsharmaai/phpm`).
+[GitHub release](https://github.com/speedsharmaai/phpm/releases), each
+archive with a build provenance attestation
+(`gh attestation verify <archive> -R speedsharmaai/phpm`).
 
 macOS and Linux:
 
@@ -214,20 +216,13 @@ Homebrew:
 brew install speedsharmaai/phpm/phpm
 ```
 
-npm (downloads the matching release binary on install; every run then pays
-Node's startup, about 40 ms, so a no-op is ~45 ms instead of ~5 ms):
-
-```sh
-npm install -g phpm
-```
-
 From source, with Rust 1.96 or newer:
 
 ```sh
 cargo install --locked --git https://github.com/speedsharmaai/phpm --tag v0.1.0 phpm
 ```
 
-The installers put `phpm` in `~/.cargo/bin`. PHP, and Composer for anything
+The shell installer puts `phpm` in `~/.cargo/bin`. PHP, and Composer for anything
 phpm hands back to it, still need to be installed.
 
 **Windows isn't supported yet.** The release has a Windows binary and a
@@ -276,7 +271,7 @@ a real `composer` install for just that step. Full architecture:
 | Class scanning | `mago-syntax` lexer, results cached per file in the store | files in the store never change, so warm installs skip scanning |
 | Platform | run `php` once, cache the answer | versions, extensions, lib versions |
 | Resolver (Phase 07) | `pubgrub` | uv's resolver; better conflict messages than a SAT port |
-| Distribution | cargo-dist: GitHub Releases, curl installer, Homebrew, npm wrapper; plus a Packagist wrapper for setup-php | every channel PHP developers already use |
+| Distribution | cargo-dist: GitHub Releases, curl installer, Homebrew tap; npm and a Packagist wrapper for setup-php later | every channel PHP developers already use |
 | Benchmarks | hyperfine, JSON output committed | reproducible or it did not happen |
 
 </details>
@@ -310,7 +305,7 @@ tools/bench/      hyperfine harness: Composer vs phpm vs other installers
 | 03 | Compatibility sweep: nightly diff against Composer across 330 projects | **passed** — 98.1% identical, gate 95% |
 | 04 | Plugin adapters: composer/installers, Drupal scaffold, symfony/runtime, phpstan installer, PHPCS installer, php-http/discovery | **done** |
 | 05 | Real-world benchmarks: Composer vs phpm on the largest open-source PHP apps | **done** — warm 9.4x Linux, 18.6x macOS, 1.6x Windows ([page](https://speedsharmaai.github.io/phpm/bench/)) |
-| 06 | Launch: release, Homebrew, setup-php, Docker, GitHub Action | in progress: test pre-release [v0.1.0-rc.2](https://github.com/speedsharmaai/phpm/releases/tag/v0.1.0-rc.2) built and its installers checked |
+| 06 | Launch: release, Homebrew, setup-php, Docker, GitHub Action | in progress: [v0.1.0](https://github.com/speedsharmaai/phpm/releases/tag/v0.1.0) released, curl installer and [Homebrew tap](https://github.com/speedsharmaai/homebrew-phpm) live; launch posts pending |
 | 07 | Resolver: `update` and `require` | |
 
 Full plan and the gate each phase had to pass: [phases](phases/README.md) ·
