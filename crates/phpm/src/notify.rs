@@ -281,6 +281,36 @@ mod tests {
     }
 
     #[test]
+    fn detached_sender_posts_with_the_user_agent() {
+        use std::io::{Read, Write};
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let url = format!("http://{}/downloads/", listener.local_addr().unwrap());
+        let (tx, rx) = std::sync::mpsc::channel();
+        std::thread::spawn(move || {
+            let (mut sock, _) = listener.accept().unwrap();
+            let mut buf = vec![0_u8; 4096];
+            let n = sock.read(&mut buf).unwrap_or(0);
+            let _ = sock
+                .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
+            tx.send(String::from_utf8_lossy(&buf[..n]).to_ascii_lowercase())
+                .unwrap();
+        });
+        let tmp = tempfile::tempdir().unwrap();
+        super::send_blocking(
+            tmp.path(),
+            None,
+            vec![(url, br#"{"downloads":[]}"#.to_vec())],
+        );
+        let head = rx.recv().unwrap();
+        assert!(head.starts_with("post /downloads/"), "{head}");
+        let expected = format!(
+            "user-agent: {}",
+            phpm_store::USER_AGENT.to_ascii_lowercase()
+        );
+        assert!(head.contains(&expected), "{head}");
+    }
+
+    #[test]
     fn escapes_strings_like_php() {
         let mut s = String::new();
         super::php_string("a\"\\/\n\r\t\u{8}\u{c}\u{1}é😀", &mut s);

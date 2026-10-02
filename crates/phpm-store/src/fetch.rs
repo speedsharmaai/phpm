@@ -12,11 +12,12 @@ use crate::auth::{Auth, Credential, sanitize, split_inline_credentials};
 use crate::error::{Error, Result};
 use crate::store::hex_sha1;
 
-/// `phpm/<version> (+https://github.com/speedsharmaai/phpm)`, per decision 0006.
+/// `phpm/<version> (+<repo>; mailto=<contact>)`, per decision 0006 and
+/// Packagist's API guidance.
 pub const USER_AGENT: &str = concat!(
     "phpm/",
     env!("CARGO_PKG_VERSION"),
-    " (+https://github.com/speedsharmaai/phpm)"
+    " (+https://github.com/speedsharmaai/phpm; mailto=phpm@speedsharma.com)"
 );
 
 const PACKAGIST_HOSTS: [&str; 2] = ["repo.packagist.org", "packagist.org"];
@@ -659,9 +660,15 @@ mod tests {
     }
 
     #[test]
-    fn user_agent_names_the_project() {
-        assert!(USER_AGENT.starts_with("phpm/"));
-        assert!(USER_AGENT.ends_with("(+https://github.com/speedsharmaai/phpm)"));
+    fn user_agent_names_the_project_and_a_contact() {
+        assert_eq!(
+            USER_AGENT,
+            format!(
+                "phpm/{} (+https://github.com/speedsharmaai/phpm; mailto=phpm@speedsharma.com)",
+                env!("CARGO_PKG_VERSION")
+            )
+        );
+        assert!(reqwest::header::HeaderValue::from_str(USER_AGENT).is_ok());
     }
 
     /// Accepts connections, stalling past the client's read timeout without
