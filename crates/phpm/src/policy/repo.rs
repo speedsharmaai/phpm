@@ -439,6 +439,52 @@ mod tests {
     }
 
     #[test]
+    fn metadata_fetches_send_the_user_agent() {
+        use std::io::{Read, Write};
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let base = format!("http://{}", listener.local_addr().unwrap());
+        std::thread::spawn(move || {
+            let (mut sock, _) = listener.accept().unwrap();
+            let mut buf = vec![0_u8; 4096];
+            let n = sock.read(&mut buf).unwrap_or(0);
+            let head = String::from_utf8_lossy(&buf[..n]).into_owned();
+            let agent = head
+                .lines()
+                .find_map(|l| {
+                    l.split_once(':')
+                        .filter(|(k, _)| k.eq_ignore_ascii_case("user-agent"))
+                        .map(|(_, v)| v.trim().to_owned())
+                })
+                .unwrap_or_default();
+            let body = json!({ "agent": agent }).to_string();
+            let reply = format!(
+                "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+                body.len()
+            );
+            let _ = sock.write_all(reply.as_bytes());
+        });
+        let fetcher = phpm_store::Fetcher::new(phpm_store::FetchOptions::default()).unwrap();
+        let client = Client {
+            fetcher: &fetcher,
+            cache: None,
+        };
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        let got = rt
+            .block_on(client.json(
+                &Repo::new(&base),
+                "k.json",
+                &format!("{base}/list.json"),
+                None,
+            ))
+            .unwrap()
+            .unwrap();
+        assert_eq!(got.data, json!({ "agent": phpm_store::USER_AGENT }));
+    }
+
+    #[test]
     fn revalidates_with_if_modified_since() {
         let base = server();
         let tmp = tempfile::tempdir().unwrap();
