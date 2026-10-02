@@ -29,7 +29,7 @@ way by downloading the release binary directly:
 # syntax=docker/dockerfile:1
 
 FROM debian:bookworm-slim AS phpm-install
-ARG PHPM_VERSION=0.1.0
+ARG PHPM_VERSION=0.1.1
 ARG TARGETARCH
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl xz-utils \
     && rm -rf /var/lib/apt/lists/* \

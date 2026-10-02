@@ -23,7 +23,7 @@ authors get their download counts.
 
 ## Decision
 
-- User-Agent `phpm/<version> (+https://<repo>; mailto:<brand email>)`.
+- User-Agent `phpm/<version> (+https://<repo>; mailto=<brand email>)`.
 - Packagist metadata: at most 10 concurrent requests, conditional GETs
   always. Dist downloads from codeload go to GitHub, not Packagist, and are
   bounded separately.

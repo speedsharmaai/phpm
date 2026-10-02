@@ -30,7 +30,7 @@
   <img src="docs/design/poster/x-card.png" alt="phpm: 18x faster warm installs than Composer, byte-identical vendor/ output, measured on the Laravel skeleton against Composer, riff and vivacity">
 </p>
 
-> **Early, built in the open.** [v0.1.0](https://github.com/speedsharmaai/phpm/releases/tag/v0.1.0)
+> **Early, built in the open.** [v0.1.1](https://github.com/speedsharmaai/phpm/releases/tag/v0.1.1)
 > is out for macOS and Linux ([install](#installation)). `phpm install` is byte-identical to Composer
 > on 98.1% of a 312-project nightly sweep, and its warm installs beat
 > Composer's on every project measured on Linux and macOS. **Windows isn't
@@ -219,7 +219,7 @@ brew install speedsharmaai/phpm/phpm
 From source, with Rust 1.96 or newer:
 
 ```sh
-cargo install --locked --git https://github.com/speedsharmaai/phpm --tag v0.1.0 phpm
+cargo install --locked --git https://github.com/speedsharmaai/phpm --tag v0.1.1 phpm
 ```
 
 The shell installer puts `phpm` in `~/.cargo/bin`. PHP, and Composer for anything
@@ -305,7 +305,7 @@ tools/bench/      hyperfine harness: Composer vs phpm vs other installers
 | 03 | Compatibility sweep: nightly diff against Composer across 330 projects | **passed** — 98.1% identical, gate 95% |
 | 04 | Plugin adapters: composer/installers, Drupal scaffold, symfony/runtime, phpstan installer, PHPCS installer, php-http/discovery | **done** |
 | 05 | Real-world benchmarks: Composer vs phpm on the largest open-source PHP apps | **done** — warm 9.4x Linux, 18.6x macOS, 1.6x Windows ([page](https://speedsharmaai.github.io/phpm/bench/)) |
-| 06 | Launch: release, Homebrew, setup-php, Docker, GitHub Action | in progress: [v0.1.0](https://github.com/speedsharmaai/phpm/releases/tag/v0.1.0) released, curl installer and [Homebrew tap](https://github.com/speedsharmaai/homebrew-phpm) live; launch posts pending |
+| 06 | Launch: release, Homebrew, setup-php, Docker, GitHub Action | in progress: [v0.1.1](https://github.com/speedsharmaai/phpm/releases/tag/v0.1.1) released, curl installer and [Homebrew tap](https://github.com/speedsharmaai/homebrew-phpm) live; launch posts pending |
 | 07 | Resolver: `update` and `require` | |
 
 Full plan and the gate each phase had to pass: [phases](phases/README.md) ·
