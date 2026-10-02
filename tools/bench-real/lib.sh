@@ -99,7 +99,18 @@ scenario_timing() {
 }
 
 mean_of() {
-  [ -f "$1" ] && jq '.results[0].mean' "$1" || echo null
+  local v=""
+  if [ -f "$1" ]; then
+    v=$(jq '.results[0].mean' "$1" 2>/dev/null) || v=""
+  fi
+  # jq always prints a value for well-formed JSON (including the text
+  # "null"); empty output means the read itself failed outright (missing
+  # or malformed file), which is folded into the same "null" the record
+  # already uses for "this scenario has no number".
+  case "$v" in
+    '' | *$'\n'*) echo null ;;
+    *) echo "$v" ;;
+  esac
 }
 
 run_project() {
@@ -168,18 +179,28 @@ run_project() {
     fallback_plugins=$(fallback_plugin_names "$work/phpm-explain.log" | jq -R -s -c 'split("\n") | map(select(length > 0))')
   fi
 
+  # Each mean is its own --argjson rather than hand-built into a JSON
+  # string: jq validates each one independently, so one scenario that
+  # never finished can't corrupt the whole record (seen in practice: a
+  # hand-built "{...}" string let one bad value turn into invalid JSON
+  # that failed the entire --argjson parse).
   jq -nc \
     --arg group "$group" --arg repo "${repo:-null}" --arg fixture "${fixture:-null}" \
     --argjson stars "${stars:-null}" --arg os "$os" --argjson packages "${packages:-null}" \
-    --argjson cold "{\"composer_seconds\": $(mean_of "$work/composer-cold.json"), \"phpm_seconds\": $(mean_of "$work/phpm-cold.json")}" \
-    --argjson warm "{\"composer_seconds\": $(mean_of "$work/composer-warm.json"), \"phpm_seconds\": $(mean_of "$work/phpm-warm.json")}" \
-    --argjson noop "{\"composer_seconds\": $(mean_of "$work/composer-noop.json"), \"phpm_seconds\": $(mean_of "$work/phpm-noop.json")}" \
+    --argjson composer_cold "$(mean_of "$work/composer-cold.json")" \
+    --argjson phpm_cold "$(mean_of "$work/phpm-cold.json")" \
+    --argjson composer_warm "$(mean_of "$work/composer-warm.json")" \
+    --argjson phpm_warm "$(mean_of "$work/phpm-warm.json")" \
+    --argjson composer_noop "$(mean_of "$work/composer-noop.json")" \
+    --argjson phpm_noop "$(mean_of "$work/phpm-noop.json")" \
     --arg identity "$identity" --argjson differences "$differences" \
     --argjson fallback "$fallback" --argjson fallback_plugins "$fallback_plugins" \
     '{group: $group, repo: (if $repo == "null" then null else $repo end),
       fixture: (if $fixture == "null" then null else $fixture end),
       stars: $stars, os: $os, packages: $packages,
-      cold: $cold, warm: $warm, noop: $noop,
+      cold: {composer_seconds: $composer_cold, phpm_seconds: $phpm_cold},
+      warm: {composer_seconds: $composer_warm, phpm_seconds: $phpm_warm},
+      noop: {composer_seconds: $composer_noop, phpm_seconds: $phpm_noop},
       identity: $identity, differences: $differences,
       fallback: $fallback, fallback_plugins: $fallback_plugins}'
 }
