@@ -4,8 +4,9 @@ The one-screen view. Details live in [phases](phases/README.md).
 
 Current state: **Phase 02, 04 and 05 done; Phase 03 in progress.**
 Phase 05 (2026-10-02): 40 real apps on GitHub's three runner OSes, median
-warm 9.6x (Linux), 18.3x (macOS), 1.6x (Windows), no-op 329-636x; whole CI
-jobs only 1.26x faster on Linux, so market-research kill criterion 2 (3x)
+warm 9.4x (Linux), 18.6x (macOS), 1.6x (Windows), no-op 344-501x,
+`vendor/` identical on 39/40 (Linux, macOS) and 35/39 (Windows); whole CI
+jobs only 1.35x faster on Linux, so market-research kill criterion 2 (3x)
 is not met.
 Phase 04 (2026-10-02): Bedrock and a real Drupal site install fully
 natively, no Composer fallback for any step, 0 `vendor/`/`web/`/`recipes/`
@@ -20,9 +21,10 @@ blocked package. Fuzzing runs weekly.
 1. **Phase 03: compatibility sweep.** The corpus runner and the nightly sweep
    page have started (#43, #45, #46, #49); next is the published number
    against the 95% gate.
-2. **Phase 05 follow-ups.** Re-run with #111 so the five `vendor-dir`
-   projects and PrestaShop are measured; profile Windows (warm 1.6x, one
-   project slower than Composer) before Phase 06 claims anything there.
+2. **Phase 05 follow-ups.** Profile Windows (warm 1.6x, three projects
+   slower than Composer, cold slower at the median) before Phase 06 claims
+   anything there; copy PrestaShop's tree on Windows; triage grav and the
+   three Windows-only differences.
 3. **Rename fixture lockfiles** so GitHub's dependency graph stops treating
    them as dependencies; then turn automated security-fix PRs back on.
 
@@ -94,7 +96,8 @@ stay on fallback by scope (decision 0004), not fidelity.
   alongside the sweep page (#84, #88)
 - [x] Windows: eight rounds of harness fixes, hyperfine's shell handling
   replaced by plain-bash cleanup between iterations (#90-#110)
-- [x] `config.vendor-dir` and `diffvendor` errors handled (#111)
+- [x] `config.vendor-dir` and `diffvendor` errors handled (#111); second
+  run measures all 40 with no exclusions
 - [x] **First full run published:
   [progress](phases/phase-05-real-world-benchmarks/progress.md)**
 - [ ] Owner's Mac column, 3200x1800 chart export, per-run timeout

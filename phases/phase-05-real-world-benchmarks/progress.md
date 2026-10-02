@@ -1,6 +1,70 @@
 # Phase 05 progress
 
-## First full run, 2026-10-02
+## Second full run, 2026-10-02 (current numbers)
+
+Run [37001206387](https://github.com/speedsharmaai/phpm/actions/runs/37001206387),
+same corpus, OSes, flags and repetitions as the first run below, phpm at
+`3043c4f` (includes #111, the `config.vendor-dir` and `diffvendor` fixes).
+Every job green, page deployed. Results committed unedited as
+[`bench-real/results/2026-10-02-run-37001206387.json`](../../bench-real/results/2026-10-02-run-37001206387.json).
+**No projects are excluded from these numbers.**
+
+The six projects the first run had to leave out are now measured properly:
+all six are identical on Linux and macOS, and five of six on Windows.
+PrestaShop still fails on Windows: its tree has a symlink, `cp -RL` can't
+copy it, and the plain `cp -R` fallback can't create a symlink without
+elevation on `windows-latest`. That one row is `install-failed`.
+
+### Identity
+
+| OS | Identical | Different | Failed |
+|---|---|---|---|
+| ubuntu-latest | 39 of 40 (97.5%) | getgrav/grav | none |
+| macos-latest | 39 of 40 (97.5%) | getgrav/grav | none |
+| windows-latest | 35 of 39 (89.7%) | getgrav/grav, wallabag/wallabag, mautic/mautic, drupal/drupal (5 files) | PrestaShop (copy) |
+
+The difference counts now come from the #111 parser, which only reads a
+count when `diffvendor` itself succeeded, so these are real differences
+and worth triage.
+
+### Speed-up, Composer time over phpm time
+
+Median across every compared project (range in brackets):
+
+| OS | Cold | Warm | No-op |
+|---|---|---|---|
+| ubuntu-latest | 2.6x (0.98-5.2) | **9.4x** (5.8-27.9) | 501x (133-2745) |
+| macos-latest | 3.4x (1.8-15.5) | **18.6x** (8.5-64.8) | 388x (131-3561) |
+| windows-latest | 0.94x (0.50-5.2) | **1.6x** (0.94-10.4) | 344x (92-2641) |
+
+On Windows, phpm's warm install is slower than Composer's for three
+projects: humhub/humhub (0.94x), mautic/mautic (0.94x) and symfony/demo
+(0.97x). Cold on Windows is slower at the median. Linux cold has one project
+at 0.98x. Nothing is slower on macOS.
+
+### Ten worktrees of laravel-skeleton
+
+| OS | Time | Disk |
+|---|---|---|
+| ubuntu-latest | 5.8x faster | 4.9x smaller |
+| macos-latest | 10.1x faster | 5.8x smaller |
+| windows-latest | 1.7x faster | 4.1x smaller |
+
+### CI job time, p50 speed-up
+
+| OS | Cache warm | Cache cold |
+|---|---|---|
+| ubuntu-latest | 1.35x (1.10-1.40) | 1.32x (1.18-1.64) |
+| macos-latest | 1.51x (1.22-1.57) | 1.35x (1.23-1.54) |
+| windows-latest | 1.04x (0.96-1.56) | 0.65x (0.56-0.82) |
+
+Kill criterion 2 (at least 3x on p50 total CI job time) is still not met.
+On Windows, a CI job with a cold cache gets slower with phpm.
+
+## First full run, 2026-10-02 (superseded)
+
+Kept as the record of what the harness got wrong; the numbers above replace
+these.
 
 Run [36962624240](https://github.com/speedsharmaai/phpm/actions/runs/36962624240):
 all 40 projects in [`bench-real/corpus.json`](../../bench-real/corpus.json) on
@@ -154,6 +218,11 @@ on their deploy jobs (#88), and this run deployed.
 
 ## Not done
 
+- **PrestaShop on Windows.** Needs either a symlink-free copy (dereference
+  only the links that resolve, drop dangling ones) or Developer Mode on the
+  runner.
+- **Windows warm and cold.** Three projects slower warm, cold slower at the
+  median; profile before Phase 06 makes any Windows claim.
 - **The owner's own Mac column.** Deferred by the coordinator so the Mac
   stayed free for this phase; the Phase 01/02 Mac numbers in the README
   stand in the meantime.
