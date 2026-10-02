@@ -50,11 +50,30 @@ jobs:
           valid_tag "$TAG" || { echo "not a release tag: $TAG"; exit 1; }
           [ -f "fixtures/$FIXTURE/fixture.lock" ] || { echo "no such fixture: $FIXTURE"; exit 1; }
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        if: matrix.os != 'macos-15-intel'
         with:
           php-version: "8.4"
           tools: composer:2.10.3
           extensions: zip
           coverage: none
+      # setup-php can't set up PHP 8.4 on macos-15-intel; use Homebrew's PHP
+      # and the same pinned Composer instead.
+      - name: Set up PHP and Composer on Intel macOS
+        if: matrix.os == 'macos-15-intel'
+        env:
+          COMPOSER_VERSION: 2.10.3
+          COMPOSER_SHA256: 7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6
+        run: |
+          . tools/install-smoke/lib.sh
+          command -v php >/dev/null || brew install php
+          php -v
+          php -m | grep -qix zip || { echo "PHP has no zip extension"; exit 1; }
+          mkdir -p "$RUNNER_TEMP/bin"
+          curl --proto '=https' --tlsv1.2 -fsSLo "$RUNNER_TEMP/bin/composer" "$(composer_phar_url "$COMPOSER_VERSION")"
+          sha256_matches "$RUNNER_TEMP/bin/composer" "$COMPOSER_SHA256" || { echo "composer.phar checksum mismatch"; exit 1; }
+          chmod +x "$RUNNER_TEMP/bin/composer"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/bin/composer" --version
       - name: Install with the shell installer
         if: matrix.installer == 'shell'
         run: |
