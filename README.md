@@ -30,11 +30,13 @@
   <img src="docs/design/poster/x-card.png" alt="phpm: 18x faster warm installs than Composer, byte-identical vendor/ output, measured on the Laravel skeleton against Composer, riff and vivacity">
 </p>
 
-> **Pre-release, built in the open.** `phpm install` works today: it is
-> byte-identical to Composer on 98.1% of a 312-project nightly sweep, and
-> faster everywhere it was measured. There is no packaged release yet — build
-> from source (see [Installation](#installation)). Every phase, decision and
-> benchmark behind that number is public; start at [phases](phases/README.md).
+> **Early, built in the open.** `phpm install` is byte-identical to Composer
+> on 98.1% of a 312-project nightly sweep, and its warm installs beat
+> Composer's on every project measured on Linux and macOS. **Windows isn't
+> supported yet** ([open issues](https://github.com/speedsharmaai/phpm/issues?q=is%3Aissue+is%3Aopen+label%3Awindows),
+> help welcome). It installs from a lockfile only: no `update` or `require`
+> yet. Every phase, decision and benchmark behind those numbers
+> is public; start at [phases](phases/README.md).
 
 <p align="center">
   <a href="#why-phpm">Why phpm</a> ·
@@ -113,8 +115,8 @@ Real apps with their own scripts and plugins on, same machine
 
 ### Real-world apps, GitHub runners
 
-40 of the largest open-source PHP apps that commit a lock, each installed
-cold, warm and no-op by Composer and by phpm on `ubuntu-latest`,
+40 real apps, 38 of the largest open-source PHP apps that commit a lock
+plus two of the author's own, each installed cold, warm and no-op by Composer and by phpm on `ubuntu-latest`,
 `macos-latest` and `windows-latest`
 ([full page](https://speedsharmaai.github.io/phpm/bench/),
 [progress](phases/phase-05-real-world-benchmarks/progress.md),
@@ -122,7 +124,11 @@ cold, warm and no-op by Composer and by phpm on `ubuntu-latest`,
 warm speed-up 9.4x on Linux, 18.6x on macOS, 1.6x on Windows; no-op
 344-501x; `vendor/` identical on 39 of 40 projects on Linux and macOS, 35
 of 39 on Windows (PrestaShop can't be copied there). On Windows, three
-projects install slower warm with phpm than with Composer.
+projects install slower warm with phpm than with Composer; Windows isn't
+supported yet ([issues](https://github.com/speedsharmaai/phpm/issues?q=is%3Aissue+is%3Aopen+label%3Awindows)).
+The one Linux and macOS difference, Grav, is a single line: the APCu prefix
+Composer randomises on every autoload dump
+([#122](https://github.com/speedsharmaai/phpm/issues/122)).
 
 Top 10 by warm speed-up, `ubuntu-latest`, identical `vendor/` only:
 
@@ -191,20 +197,51 @@ natively — no Composer fallback for any step.
 
 ## Installation
 
-There is no packaged release yet (that is [Phase 06](#roadmap)). Build from
-source:
+Prebuilt binaries for macOS (arm64, x86_64) and Linux (arm64, x86_64,
+static musl, any distro) are on every
+[GitHub release](https://github.com/speedsharmaai/phpm/releases), with
+build provenance attestations (`gh attestation verify <file> -R speedsharmaai/phpm`).
+
+macOS and Linux:
 
 ```sh
-git clone https://github.com/speedsharmaai/phpm.git
-cd phpm
-cargo build --release -p phpm
+curl -LsSf https://github.com/speedsharmaai/phpm/releases/latest/download/phpm-installer.sh | sh
 ```
+
+Homebrew:
+
+```sh
+brew install speedsharmaai/phpm/phpm
+```
+
+npm (downloads the matching release binary on install; every run then pays
+Node's startup, about 40 ms, so a no-op is ~45 ms instead of ~5 ms):
+
+```sh
+npm install -g phpm
+```
+
+From source, with Rust 1.96 or newer:
+
+```sh
+cargo install --locked --git https://github.com/speedsharmaai/phpm --tag v0.1.0 phpm
+```
+
+The installers put `phpm` in `~/.cargo/bin`. PHP, and Composer for anything
+phpm hands back to it, still need to be installed.
+
+**Windows isn't supported yet.** The release has a Windows binary and a
+PowerShell installer, and both install fine, but on Windows phpm is only
+1.6x faster than Composer at the median, slower on some projects, and not
+identical on others. The known gaps are filed as
+[issues labelled `windows`](https://github.com/speedsharmaai/phpm/issues?q=is%3Aissue+is%3Aopen+label%3Awindows);
+help with any of them is welcome.
 
 ## Usage
 
 ```sh
 cd /path/to/your/php/project
-/path/to/phpm/target/release/phpm install --explain
+phpm install --explain
 ```
 
 `--explain` prints, per package, whether it was installed natively or handed
