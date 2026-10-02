@@ -394,11 +394,14 @@ jobs:
           RUN: ${{ github.run_id }}
         run: |
           chmod +x bin/bench-real
-          mkdir -p site/bench records
+          mkdir -p site/bench site/sweep records
           touch records/empty.jsonl
+          base="https://${OWNER}.github.io/${REPO#*/}"
+          curl -fsSL "$base/bench/history.json" -o site/bench/history.json 2>/dev/null || rm -f site/bench/history.json
           for f in index.html app.js results.json history.json badge.json; do
-            curl -fsSL "https://${OWNER}.github.io/${REPO#*/}/$f" -o "site/$f" 2>/dev/null || true
+            curl -fsSL "$base/sweep/$f" -o "site/sweep/$f" 2>/dev/null || rm -f "site/sweep/$f"
           done
+          curl -fsSL "$base/index.html" -o site/index.html 2>/dev/null || rm -f site/index.html
           shopt -s nullglob
           projects=(records/bench-*.jsonl records/empty.jsonl)
           worktree=(records/worktree-*.jsonl)
