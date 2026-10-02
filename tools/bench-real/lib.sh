@@ -85,15 +85,25 @@ manual_runs() {
     >"$out"
 }
 
+# The project's vendor directory, honouring composer.json's
+# config.vendor-dir (nextcloud, joomla, opencart and others move it).
+vendor_dir() {
+  local v
+  v=$(jq -r '.config["vendor-dir"] // "vendor"' "$1/composer.json" 2>/dev/null) || v=vendor
+  [ -n "$v" ] || v=vendor
+  echo "$1/${v%/}"
+}
+
 scenario_timing() {
   local dir="$1" cmd="$2" work="$3" name="$4"
-  local home="$work/home"
+  local home="$work/home" vendor
+  vendor=$(vendor_dir "$dir")
   (
     cd "$dir" || exit 1
     manual_runs "$home" "$cmd" "$work/$name-cold.json" 3 0 \
-      "rm -rf '$dir/vendor' '$work/cache'"
+      "rm -rf '$vendor' '$work/cache'"
     manual_runs "$home" "$cmd" "$work/$name-warm.json" 5 1 \
-      "rm -rf '$dir/vendor'"
+      "rm -rf '$vendor'"
     manual_runs "$home" "$cmd" "$work/$name-noop.json" 10 1 ":"
   )
 }
@@ -134,7 +144,10 @@ run_project() {
   # -L dereferences symlinks in the source tree: creating a real symlink
   # needs elevated privileges on windows-latest, and the install only ever
   # reads composer.json/composer.lock through these copies anyway.
-  if ! cp -RL "$work/src" "$work/composer" 2>"$work/copy.err" || ! cp -RL "$work/src" "$work/phpm" 2>>"$work/copy.err"; then
+  # A dangling symlink can't be dereferenced (PrestaShop ships one); keep
+  # it as a link then, which works everywhere but windows-latest.
+  copy_tree() { cp -RL "$1" "$2" 2>>"$work/copy.err" || { rm -rf "$2" && cp -R "$1" "$2" 2>>"$work/copy.err"; }; }
+  if ! copy_tree "$work/src" "$work/composer" || ! copy_tree "$work/src" "$work/phpm"; then
     jq -nc --arg group "$group" --arg repo "${repo:-null}" --arg fixture "${fixture:-null}" \
       --arg os "$os" --arg error "copying the source tree failed: $(tail -3 "$work/copy.err")" \
       '{group: $group, repo: (if $repo == "null" then null else $repo end),
@@ -165,13 +178,25 @@ run_project() {
   scenario_timing "$work/phpm" "${PHPM_BIN:-phpm} install --no-scripts --no-plugins --ignore-platform-reqs" "$work" phpm \
     || echo "$name: phpm timing failed partway, see $work logs" >&2
 
-  local identity=identical differences=0 diff_out
-  if diff_out=$("${DIFFVENDOR_BIN:-diffvendor}" "$work/composer/vendor" "$work/phpm/vendor" 2>&1); then
-    identity=identical
-  else
-    identity=different
-    differences=$(echo "$diff_out" | tail -1 | grep -oE '^[0-9]+' || echo 1)
-  fi
+  # diffvendor: 0 identical, 1 differences (last line "N differences"),
+  # anything else means the comparison itself failed and is not a result.
+  local identity=identical differences=0 diff_out diff_status=0
+  diff_out=$("${DIFFVENDOR_BIN:-diffvendor}" "$(vendor_dir "$work/composer")" "$(vendor_dir "$work/phpm")" 2>&1) || diff_status=$?
+  case "$diff_status" in
+    0) identity=identical ;;
+    1)
+      identity=different
+      differences=$(echo "$diff_out" | tail -1 | grep -oE '^[0-9]+' || echo 0)
+      ;;
+    *)
+      jq -nc --arg group "$group" --arg repo "${repo:-null}" --arg fixture "${fixture:-null}" \
+        --arg os "$os" --arg error "diffvendor failed: $(echo "$diff_out" | tail -3)" \
+        '{group: $group, repo: (if $repo == "null" then null else $repo end),
+          fixture: (if $fixture == "null" then null else $fixture end),
+          os: $os, identity: "install-failed", error: $error}'
+      return
+      ;;
+  esac
 
   local fallback=false fallback_plugins="[]"
   if grep -q 'fallback to' "$work/phpm-explain.log" 2>/dev/null; then
