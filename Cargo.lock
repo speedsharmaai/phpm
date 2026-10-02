@@ -779,7 +779,7 @@ checksum = "9b4f627cb1b25917193a259e49bdad08f671f8d9708acfd5fe0a8c1455d87220"
 
 [[package]]
 name = "phpm"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "clap",
  "md5",
@@ -798,7 +798,7 @@ dependencies = [
 
 [[package]]
 name = "phpm-autoload"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "indexmap",
  "md5",
@@ -814,7 +814,7 @@ dependencies = [
 
 [[package]]
 name = "phpm-bench-real"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "proptest",
  "serde",
@@ -824,11 +824,11 @@ dependencies = [
 
 [[package]]
 name = "phpm-diffvendor"
-version = "0.1.0"
+version = "0.1.1"
 
 [[package]]
 name = "phpm-lock"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "indexmap",
  "phpm-php",
@@ -841,7 +841,7 @@ dependencies = [
 
 [[package]]
 name = "phpm-php"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "indexmap",
  "proptest",
@@ -850,7 +850,7 @@ dependencies = [
 
 [[package]]
 name = "phpm-store"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "flate2",
  "libc",
@@ -867,7 +867,7 @@ dependencies = [
 
 [[package]]
 name = "phpm-sweep"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "phpm-diffvendor",
  "proptest",
@@ -878,7 +878,7 @@ dependencies = [
 
 [[package]]
 name = "phpm-testkit"
-version = "0.1.0"
+version = "0.1.1"
 
 [[package]]
 name = "pin-project-lite"
