@@ -683,11 +683,31 @@ mod tests {
         }
     }
 
+    #[test]
+    fn sibling_at_top_level_keeps_a_subdir_from_being_unwrapped() {
+        let tmp = TempDir::new("extract-no-unwrap-check");
+        let zip = ZipBuilder::new()
+            .dos_file("composer.json", b"{}")
+            .dos_file("public/index.html", b"<html></html>")
+            .finish();
+        let dest = tmp.path().join("pkg");
+        extract("a/b", &zip, &dest, Limits::default()).unwrap();
+        assert_eq!(
+            fs::read(dest.join("public/index.html")).unwrap(),
+            b"<html></html>"
+        );
+    }
+
     #[cfg(windows)]
     #[test]
     fn extracts_a_windows_invalid_name_instead_of_failing() {
         let tmp = TempDir::new("extract-windows-names");
+        // A sibling at the top level keeps "public/" from being unwrapped
+        // as the archive's lone top-level directory (see
+        // `strips_the_single_top_level_directory`), matching a real
+        // invoiceninja-sized archive rather than this one entry alone.
         let zip = ZipBuilder::new()
+            .dos_file("composer.json", b"{}")
             .dos_file("public/index.html?D=A", b"<html></html>")
             .finish();
         let dest = tmp.path().join("pkg");
