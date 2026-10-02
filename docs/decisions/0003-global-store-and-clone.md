@@ -48,6 +48,11 @@ break every project.
   space on APFS or reflink filesystems until they are modified.
 - Hardlink mode has a real risk: someone patching a file in `vendor/` in place
   corrupts the store for every project. Clone is safe. Hardlink mode must say
-  this in the docs and in `phpm doctor`.
+  this in the docs, and in `phpm doctor` once it exists (planned, not built).
 - Linux ext4 has no reflink, so Linux gains come from hardlinks and are
   smaller than macOS. The benchmark page must state the filesystem.
+
+## Notes
+
+- 2026-10-02: `phpm doctor` is planned, not built. The earlier text read as
+  if it existed.

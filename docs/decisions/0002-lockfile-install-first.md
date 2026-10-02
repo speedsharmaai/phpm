@@ -22,8 +22,9 @@ silently.
 
 ## Decision
 
-Phases 01-06 implement `install` only. `update`, `require` and `remove` are
-passed straight through to Composer, unchanged, with one line saying so.
+Phases 01-06 implement `install` only. phpm has no `update`, `require` or
+`remove` command; run Composer yourself for those. Passing them straight
+through to Composer, with one line saying so, is planned and not built.
 
 A resolver is Phase 07 at the earliest, built on `pubgrub`, and does not ship
 until it reproduces Composer's lockfile byte for byte across the compatibility
@@ -37,3 +38,9 @@ sweep.
   also launched as `uv pip install` before it was a project manager.
 - Developers still need Composer installed for updates. phpm is a companion,
   not a replacement, until Phase 07 says otherwise.
+
+## Notes
+
+- 2026-10-02: corrected the decision text. It used to say `update`,
+  `require` and `remove` were already passed through to Composer. They are
+  not implemented at all; the pass-through is future work.
