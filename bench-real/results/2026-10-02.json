@@ -1,0 +1,3044 @@
+{
+  "date": "2026-10-02",
+  "meta": {
+    "composer": "2.10.3",
+    "php": "8.4",
+    "phpm": "246aa9703514da403ac1c50a37eeb1eea94c2afa",
+    "run": "36962624240"
+  },
+  "summary": {
+    "macos-latest": {
+      "total": 40,
+      "identical": 33,
+      "different": 6,
+      "install_failed": 1,
+      "fallback": 0,
+      "identity_rate": 0.8461538461538461,
+      "fallback_rate": 0.0,
+      "cold": {
+        "n": 39,
+        "median_speedup": 4.141800417832488,
+        "min_speedup": 1.9164224998919224,
+        "max_speedup": 14.126076004815662
+      },
+      "warm": {
+        "n": 39,
+        "median_speedup": 20.20733314981201,
+        "min_speedup": 10.180518365043373,
+        "max_speedup": 1185.4159631431796
+      },
+      "noop": {
+        "n": 39,
+        "median_speedup": 381.2260216475216,
+        "min_speedup": 164.98384575947267,
+        "max_speedup": 2295.8696780961923
+      }
+    },
+    "ubuntu-latest": {
+      "total": 40,
+      "identical": 33,
+      "different": 6,
+      "install_failed": 1,
+      "fallback": 0,
+      "identity_rate": 0.8461538461538461,
+      "fallback_rate": 0.0,
+      "cold": {
+        "n": 39,
+        "median_speedup": 2.5493208344272187,
+        "min_speedup": 1.2009964104419684,
+        "max_speedup": 6.374175346816026
+      },
+      "warm": {
+        "n": 39,
+        "median_speedup": 10.148718850664833,
+        "min_speedup": 5.916307323405479,
+        "max_speedup": 1926.1978544922854
+      },
+      "noop": {
+        "n": 39,
+        "median_speedup": 577.8026893392886,
+        "min_speedup": 137.6265879619861,
+        "max_speedup": 2632.014670088836
+      }
+    },
+    "windows-latest": {
+      "total": 40,
+      "identical": 30,
+      "different": 9,
+      "install_failed": 1,
+      "fallback": 0,
+      "identity_rate": 0.7692307692307693,
+      "fallback_rate": 0.0,
+      "cold": {
+        "n": 39,
+        "median_speedup": 0.8862868654640763,
+        "min_speedup": 0.46528232098603206,
+        "max_speedup": 7.107806119173189
+      },
+      "warm": {
+        "n": 39,
+        "median_speedup": 1.746061539975415,
+        "min_speedup": 0.7210881437746539,
+        "max_speedup": 1406.8026386521308
+      },
+      "noop": {
+        "n": 39,
+        "median_speedup": 302.7430439096626,
+        "min_speedup": 90.00540130948275,
+        "max_speedup": 3367.631516631991
+      }
+    }
+  },
+  "records": [
+    {
+      "group": "frameworks-own-apps",
+      "repo": "laravel/laravel",
+      "fixture": "laravel-skeleton",
+      "stars": 85049,
+      "os": "macos-latest",
+      "packages": 109,
+      "cold": {
+        "composer_seconds": 8.712937611,
+        "phpm_seconds": 1.5833124443333333
+      },
+      "warm": {
+        "composer_seconds": 5.942957100000001,
+        "phpm_seconds": 0.1857753252
+      },
+      "noop": {
+        "composer_seconds": 2.3792187,
+        "phpm_seconds": 0.0040796875
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "frameworks-own-apps",
+      "repo": "laravel/laravel",
+      "fixture": "laravel-skeleton",
+      "stars": 85049,
+      "os": "ubuntu-latest",
+      "packages": 109,
+      "cold": {
+        "composer_seconds": 3.108666906,
+        "phpm_seconds": 0.7858983533333334
+      },
+      "warm": {
+        "composer_seconds": 2.1091391042000005,
+        "phpm_seconds": 0.20587287020000003
+      },
+      "noop": {
+        "composer_seconds": 1.1341938022,
+        "phpm_seconds": 0.0019629431
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "frameworks-own-apps",
+      "repo": "laravel/laravel",
+      "fixture": "laravel-skeleton",
+      "stars": 85049,
+      "os": "windows-latest",
+      "packages": 109,
+      "cold": {
+        "composer_seconds": 24.062587833333335,
+        "phpm_seconds": 27.14988653333333
+      },
+      "warm": {
+        "composer_seconds": 17.06014534,
+        "phpm_seconds": 13.75720484
+      },
+      "noop": {
+        "composer_seconds": 2.4067752399999995,
+        "phpm_seconds": 0.0097966
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "laravel-ecosystem",
+      "repo": "coollabsio/coolify",
+      "fixture": null,
+      "stars": 62455,
+      "os": "macos-latest",
+      "packages": 242,
+      "cold": {
+        "composer_seconds": 16.725044875,
+        "phpm_seconds": 4.3054885
+      },
+      "warm": {
+        "composer_seconds": 9.8325084164,
+        "phpm_seconds": 0.6136140164
+      },
+      "noop": {
+        "composer_seconds": 3.0051214499,
+        "phpm_seconds": 0.005538916600000001
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "laravel-ecosystem",
+      "repo": "coollabsio/coolify",
+      "fixture": null,
+      "stars": 62455,
+      "os": "ubuntu-latest",
+      "packages": 242,
+      "cold": {
+        "composer_seconds": 7.153853338,
+        "phpm_seconds": 2.806180078000001
+      },
+      "warm": {
+        "composer_seconds": 4.9829221406,
+        "phpm_seconds": 0.5894699656
+      },
+      "noop": {
+        "composer_seconds": 2.2830022516,
+        "phpm_seconds": 0.0027516471
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "laravel-ecosystem",
+      "repo": "coollabsio/coolify",
+      "fixture": null,
+      "stars": 62455,
+      "os": "windows-latest",
+      "packages": 242,
+      "cold": {
+        "composer_seconds": 54.77544616666667,
+        "phpm_seconds": 84.43311059999999
+      },
+      "warm": {
+        "composer_seconds": 44.79145058,
+        "phpm_seconds": 57.315711279999995
+      },
+      "noop": {
+        "composer_seconds": 5.755665779999999,
+        "phpm_seconds": 0.01300875
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "appwrite/appwrite",
+      "fixture": null,
+      "stars": 57528,
+      "os": "macos-latest",
+      "packages": 94,
+      "cold": {
+        "composer_seconds": 9.480903958333334,
+        "phpm_seconds": 2.090058125
+      },
+      "warm": {
+        "composer_seconds": 5.2952424918,
+        "phpm_seconds": 0.3101116502
+      },
+      "noop": {
+        "composer_seconds": 1.3957387709,
+        "phpm_seconds": 0.0062877625
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "appwrite/appwrite",
+      "fixture": null,
+      "stars": 57528,
+      "os": "ubuntu-latest",
+      "packages": 94,
+      "cold": {
+        "composer_seconds": 3.4175536120000003,
+        "phpm_seconds": 2.253604906
+      },
+      "warm": {
+        "composer_seconds": 1.2636355886,
+        "phpm_seconds": 0.11595028660000002
+      },
+      "noop": {
+        "composer_seconds": 0.2525447062,
+        "phpm_seconds": 0.0013326552
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "appwrite/appwrite",
+      "fixture": null,
+      "stars": 57528,
+      "os": "windows-latest",
+      "packages": 94,
+      "cold": {
+        "composer_seconds": 18.654811166666665,
+        "phpm_seconds": 19.764834800000003
+      },
+      "warm": {
+        "composer_seconds": 15.58217594,
+        "phpm_seconds": 9.36083106
+      },
+      "noop": {
+        "composer_seconds": 1.68458663,
+        "phpm_seconds": 0.012670460000000003
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "nextcloud/server",
+      "fixture": null,
+      "stars": 36965,
+      "os": "macos-latest",
+      "packages": 1,
+      "cold": {
+        "composer_seconds": 1.799739,
+        "phpm_seconds": 0.210484111
+      },
+      "warm": {
+        "composer_seconds": 1.9318611418,
+        "phpm_seconds": 0.0050157502
+      },
+      "noop": {
+        "composer_seconds": 1.6256122707,
+        "phpm_seconds": 0.0055974373
+      },
+      "identity": "different",
+      "differences": 1,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "nextcloud/server",
+      "fixture": null,
+      "stars": 36965,
+      "os": "ubuntu-latest",
+      "packages": 1,
+      "cold": {
+        "composer_seconds": 0.3896559556666667,
+        "phpm_seconds": 0.15302606333333335
+      },
+      "warm": {
+        "composer_seconds": 0.3811458882,
+        "phpm_seconds": 0.0011351482000000002
+      },
+      "noop": {
+        "composer_seconds": 0.3795502726,
+        "phpm_seconds": 0.0010999492
+      },
+      "identity": "different",
+      "differences": 1,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "nextcloud/server",
+      "fixture": null,
+      "stars": 36965,
+      "os": "windows-latest",
+      "packages": 1,
+      "cold": {
+        "composer_seconds": 2.0850053333333336,
+        "phpm_seconds": 0.30447853333333336
+      },
+      "warm": {
+        "composer_seconds": 2.04150698,
+        "phpm_seconds": 0.0098424
+      },
+      "noop": {
+        "composer_seconds": 2.0623561200000005,
+        "phpm_seconds": 0.009644490000000002
+      },
+      "identity": "different",
+      "differences": 1,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "bagisto/bagisto",
+      "fixture": null,
+      "stars": 28196,
+      "os": "macos-latest",
+      "packages": 220,
+      "cold": {
+        "composer_seconds": 16.117202361,
+        "phpm_seconds": 4.584750917
+      },
+      "warm": {
+        "composer_seconds": 9.2472546168,
+        "phpm_seconds": 0.5393421582
+      },
+      "noop": {
+        "composer_seconds": 3.225911246,
+        "phpm_seconds": 0.0050355582999999995
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "bagisto/bagisto",
+      "fixture": null,
+      "stars": 28196,
+      "os": "ubuntu-latest",
+      "packages": 220,
+      "cold": {
+        "composer_seconds": 7.030779509000001,
+        "phpm_seconds": 2.1710459406666667
+      },
+      "warm": {
+        "composer_seconds": 5.0068765132,
+        "phpm_seconds": 0.4775313992000001
+      },
+      "noop": {
+        "composer_seconds": 2.4276388618,
+        "phpm_seconds": 0.0026493618
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "bagisto/bagisto",
+      "fixture": null,
+      "stars": 28196,
+      "os": "windows-latest",
+      "packages": 220,
+      "cold": {
+        "composer_seconds": 41.5770751,
+        "phpm_seconds": 71.72131966666667
+      },
+      "warm": {
+        "composer_seconds": 36.64869518,
+        "phpm_seconds": 39.83770414000001
+      },
+      "noop": {
+        "composer_seconds": 6.40556672,
+        "phpm_seconds": 0.01017115
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "monicahq/monica",
+      "fixture": null,
+      "stars": 25388,
+      "os": "macos-latest",
+      "packages": 241,
+      "cold": {
+        "composer_seconds": 15.315712694333332,
+        "phpm_seconds": 5.635284027333333
+      },
+      "warm": {
+        "composer_seconds": 9.3387787334,
+        "phpm_seconds": 0.4405978666
+      },
+      "noop": {
+        "composer_seconds": 2.7320278793,
+        "phpm_seconds": 0.0048224708
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "monicahq/monica",
+      "fixture": null,
+      "stars": 25388,
+      "os": "ubuntu-latest",
+      "packages": 241,
+      "cold": {
+        "composer_seconds": 9.898964369666666,
+        "phpm_seconds": 1.5529796139999998
+      },
+      "warm": {
+        "composer_seconds": 3.2013388035999997,
+        "phpm_seconds": 0.30742346420000005
+      },
+      "noop": {
+        "composer_seconds": 1.2106730327000002,
+        "phpm_seconds": 0.0019145936
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "monicahq/monica",
+      "fixture": null,
+      "stars": 25388,
+      "os": "windows-latest",
+      "packages": 241,
+      "cold": {
+        "composer_seconds": 39.271723900000005,
+        "phpm_seconds": 37.86811276666667
+      },
+      "warm": {
+        "composer_seconds": 33.539365139999994,
+        "phpm_seconds": 18.34180312
+      },
+      "noop": {
+        "composer_seconds": 7.38343636,
+        "phpm_seconds": 0.01697356
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "firefly-iii/firefly-iii",
+      "fixture": null,
+      "stars": 24786,
+      "os": "macos-latest",
+      "packages": 186,
+      "cold": {
+        "composer_seconds": 14.357740556,
+        "phpm_seconds": 3.1191510136666665
+      },
+      "warm": {
+        "composer_seconds": 7.12348545,
+        "phpm_seconds": 0.3234139668
+      },
+      "noop": {
+        "composer_seconds": 2.3949827668,
+        "phpm_seconds": 0.004058308300000001
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "firefly-iii/firefly-iii",
+      "fixture": null,
+      "stars": 24786,
+      "os": "ubuntu-latest",
+      "packages": 186,
+      "cold": {
+        "composer_seconds": 6.787433299333333,
+        "phpm_seconds": 1.8893568816666668
+      },
+      "warm": {
+        "composer_seconds": 3.8467618306,
+        "phpm_seconds": 0.4188951916
+      },
+      "noop": {
+        "composer_seconds": 1.6945321523,
+        "phpm_seconds": 0.0024144465
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "firefly-iii/firefly-iii",
+      "fixture": null,
+      "stars": 24786,
+      "os": "windows-latest",
+      "packages": 186,
+      "cold": {
+        "composer_seconds": 33.27751436666667,
+        "phpm_seconds": 34.19081656666666
+      },
+      "warm": {
+        "composer_seconds": 29.0828014,
+        "phpm_seconds": 16.664033739999997
+      },
+      "noop": {
+        "composer_seconds": 6.434852860000001,
+        "phpm_seconds": 0.015818610000000004
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "matomo-org/matomo",
+      "fixture": null,
+      "stars": 21916,
+      "os": "macos-latest",
+      "packages": 87,
+      "cold": {
+        "composer_seconds": 9.992640583333332,
+        "phpm_seconds": 2.167269569333333
+      },
+      "warm": {
+        "composer_seconds": 5.0317619,
+        "phpm_seconds": 0.2040328422
+      },
+      "noop": {
+        "composer_seconds": 1.6233853042,
+        "phpm_seconds": 0.005256375100000001
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "matomo-org/matomo",
+      "fixture": null,
+      "stars": 21916,
+      "os": "ubuntu-latest",
+      "packages": 87,
+      "cold": {
+        "composer_seconds": 3.524031595333333,
+        "phpm_seconds": 1.7040684336666667
+      },
+      "warm": {
+        "composer_seconds": 1.2412414310000002,
+        "phpm_seconds": 0.1165830924
+      },
+      "noop": {
+        "composer_seconds": 0.3002931911000001,
+        "phpm_seconds": 0.0014061367
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "matomo-org/matomo",
+      "fixture": null,
+      "stars": 21916,
+      "os": "windows-latest",
+      "packages": 87,
+      "cold": {
+        "composer_seconds": 16.635315566666666,
+        "phpm_seconds": 22.038930466666667
+      },
+      "warm": {
+        "composer_seconds": 13.95188666,
+        "phpm_seconds": 4.40862698
+      },
+      "noop": {
+        "composer_seconds": 1.15838407,
+        "phpm_seconds": 0.0084912
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "BookStackApp/BookStack",
+      "fixture": null,
+      "stars": 19066,
+      "os": "macos-latest",
+      "packages": 150,
+      "cold": {
+        "composer_seconds": 12.300125417,
+        "phpm_seconds": 3.917251319
+      },
+      "warm": {
+        "composer_seconds": 8.308673225000001,
+        "phpm_seconds": 0.3593060668
+      },
+      "noop": {
+        "composer_seconds": 3.1705641625,
+        "phpm_seconds": 0.0046667914
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "BookStackApp/BookStack",
+      "fixture": null,
+      "stars": 19066,
+      "os": "ubuntu-latest",
+      "packages": 150,
+      "cold": {
+        "composer_seconds": 4.906067616333334,
+        "phpm_seconds": 1.9798984183333337
+      },
+      "warm": {
+        "composer_seconds": 2.6639011022,
+        "phpm_seconds": 0.2963415992
+      },
+      "noop": {
+        "composer_seconds": 1.2195517115,
+        "phpm_seconds": 0.0018184802000000004
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "BookStackApp/BookStack",
+      "fixture": null,
+      "stars": 19066,
+      "os": "windows-latest",
+      "packages": 150,
+      "cold": {
+        "composer_seconds": 34.82135783333333,
+        "phpm_seconds": 39.5902541
+      },
+      "warm": {
+        "composer_seconds": 29.670282899999997,
+        "phpm_seconds": 18.2852213
+      },
+      "noop": {
+        "composer_seconds": 6.14633034,
+        "phpm_seconds": 0.015762699999999998
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "koel/koel",
+      "fixture": null,
+      "stars": 17267,
+      "os": "macos-latest",
+      "packages": 201,
+      "cold": {
+        "composer_seconds": 16.23693034733333,
+        "phpm_seconds": 4.338621514
+      },
+      "warm": {
+        "composer_seconds": 9.1706309418,
+        "phpm_seconds": 0.5683127
+      },
+      "noop": {
+        "composer_seconds": 2.8343068249999996,
+        "phpm_seconds": 0.007751399900000002
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "koel/koel",
+      "fixture": null,
+      "stars": 17267,
+      "os": "ubuntu-latest",
+      "packages": 201,
+      "cold": {
+        "composer_seconds": 6.928235215333333,
+        "phpm_seconds": 2.3092609706666667
+      },
+      "warm": {
+        "composer_seconds": 3.3596142056000007,
+        "phpm_seconds": 0.3583920276
+      },
+      "noop": {
+        "composer_seconds": 1.5545770968000003,
+        "phpm_seconds": 0.0020246285000000003
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "koel/koel",
+      "fixture": null,
+      "stars": 17267,
+      "os": "windows-latest",
+      "packages": 201,
+      "cold": {
+        "composer_seconds": 62.95119653333334,
+        "phpm_seconds": 88.1912286
+      },
+      "warm": {
+        "composer_seconds": 47.304137960000006,
+        "phpm_seconds": 38.591765419999994
+      },
+      "noop": {
+        "composer_seconds": 4.642273149999999,
+        "phpm_seconds": 0.02242602
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "FreshRSS/FreshRSS",
+      "fixture": null,
+      "stars": 16194,
+      "os": "macos-latest",
+      "packages": 31,
+      "cold": {
+        "composer_seconds": 6.359896527666667,
+        "phpm_seconds": 0.8619267363333334
+      },
+      "warm": {
+        "composer_seconds": 3.5841280582,
+        "phpm_seconds": 0.1777323668
+      },
+      "noop": {
+        "composer_seconds": 1.5120247125,
+        "phpm_seconds": 0.009164683400000002
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "FreshRSS/FreshRSS",
+      "fixture": null,
+      "stars": 16194,
+      "os": "ubuntu-latest",
+      "packages": 31,
+      "cold": {
+        "composer_seconds": 2.1096787383333333,
+        "phpm_seconds": 1.2077038226666668
+      },
+      "warm": {
+        "composer_seconds": 0.7858281946,
+        "phpm_seconds": 0.06365748340000002
+      },
+      "noop": {
+        "composer_seconds": 0.2284142998,
+        "phpm_seconds": 0.0010939328000000002
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "FreshRSS/FreshRSS",
+      "fixture": null,
+      "stars": 16194,
+      "os": "windows-latest",
+      "packages": 31,
+      "cold": {
+        "composer_seconds": 6.3372626,
+        "phpm_seconds": 3.794584066666667
+      },
+      "warm": {
+        "composer_seconds": 5.1227197,
+        "phpm_seconds": 1.21970342
+      },
+      "noop": {
+        "composer_seconds": 1.47277191,
+        "phpm_seconds": 0.01034246
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "cms",
+      "repo": "getgrav/grav",
+      "fixture": null,
+      "stars": 15672,
+      "os": "macos-latest",
+      "packages": 110,
+      "cold": {
+        "composer_seconds": 9.983671277666668,
+        "phpm_seconds": 2.941505361666667
+      },
+      "warm": {
+        "composer_seconds": 5.786356967000001,
+        "phpm_seconds": 0.2671552166
+      },
+      "noop": {
+        "composer_seconds": 1.9975286332999995,
+        "phpm_seconds": 0.0088780045
+      },
+      "identity": "different",
+      "differences": 1,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "cms",
+      "repo": "getgrav/grav",
+      "fixture": null,
+      "stars": 15672,
+      "os": "ubuntu-latest",
+      "packages": 110,
+      "cold": {
+        "composer_seconds": 3.918268035666667,
+        "phpm_seconds": 1.5246361733333331
+      },
+      "warm": {
+        "composer_seconds": 1.920060338,
+        "phpm_seconds": 0.1620032418
+      },
+      "noop": {
+        "composer_seconds": 0.6684672962,
+        "phpm_seconds": 0.0015839978
+      },
+      "identity": "different",
+      "differences": 1,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "cms",
+      "repo": "getgrav/grav",
+      "fixture": null,
+      "stars": 15672,
+      "os": "windows-latest",
+      "packages": 110,
+      "cold": {
+        "composer_seconds": 39.3216733,
+        "phpm_seconds": 27.376594266666668
+      },
+      "warm": {
+        "composer_seconds": 21.76280964,
+        "phpm_seconds": 8.68468396
+      },
+      "noop": {
+        "composer_seconds": 1.8154378500000004,
+        "phpm_seconds": 0.008269450000000001
+      },
+      "identity": "different",
+      "differences": 1,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "laravel-ecosystem",
+      "repo": "cachethq/cachet",
+      "fixture": null,
+      "stars": 15252,
+      "os": "macos-latest",
+      "packages": 181,
+      "cold": {
+        "composer_seconds": 16.069989263999997,
+        "phpm_seconds": 5.550871486666668
+      },
+      "warm": {
+        "composer_seconds": 11.937501183200002,
+        "phpm_seconds": 0.6584655918000001
+      },
+      "noop": {
+        "composer_seconds": 2.9878873544,
+        "phpm_seconds": 0.007760441500000001
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "laravel-ecosystem",
+      "repo": "cachethq/cachet",
+      "fixture": null,
+      "stars": 15252,
+      "os": "ubuntu-latest",
+      "packages": 181,
+      "cold": {
+        "composer_seconds": 5.6610881446666665,
+        "phpm_seconds": 2.302369206666667
+      },
+      "warm": {
+        "composer_seconds": 2.9791211422,
+        "phpm_seconds": 0.403630918
+      },
+      "noop": {
+        "composer_seconds": 1.2884009259,
+        "phpm_seconds": 0.0016346898000000002
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "laravel-ecosystem",
+      "repo": "cachethq/cachet",
+      "fixture": null,
+      "stars": 15252,
+      "os": "windows-latest",
+      "packages": 181,
+      "cold": {
+        "composer_seconds": 42.77152683333333,
+        "phpm_seconds": 48.76746033333333
+      },
+      "warm": {
+        "composer_seconds": 37.38663658,
+        "phpm_seconds": 26.5372427
+      },
+      "noop": {
+        "composer_seconds": 8.483640300000001,
+        "phpm_seconds": 0.01500747
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "grokability/snipe-it",
+      "fixture": null,
+      "stars": 14990,
+      "os": "macos-latest",
+      "packages": 243,
+      "cold": {
+        "composer_seconds": 22.889263361333335,
+        "phpm_seconds": 4.285550277666666
+      },
+      "warm": {
+        "composer_seconds": 12.8383144418,
+        "phpm_seconds": 0.7069735250000001
+      },
+      "noop": {
+        "composer_seconds": 3.6036313416,
+        "phpm_seconds": 0.006370558600000001
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "grokability/snipe-it",
+      "fixture": null,
+      "stars": 14990,
+      "os": "ubuntu-latest",
+      "packages": 243,
+      "cold": {
+        "composer_seconds": 7.994037489333333,
+        "phpm_seconds": 2.636833108
+      },
+      "warm": {
+        "composer_seconds": 4.2764957504000005,
+        "phpm_seconds": 0.4145369168
+      },
+      "noop": {
+        "composer_seconds": 1.8174310661,
+        "phpm_seconds": 0.0022364421
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "grokability/snipe-it",
+      "fixture": null,
+      "stars": 14990,
+      "os": "windows-latest",
+      "packages": 243,
+      "cold": {
+        "composer_seconds": 73.83312973333334,
+        "phpm_seconds": 114.49516116666666
+      },
+      "warm": {
+        "composer_seconds": 54.70265448,
+        "phpm_seconds": 50.27767494
+      },
+      "noop": {
+        "composer_seconds": 5.10483579,
+        "phpm_seconds": 0.01113356
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "wallabag/wallabag",
+      "fixture": null,
+      "stars": 12994,
+      "os": "macos-latest",
+      "packages": 271,
+      "cold": {
+        "composer_seconds": 15.710842250333334,
+        "phpm_seconds": 3.195393111333334
+      },
+      "warm": {
+        "composer_seconds": 9.646562075,
+        "phpm_seconds": 0.389602167
+      },
+      "noop": {
+        "composer_seconds": 1.5829602043,
+        "phpm_seconds": 0.005346733300000001
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "wallabag/wallabag",
+      "fixture": null,
+      "stars": 12994,
+      "os": "ubuntu-latest",
+      "packages": 271,
+      "cold": {
+        "composer_seconds": 7.575326569,
+        "phpm_seconds": 2.331360499666667
+      },
+      "warm": {
+        "composer_seconds": 3.4574149548,
+        "phpm_seconds": 0.3406750158
+      },
+      "noop": {
+        "composer_seconds": 0.4103231711000001,
+        "phpm_seconds": 0.0029814237
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "wallabag/wallabag",
+      "fixture": null,
+      "stars": 12994,
+      "os": "windows-latest",
+      "packages": 271,
+      "cold": {
+        "composer_seconds": 35.52868483333333,
+        "phpm_seconds": 44.7682474
+      },
+      "warm": {
+        "composer_seconds": 28.9926527,
+        "phpm_seconds": 23.0109373
+      },
+      "noop": {
+        "composer_seconds": 1.613039,
+        "phpm_seconds": 0.01792158
+      },
+      "identity": "different",
+      "differences": 1,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "magento/magento2",
+      "fixture": null,
+      "stars": 12196,
+      "os": "macos-latest",
+      "packages": 214,
+      "cold": {
+        "composer_seconds": 21.382011944333332,
+        "phpm_seconds": 4.689215
+      },
+      "warm": {
+        "composer_seconds": 8.2943437584,
+        "phpm_seconds": 0.4882379582
+      },
+      "noop": {
+        "composer_seconds": 1.8111259833,
+        "phpm_seconds": 0.0047966082
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "magento/magento2",
+      "fixture": null,
+      "stars": 12196,
+      "os": "ubuntu-latest",
+      "packages": 214,
+      "cold": {
+        "composer_seconds": 6.321351345,
+        "phpm_seconds": 2.765774807
+      },
+      "warm": {
+        "composer_seconds": 3.0539154456,
+        "phpm_seconds": 0.3489662552
+      },
+      "noop": {
+        "composer_seconds": 0.4106492952,
+        "phpm_seconds": 0.0026317168000000004
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "magento/magento2",
+      "fixture": null,
+      "stars": 12196,
+      "os": "windows-latest",
+      "packages": 214,
+      "cold": {
+        "composer_seconds": 42.54016480000001,
+        "phpm_seconds": 49.22771223333333
+      },
+      "warm": {
+        "composer_seconds": 39.066797099999995,
+        "phpm_seconds": 30.4400676
+      },
+      "noop": {
+        "composer_seconds": 1.74430585,
+        "phpm_seconds": 0.017021210000000002
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "mautic/mautic",
+      "fixture": null,
+      "stars": 10642,
+      "os": "macos-latest",
+      "packages": 265,
+      "cold": {
+        "composer_seconds": 17.498375999666667,
+        "phpm_seconds": 6.261608555333333
+      },
+      "warm": {
+        "composer_seconds": 11.8827789248,
+        "phpm_seconds": 0.8579053334
+      },
+      "noop": {
+        "composer_seconds": 1.5949639208000002,
+        "phpm_seconds": 0.0080660499
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "mautic/mautic",
+      "fixture": null,
+      "stars": 10642,
+      "os": "ubuntu-latest",
+      "packages": 265,
+      "cold": {
+        "composer_seconds": 8.289608667333333,
+        "phpm_seconds": 2.6046984633333334
+      },
+      "warm": {
+        "composer_seconds": 3.0518359252,
+        "phpm_seconds": 0.34323437460000006
+      },
+      "noop": {
+        "composer_seconds": 0.3196095699,
+        "phpm_seconds": 0.0019688905
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "mautic/mautic",
+      "fixture": null,
+      "stars": 10642,
+      "os": "windows-latest",
+      "packages": 265,
+      "cold": {
+        "composer_seconds": 47.9127246,
+        "phpm_seconds": 65.681977
+      },
+      "warm": {
+        "composer_seconds": 40.81441177999999,
+        "phpm_seconds": 39.37275548
+      },
+      "noop": {
+        "composer_seconds": 1.7506671700000005,
+        "phpm_seconds": 0.017660100000000005
+      },
+      "identity": "different",
+      "differences": 1,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "invoiceninja/invoiceninja",
+      "fixture": null,
+      "stars": 10181,
+      "os": "macos-latest",
+      "packages": 310,
+      "cold": {
+        "composer_seconds": 50.52743322199999,
+        "phpm_seconds": 17.42978143066667
+      },
+      "warm": {
+        "composer_seconds": 35.1124659918,
+        "phpm_seconds": 3.4489860666
+      },
+      "noop": {
+        "composer_seconds": 16.4573680496,
+        "phpm_seconds": 0.007168250100000001
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "invoiceninja/invoiceninja",
+      "fixture": null,
+      "stars": 10181,
+      "os": "ubuntu-latest",
+      "packages": 310,
+      "cold": {
+        "composer_seconds": 14.666634540333334,
+        "phpm_seconds": 6.720384737333333
+      },
+      "warm": {
+        "composer_seconds": 10.0217434398,
+        "phpm_seconds": 1.6331069104
+      },
+      "noop": {
+        "composer_seconds": 5.7533303426,
+        "phpm_seconds": 0.0021859036000000005
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "invoiceninja/invoiceninja",
+      "fixture": null,
+      "stars": 10181,
+      "os": "windows-latest",
+      "packages": 310,
+      "cold": {
+        "composer_seconds": 164.29959063333334,
+        "phpm_seconds": 160.21250513333334
+      },
+      "warm": {
+        "composer_seconds": 152.81401576,
+        "phpm_seconds": 82.05623448
+      },
+      "noop": {
+        "composer_seconds": 63.02973646,
+        "phpm_seconds": 0.01871634
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "akaunting/akaunting",
+      "fixture": null,
+      "stars": 10154,
+      "os": "macos-latest",
+      "packages": 223,
+      "cold": {
+        "composer_seconds": 12.172161916333332,
+        "phpm_seconds": 4.3174202773333334
+      },
+      "warm": {
+        "composer_seconds": 7.595419425200001,
+        "phpm_seconds": 0.5199524332000001
+      },
+      "noop": {
+        "composer_seconds": 2.6311960127000003,
+        "phpm_seconds": 0.005782641600000001
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "akaunting/akaunting",
+      "fixture": null,
+      "stars": 10154,
+      "os": "ubuntu-latest",
+      "packages": 223,
+      "cold": {
+        "composer_seconds": 5.855269309666667,
+        "phpm_seconds": 2.518046889666667
+      },
+      "warm": {
+        "composer_seconds": 4.0635185868,
+        "phpm_seconds": 0.4230797118
+      },
+      "noop": {
+        "composer_seconds": 1.8386277996,
+        "phpm_seconds": 0.0026730395000000005
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "akaunting/akaunting",
+      "fixture": null,
+      "stars": 10154,
+      "os": "windows-latest",
+      "packages": 223,
+      "cold": {
+        "composer_seconds": 42.764077166666674,
+        "phpm_seconds": 87.32774333333333
+      },
+      "warm": {
+        "composer_seconds": 38.754423540000005,
+        "phpm_seconds": 44.63685056
+      },
+      "noop": {
+        "composer_seconds": 3.9453313999999993,
+        "phpm_seconds": 0.01179195
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "pterodactyl/panel",
+      "fixture": null,
+      "stars": 9275,
+      "os": "macos-latest",
+      "packages": 170,
+      "cold": {
+        "composer_seconds": 12.941455069666668,
+        "phpm_seconds": 3.905015694333333
+      },
+      "warm": {
+        "composer_seconds": 7.1570433502,
+        "phpm_seconds": 0.3895621246
+      },
+      "noop": {
+        "composer_seconds": 3.0979659791,
+        "phpm_seconds": 0.0053551126
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "pterodactyl/panel",
+      "fixture": null,
+      "stars": 9275,
+      "os": "ubuntu-latest",
+      "packages": 170,
+      "cold": {
+        "composer_seconds": 5.930127034333334,
+        "phpm_seconds": 2.699288941666667
+      },
+      "warm": {
+        "composer_seconds": 3.3373063046,
+        "phpm_seconds": 0.37379868560000007
+      },
+      "noop": {
+        "composer_seconds": 1.6465745327,
+        "phpm_seconds": 0.0024738902000000004
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "pterodactyl/panel",
+      "fixture": null,
+      "stars": 9275,
+      "os": "windows-latest",
+      "packages": 170,
+      "cold": {
+        "composer_seconds": 31.109731666666665,
+        "phpm_seconds": 32.49938553333333
+      },
+      "warm": {
+        "composer_seconds": 26.43719044,
+        "phpm_seconds": 14.26160002
+      },
+      "noop": {
+        "composer_seconds": 6.1818044799999985,
+        "phpm_seconds": 0.014686360000000004
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "owncloud/core",
+      "fixture": null,
+      "stars": 8833,
+      "os": "macos-latest",
+      "packages": 98,
+      "cold": {
+        "composer_seconds": 6.265617625,
+        "phpm_seconds": 3.269434389
+      },
+      "warm": {
+        "composer_seconds": 5.8210939082,
+        "phpm_seconds": 0.0049105918
+      },
+      "noop": {
+        "composer_seconds": 4.696686608399999,
+        "phpm_seconds": 0.0069619168
+      },
+      "identity": "different",
+      "differences": 1,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "owncloud/core",
+      "fixture": null,
+      "stars": 8833,
+      "os": "ubuntu-latest",
+      "packages": 98,
+      "cold": {
+        "composer_seconds": 3.873189428,
+        "phpm_seconds": 1.302184029666667
+      },
+      "warm": {
+        "composer_seconds": 3.8965168118,
+        "phpm_seconds": 0.0020229058
+      },
+      "noop": {
+        "composer_seconds": 3.8381218803999992,
+        "phpm_seconds": 0.0019804383000000003
+      },
+      "identity": "different",
+      "differences": 1,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "owncloud/core",
+      "fixture": null,
+      "stars": 8833,
+      "os": "windows-latest",
+      "packages": 98,
+      "cold": {
+        "composer_seconds": 17.594553333333334,
+        "phpm_seconds": 2.475384533333333
+      },
+      "warm": {
+        "composer_seconds": 17.74329828,
+        "phpm_seconds": 0.012612500000000002
+      },
+      "noop": {
+        "composer_seconds": 17.62603376,
+        "phpm_seconds": 0.01258322
+      },
+      "identity": "different",
+      "differences": 1,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "laravel-ecosystem",
+      "repo": "crater-invoice-inc/crater",
+      "fixture": null,
+      "stars": 8350,
+      "os": "macos-latest",
+      "packages": 167,
+      "cold": {
+        "composer_seconds": 10.624582319,
+        "phpm_seconds": 2.194205722
+      },
+      "warm": {
+        "composer_seconds": 6.5237947416,
+        "phpm_seconds": 0.27891051640000003
+      },
+      "noop": {
+        "composer_seconds": 2.3657731667,
+        "phpm_seconds": 0.004003204200000001
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "laravel-ecosystem",
+      "repo": "crater-invoice-inc/crater",
+      "fixture": null,
+      "stars": 8350,
+      "os": "ubuntu-latest",
+      "packages": 167,
+      "cold": {
+        "composer_seconds": 5.850341252333333,
+        "phpm_seconds": 3.296894534333333
+      },
+      "warm": {
+        "composer_seconds": 3.2087638174,
+        "phpm_seconds": 0.28115066720000004
+      },
+      "noop": {
+        "composer_seconds": 1.6225169206,
+        "phpm_seconds": 0.0022732545
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "laravel-ecosystem",
+      "repo": "crater-invoice-inc/crater",
+      "fixture": null,
+      "stars": 8350,
+      "os": "windows-latest",
+      "packages": 167,
+      "cold": {
+        "composer_seconds": 35.063024,
+        "phpm_seconds": 22.897815166666664
+      },
+      "warm": {
+        "composer_seconds": 22.52156428,
+        "phpm_seconds": 12.66345786
+      },
+      "noop": {
+        "composer_seconds": 5.22579172,
+        "phpm_seconds": 0.01464419
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "opencart/opencart",
+      "fixture": null,
+      "stars": 8204,
+      "os": "macos-latest",
+      "packages": 17,
+      "cold": {
+        "composer_seconds": 1.4159626803333334,
+        "phpm_seconds": 0.13220225
+      },
+      "warm": {
+        "composer_seconds": 1.3889296086,
+        "phpm_seconds": 0.0036303498
+      },
+      "noop": {
+        "composer_seconds": 1.3515860042,
+        "phpm_seconds": 0.0035453666
+      },
+      "identity": "different",
+      "differences": 1,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "opencart/opencart",
+      "fixture": null,
+      "stars": 8204,
+      "os": "ubuntu-latest",
+      "packages": 17,
+      "cold": {
+        "composer_seconds": 0.190679336,
+        "phpm_seconds": 0.07716726266666668
+      },
+      "warm": {
+        "composer_seconds": 0.18172727540000003,
+        "phpm_seconds": 0.0011731234000000002
+      },
+      "noop": {
+        "composer_seconds": 0.1822055256,
+        "phpm_seconds": 0.0011829887
+      },
+      "identity": "different",
+      "differences": 1,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "opencart/opencart",
+      "fixture": null,
+      "stars": 8204,
+      "os": "windows-latest",
+      "packages": 17,
+      "cold": {
+        "composer_seconds": 1.0119350666666669,
+        "phpm_seconds": 0.19796983333333337
+      },
+      "warm": {
+        "composer_seconds": 0.98034512,
+        "phpm_seconds": 0.0083744
+      },
+      "noop": {
+        "composer_seconds": 0.9735713600000002,
+        "phpm_seconds": 0.008563030000000003
+      },
+      "identity": "different",
+      "differences": 1,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "phpmyadmin/phpmyadmin",
+      "fixture": null,
+      "stars": 7944,
+      "os": "macos-latest",
+      "packages": 137,
+      "cold": {
+        "composer_seconds": 10.132120222666668,
+        "phpm_seconds": 2.1932579723333334
+      },
+      "warm": {
+        "composer_seconds": 5.2482810248,
+        "phpm_seconds": 0.2171730084
+      },
+      "noop": {
+        "composer_seconds": 1.4592047332,
+        "phpm_seconds": 0.0042954543
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "phpmyadmin/phpmyadmin",
+      "fixture": null,
+      "stars": 7944,
+      "os": "ubuntu-latest",
+      "packages": 137,
+      "cold": {
+        "composer_seconds": 3.4220032186666667,
+        "phpm_seconds": 1.527803099
+      },
+      "warm": {
+        "composer_seconds": 1.98887095,
+        "phpm_seconds": 0.19912894500000003
+      },
+      "noop": {
+        "composer_seconds": 0.4140276468,
+        "phpm_seconds": 0.0020942709
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "phpmyadmin/phpmyadmin",
+      "fixture": null,
+      "stars": 7944,
+      "os": "windows-latest",
+      "packages": 137,
+      "cold": {
+        "composer_seconds": 22.575467833333335,
+        "phpm_seconds": 37.2370086
+      },
+      "warm": {
+        "composer_seconds": 16.959935379999997,
+        "phpm_seconds": 10.43320388
+      },
+      "noop": {
+        "composer_seconds": 1.24320599,
+        "phpm_seconds": 0.011274120000000002
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "moodle/moodle",
+      "fixture": null,
+      "stars": 7452,
+      "os": "macos-latest",
+      "packages": 118,
+      "cold": {
+        "composer_seconds": 8.780575888666666,
+        "phpm_seconds": 2.583620736
+      },
+      "warm": {
+        "composer_seconds": 4.558452132799999,
+        "phpm_seconds": 0.2057352584
+      },
+      "noop": {
+        "composer_seconds": 1.4386773706000002,
+        "phpm_seconds": 0.0042179002
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "moodle/moodle",
+      "fixture": null,
+      "stars": 7452,
+      "os": "ubuntu-latest",
+      "packages": 118,
+      "cold": {
+        "composer_seconds": 2.591477046666667,
+        "phpm_seconds": 2.1577725163333334
+      },
+      "warm": {
+        "composer_seconds": 1.3173455052,
+        "phpm_seconds": 0.2226634678
+      },
+      "noop": {
+        "composer_seconds": 0.35877785200000006,
+        "phpm_seconds": 0.0019792899000000003
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "moodle/moodle",
+      "fixture": null,
+      "stars": 7452,
+      "os": "windows-latest",
+      "packages": 118,
+      "cold": {
+        "composer_seconds": 18.8593309,
+        "phpm_seconds": 25.620652133333333
+      },
+      "warm": {
+        "composer_seconds": 18.64060976,
+        "phpm_seconds": 10.67580342
+      },
+      "noop": {
+        "composer_seconds": 1.24062456,
+        "phpm_seconds": 0.01325117
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "pixelfed/pixelfed",
+      "fixture": null,
+      "stars": 7116,
+      "os": "macos-latest",
+      "packages": 201,
+      "cold": {
+        "composer_seconds": 15.006041194666665,
+        "phpm_seconds": 4.111944194333333
+      },
+      "warm": {
+        "composer_seconds": 9.1350811748,
+        "phpm_seconds": 0.5220400752
+      },
+      "noop": {
+        "composer_seconds": 3.1782181666,
+        "phpm_seconds": 0.004845400200000001
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "pixelfed/pixelfed",
+      "fixture": null,
+      "stars": 7116,
+      "os": "ubuntu-latest",
+      "packages": 201,
+      "cold": {
+        "composer_seconds": 6.309029883666667,
+        "phpm_seconds": 2.142915915
+      },
+      "warm": {
+        "composer_seconds": 3.7637684308,
+        "phpm_seconds": 0.446736953
+      },
+      "noop": {
+        "composer_seconds": 1.508981384,
+        "phpm_seconds": 0.0020802431
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "pixelfed/pixelfed",
+      "fixture": null,
+      "stars": 7116,
+      "os": "windows-latest",
+      "packages": 201,
+      "cold": {
+        "composer_seconds": 42.89339716666667,
+        "phpm_seconds": 45.6694547
+      },
+      "warm": {
+        "composer_seconds": 35.80008392,
+        "phpm_seconds": 24.03954648
+      },
+      "noop": {
+        "composer_seconds": 9.77704898,
+        "phpm_seconds": 0.01578499
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "humhub/humhub",
+      "fixture": null,
+      "stars": 6746,
+      "os": "macos-latest",
+      "packages": 257,
+      "cold": {
+        "composer_seconds": 3.3023859583333333,
+        "phpm_seconds": 0.6539810973333334
+      },
+      "warm": {
+        "composer_seconds": 1.4681361418,
+        "phpm_seconds": 0.006014108200000002
+      },
+      "noop": {
+        "composer_seconds": 1.4868141873999998,
+        "phpm_seconds": 0.0064770458
+      },
+      "identity": "different",
+      "differences": 1,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "humhub/humhub",
+      "fixture": null,
+      "stars": 6746,
+      "os": "ubuntu-latest",
+      "packages": 257,
+      "cold": {
+        "composer_seconds": 1.09597129,
+        "phpm_seconds": 0.8323629466666667
+      },
+      "warm": {
+        "composer_seconds": 0.31220769119999997,
+        "phpm_seconds": 0.0022110160000000005
+      },
+      "noop": {
+        "composer_seconds": 0.31197027540000005,
+        "phpm_seconds": 0.0020043093
+      },
+      "identity": "different",
+      "differences": 1,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "humhub/humhub",
+      "fixture": null,
+      "stars": 6746,
+      "os": "windows-latest",
+      "packages": 257,
+      "cold": {
+        "composer_seconds": 1.8670441333333336,
+        "phpm_seconds": 1.1140081333333334
+      },
+      "warm": {
+        "composer_seconds": 1.1689355,
+        "phpm_seconds": 0.01111834
+      },
+      "noop": {
+        "composer_seconds": 1.17551734,
+        "phpm_seconds": 0.01150072
+      },
+      "identity": "different",
+      "differences": 1,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "cms",
+      "repo": "roots/bedrock",
+      "fixture": "bedrock",
+      "stars": 6575,
+      "os": "macos-latest",
+      "packages": 73,
+      "cold": {
+        "composer_seconds": 21.822013514,
+        "phpm_seconds": 1.9856396806666667
+      },
+      "warm": {
+        "composer_seconds": 8.750349842000002,
+        "phpm_seconds": 0.15538589160000002
+      },
+      "noop": {
+        "composer_seconds": 1.7518133916000005,
+        "phpm_seconds": 0.005471204200000001
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "cms",
+      "repo": "roots/bedrock",
+      "fixture": "bedrock",
+      "stars": 6575,
+      "os": "ubuntu-latest",
+      "packages": 73,
+      "cold": {
+        "composer_seconds": 8.150973223333333,
+        "phpm_seconds": 2.490522596666666
+      },
+      "warm": {
+        "composer_seconds": 2.9088896346,
+        "phpm_seconds": 0.1303500408
+      },
+      "noop": {
+        "composer_seconds": 0.4160060119000001,
+        "phpm_seconds": 0.0014271309
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "cms",
+      "repo": "roots/bedrock",
+      "fixture": "bedrock",
+      "stars": 6575,
+      "os": "windows-latest",
+      "packages": 73,
+      "cold": {
+        "composer_seconds": 15.9147119,
+        "phpm_seconds": 12.8451113
+      },
+      "warm": {
+        "composer_seconds": 15.11591162,
+        "phpm_seconds": 5.74106718
+      },
+      "noop": {
+        "composer_seconds": 2.1669810299999996,
+        "phpm_seconds": 0.01205626
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "glpi-project/glpi",
+      "fixture": null,
+      "stars": 6414,
+      "os": "macos-latest",
+      "packages": 209,
+      "cold": {
+        "composer_seconds": 13.581252402666664,
+        "phpm_seconds": 3.279069736
+      },
+      "warm": {
+        "composer_seconds": 8.4780037832,
+        "phpm_seconds": 0.4727214170000001
+      },
+      "noop": {
+        "composer_seconds": 3.004369425,
+        "phpm_seconds": 0.0045948958
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "glpi-project/glpi",
+      "fixture": null,
+      "stars": 6414,
+      "os": "ubuntu-latest",
+      "packages": 209,
+      "cold": {
+        "composer_seconds": 6.0090282743333345,
+        "phpm_seconds": 2.1293492003333334
+      },
+      "warm": {
+        "composer_seconds": 4.5295819294,
+        "phpm_seconds": 0.4758633936
+      },
+      "noop": {
+        "composer_seconds": 2.280815812,
+        "phpm_seconds": 0.0027082391000000003
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "glpi-project/glpi",
+      "fixture": null,
+      "stars": 6414,
+      "os": "windows-latest",
+      "packages": 209,
+      "cold": {
+        "composer_seconds": 34.11718606666667,
+        "phpm_seconds": 73.32577346666666
+      },
+      "warm": {
+        "composer_seconds": 29.36085832,
+        "phpm_seconds": 23.06266198
+      },
+      "noop": {
+        "composer_seconds": 4.24415776,
+        "phpm_seconds": 0.014019010000000002
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "SuiteCRM/SuiteCRM",
+      "fixture": null,
+      "stars": 5778,
+      "os": "macos-latest",
+      "packages": 181,
+      "cold": {
+        "composer_seconds": 24.10922290266667,
+        "phpm_seconds": 8.153509708
+      },
+      "warm": {
+        "composer_seconds": 19.4513518332,
+        "phpm_seconds": 1.2717313002
+      },
+      "noop": {
+        "composer_seconds": 5.3047440875,
+        "phpm_seconds": 0.004507666699999999
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "SuiteCRM/SuiteCRM",
+      "fixture": null,
+      "stars": 5778,
+      "os": "ubuntu-latest",
+      "packages": 181,
+      "cold": {
+        "composer_seconds": 10.056157009333331,
+        "phpm_seconds": 6.954002744
+      },
+      "warm": {
+        "composer_seconds": 6.6545362414,
+        "phpm_seconds": 1.0657223496
+      },
+      "noop": {
+        "composer_seconds": 3.23358949,
+        "phpm_seconds": 0.0019342269
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "SuiteCRM/SuiteCRM",
+      "fixture": null,
+      "stars": 5778,
+      "os": "windows-latest",
+      "packages": 181,
+      "cold": {
+        "composer_seconds": 96.96917413333334,
+        "phpm_seconds": 87.2951876
+      },
+      "warm": {
+        "composer_seconds": 84.58987458,
+        "phpm_seconds": 34.497649280000005
+      },
+      "noop": {
+        "composer_seconds": 20.444924640000004,
+        "phpm_seconds": 0.014697630000000003
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "cms",
+      "repo": "joomla/joomla-cms",
+      "fixture": null,
+      "stars": 5144,
+      "os": "macos-latest",
+      "packages": 147,
+      "cold": {
+        "composer_seconds": 2.0632753053333333,
+        "phpm_seconds": 0.44367608366666667
+      },
+      "warm": {
+        "composer_seconds": 2.0605654666,
+        "phpm_seconds": 0.006006350000000001
+      },
+      "noop": {
+        "composer_seconds": 2.0507199126000004,
+        "phpm_seconds": 0.005979891700000001
+      },
+      "identity": "different",
+      "differences": 1,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "cms",
+      "repo": "joomla/joomla-cms",
+      "fixture": null,
+      "stars": 5144,
+      "os": "ubuntu-latest",
+      "packages": 147,
+      "cold": {
+        "composer_seconds": 0.697331816,
+        "phpm_seconds": 0.22878916666666668
+      },
+      "warm": {
+        "composer_seconds": 0.6854012778,
+        "phpm_seconds": 0.0016107084
+      },
+      "noop": {
+        "composer_seconds": 0.6991365793,
+        "phpm_seconds": 0.0014549598
+      },
+      "identity": "different",
+      "differences": 1,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "cms",
+      "repo": "joomla/joomla-cms",
+      "fixture": null,
+      "stars": 5144,
+      "os": "windows-latest",
+      "packages": 147,
+      "cold": {
+        "composer_seconds": 3.4587270333333335,
+        "phpm_seconds": 0.6789971
+      },
+      "warm": {
+        "composer_seconds": 3.4085426999999995,
+        "phpm_seconds": 0.01457794
+      },
+      "noop": {
+        "composer_seconds": 3.4267912600000003,
+        "phpm_seconds": 0.014493270000000004
+      },
+      "identity": "different",
+      "differences": 1,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "kimai/kimai",
+      "fixture": null,
+      "stars": 5054,
+      "os": "macos-latest",
+      "packages": 197,
+      "cold": {
+        "composer_seconds": 15.9324175,
+        "phpm_seconds": 3.373247833666666
+      },
+      "warm": {
+        "composer_seconds": 8.622893258200001,
+        "phpm_seconds": 0.4141933668
+      },
+      "noop": {
+        "composer_seconds": 3.2031564874000003,
+        "phpm_seconds": 0.005735987499999999
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "kimai/kimai",
+      "fixture": null,
+      "stars": 5054,
+      "os": "ubuntu-latest",
+      "packages": 197,
+      "cold": {
+        "composer_seconds": 8.423912692,
+        "phpm_seconds": 3.2201708730000003
+      },
+      "warm": {
+        "composer_seconds": 4.5100086472,
+        "phpm_seconds": 0.3679668886
+      },
+      "noop": {
+        "composer_seconds": 2.0641890472,
+        "phpm_seconds": 0.0025273602000000003
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "kimai/kimai",
+      "fixture": null,
+      "stars": 5054,
+      "os": "windows-latest",
+      "packages": 197,
+      "cold": {
+        "composer_seconds": 41.65416123333333,
+        "phpm_seconds": 36.234328733333335
+      },
+      "warm": {
+        "composer_seconds": 32.86836666000001,
+        "phpm_seconds": 17.732220039999998
+      },
+      "noop": {
+        "composer_seconds": 8.54576201,
+        "phpm_seconds": 0.015526270000000003
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "cms",
+      "repo": "drupal/drupal",
+      "fixture": null,
+      "stars": 4289,
+      "os": "macos-latest",
+      "packages": 145,
+      "cold": {
+        "composer_seconds": 10.244349333666667,
+        "phpm_seconds": 2.099017736
+      },
+      "warm": {
+        "composer_seconds": 5.2574134086,
+        "phpm_seconds": 0.31363414180000004
+      },
+      "noop": {
+        "composer_seconds": 1.786540704,
+        "phpm_seconds": 0.007131729000000001
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "cms",
+      "repo": "drupal/drupal",
+      "fixture": null,
+      "stars": 4289,
+      "os": "ubuntu-latest",
+      "packages": 145,
+      "cold": {
+        "composer_seconds": 4.531302953666667,
+        "phpm_seconds": 1.4488824826666669
+      },
+      "warm": {
+        "composer_seconds": 1.9483473074,
+        "phpm_seconds": 0.16721643340000003
+      },
+      "noop": {
+        "composer_seconds": 0.3760686289000001,
+        "phpm_seconds": 0.0021881891
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "cms",
+      "repo": "drupal/drupal",
+      "fixture": null,
+      "stars": 4289,
+      "os": "windows-latest",
+      "packages": 145,
+      "cold": {
+        "composer_seconds": 22.6799809,
+        "phpm_seconds": 19.579589666666667
+      },
+      "warm": {
+        "composer_seconds": 18.66287982,
+        "phpm_seconds": 8.429043400000001
+      },
+      "noop": {
+        "composer_seconds": 1.62689834,
+        "phpm_seconds": 0.014269200000000004
+      },
+      "identity": "different",
+      "differences": 5,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "cms",
+      "repo": "craftcms/cms",
+      "fixture": null,
+      "stars": 3610,
+      "os": "macos-latest",
+      "packages": 163,
+      "cold": {
+        "composer_seconds": 11.014773014,
+        "phpm_seconds": 3.309776694
+      },
+      "warm": {
+        "composer_seconds": 6.451126199799999,
+        "phpm_seconds": 0.4738931834000001
+      },
+      "noop": {
+        "composer_seconds": 1.5093162707,
+        "phpm_seconds": 0.006274545799999999
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "cms",
+      "repo": "craftcms/cms",
+      "fixture": null,
+      "stars": 3610,
+      "os": "ubuntu-latest",
+      "packages": 163,
+      "cold": {
+        "composer_seconds": 3.277476277,
+        "phpm_seconds": 1.3550772303333334
+      },
+      "warm": {
+        "composer_seconds": 1.957099606,
+        "phpm_seconds": 0.27164503100000004
+      },
+      "noop": {
+        "composer_seconds": 0.3879569101000001,
+        "phpm_seconds": 0.002268349
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "cms",
+      "repo": "craftcms/cms",
+      "fixture": null,
+      "stars": 3610,
+      "os": "windows-latest",
+      "packages": 163,
+      "cold": {
+        "composer_seconds": 30.329731233333337,
+        "phpm_seconds": 57.52872523333334
+      },
+      "warm": {
+        "composer_seconds": 26.283763779999997,
+        "phpm_seconds": 21.20055848
+      },
+      "noop": {
+        "composer_seconds": 1.26473033,
+        "phpm_seconds": 0.01074631
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "frameworks-own-apps",
+      "repo": "symfony/demo",
+      "fixture": null,
+      "stars": 2620,
+      "os": "macos-latest",
+      "packages": 153,
+      "cold": {
+        "composer_seconds": 9.000896528,
+        "phpm_seconds": 1.929207417
+      },
+      "warm": {
+        "composer_seconds": 5.3760749336,
+        "phpm_seconds": 0.2660457416
+      },
+      "noop": {
+        "composer_seconds": 1.4752229918000002,
+        "phpm_seconds": 0.004420741600000001
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "frameworks-own-apps",
+      "repo": "symfony/demo",
+      "fixture": null,
+      "stars": 2620,
+      "os": "ubuntu-latest",
+      "packages": 153,
+      "cold": {
+        "composer_seconds": 4.750402145,
+        "phpm_seconds": 1.569194508
+      },
+      "warm": {
+        "composer_seconds": 1.6479472216000002,
+        "phpm_seconds": 0.107939994
+      },
+      "noop": {
+        "composer_seconds": 0.2707199616,
+        "phpm_seconds": 0.0015980558000000002
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "frameworks-own-apps",
+      "repo": "symfony/demo",
+      "fixture": null,
+      "stars": 2620,
+      "os": "windows-latest",
+      "packages": 153,
+      "cold": {
+        "composer_seconds": 22.286076766666667,
+        "phpm_seconds": 21.736263533333332
+      },
+      "warm": {
+        "composer_seconds": 24.48982666,
+        "phpm_seconds": 11.903346159999998
+      },
+      "noop": {
+        "composer_seconds": 1.6364276800000002,
+        "phpm_seconds": 0.01463222
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "laravel-ecosystem",
+      "repo": "laravelio/laravel.io",
+      "fixture": null,
+      "stars": 2501,
+      "os": "macos-latest",
+      "packages": 207,
+      "cold": {
+        "composer_seconds": 14.497945708333331,
+        "phpm_seconds": 5.601528458333333
+      },
+      "warm": {
+        "composer_seconds": 10.3570006584,
+        "phpm_seconds": 0.6318903668000001
+      },
+      "noop": {
+        "composer_seconds": 2.8560003543,
+        "phpm_seconds": 0.006127366500000001
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "laravel-ecosystem",
+      "repo": "laravelio/laravel.io",
+      "fixture": null,
+      "stars": 2501,
+      "os": "ubuntu-latest",
+      "packages": 207,
+      "cold": {
+        "composer_seconds": 6.6839384163333335,
+        "phpm_seconds": 2.4041750703333333
+      },
+      "warm": {
+        "composer_seconds": 3.162433597,
+        "phpm_seconds": 0.458320248
+      },
+      "noop": {
+        "composer_seconds": 1.3799582698,
+        "phpm_seconds": 0.0020361663000000004
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "laravel-ecosystem",
+      "repo": "laravelio/laravel.io",
+      "fixture": null,
+      "stars": 2501,
+      "os": "windows-latest",
+      "packages": 207,
+      "cold": {
+        "composer_seconds": 62.93425616666667,
+        "phpm_seconds": 104.94332706666668
+      },
+      "warm": {
+        "composer_seconds": 50.68848694,
+        "phpm_seconds": 70.29443956
+      },
+      "noop": {
+        "composer_seconds": 3.83845693,
+        "phpm_seconds": 0.00995254
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "laravel-ecosystem",
+      "repo": "filamentphp/demo",
+      "fixture": null,
+      "stars": 1217,
+      "os": "macos-latest",
+      "packages": 205,
+      "cold": {
+        "composer_seconds": 16.320687402666668,
+        "phpm_seconds": 5.1187783336666675
+      },
+      "warm": {
+        "composer_seconds": 9.5139713666,
+        "phpm_seconds": 0.5350474332
+      },
+      "noop": {
+        "composer_seconds": 2.7005927209000005,
+        "phpm_seconds": 0.004999408700000001
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "laravel-ecosystem",
+      "repo": "filamentphp/demo",
+      "fixture": null,
+      "stars": 1217,
+      "os": "ubuntu-latest",
+      "packages": 205,
+      "cold": {
+        "composer_seconds": 6.307387962666667,
+        "phpm_seconds": 3.004689394
+      },
+      "warm": {
+        "composer_seconds": 3.921158647200001,
+        "phpm_seconds": 0.6330971952000001
+      },
+      "noop": {
+        "composer_seconds": 1.3923721124,
+        "phpm_seconds": 0.0021768036
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "laravel-ecosystem",
+      "repo": "filamentphp/demo",
+      "fixture": null,
+      "stars": 1217,
+      "os": "windows-latest",
+      "packages": 205,
+      "cold": {
+        "composer_seconds": 53.889438000000006,
+        "phpm_seconds": 71.33832650000001
+      },
+      "warm": {
+        "composer_seconds": 52.447894999999995,
+        "phpm_seconds": 37.19921084
+      },
+      "noop": {
+        "composer_seconds": 7.98467963,
+        "phpm_seconds": 0.015660800000000002
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "big-apps",
+      "repo": "PrestaShop/PrestaShop",
+      "fixture": null,
+      "stars": null,
+      "os": "macos-latest",
+      "packages": null,
+      "cold": null,
+      "warm": null,
+      "noop": null,
+      "identity": "install-failed",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": [],
+      "error": "copying the source tree failed: cp: /var/folders/36/tjdph2t965j8snz9_vkdnw0r0000gn/T/tmp.u4QBj2qwXj/src/tests/Resources/modules/ps_apiresources: No such file or directory\ncp: /var/folders/36/tjdph2t965j8snz9_vkdnw0r0000gn/T/tmp.u4QBj2qwXj/src/.claude/skills/ps-api-endpoint: No such file or directory\ncp: /var/folders/36/tjdph2t965j8snz9_vkdnw0r0000gn/T/tmp.u4QBj2qwXj/src/.ai/Component/AdminAPI/skills/ps-api-endpoint: No such file or directory"
+    },
+    {
+      "group": "big-apps",
+      "repo": "PrestaShop/PrestaShop",
+      "fixture": null,
+      "stars": null,
+      "os": "ubuntu-latest",
+      "packages": null,
+      "cold": null,
+      "warm": null,
+      "noop": null,
+      "identity": "install-failed",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": [],
+      "error": "copying the source tree failed: cp: cannot stat '/tmp/tmp.9ZheOOzMGI/src/.ai/Component/AdminAPI/skills/ps-api-endpoint': No such file or directory\ncp: cannot stat '/tmp/tmp.9ZheOOzMGI/src/.claude/skills/ps-api-endpoint': No such file or directory\ncp: cannot stat '/tmp/tmp.9ZheOOzMGI/src/tests/Resources/modules/ps_apiresources': No such file or directory"
+    },
+    {
+      "group": "big-apps",
+      "repo": "PrestaShop/PrestaShop",
+      "fixture": null,
+      "stars": null,
+      "os": "windows-latest",
+      "packages": null,
+      "cold": null,
+      "warm": null,
+      "noop": null,
+      "identity": "install-failed",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": [],
+      "error": "copying the source tree failed: cp: cannot stat '/tmp/tmp.20GDGHaAm8/src/.ai/Component/AdminAPI/skills/ps-api-endpoint': No such file or directory\ncp: cannot stat '/tmp/tmp.20GDGHaAm8/src/.claude/skills/ps-api-endpoint': No such file or directory\ncp: cannot stat '/tmp/tmp.20GDGHaAm8/src/tests/Resources/modules/ps_apiresources': No such file or directory"
+    },
+    {
+      "group": "own",
+      "repo": null,
+      "fixture": "wicketyaari",
+      "stars": null,
+      "os": "macos-latest",
+      "packages": 27,
+      "cold": {
+        "composer_seconds": 6.452112681,
+        "phpm_seconds": 0.4567519443333334
+      },
+      "warm": {
+        "composer_seconds": 3.3891279751999996,
+        "phpm_seconds": 0.05398808340000001
+      },
+      "noop": {
+        "composer_seconds": 1.4887619084,
+        "phpm_seconds": 0.005197104400000001
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "own",
+      "repo": null,
+      "fixture": "wicketyaari",
+      "stars": null,
+      "os": "ubuntu-latest",
+      "packages": 27,
+      "cold": {
+        "composer_seconds": 1.7595916583333333,
+        "phpm_seconds": 0.6895503753333334
+      },
+      "warm": {
+        "composer_seconds": 0.750270174,
+        "phpm_seconds": 0.055784268000000005
+      },
+      "noop": {
+        "composer_seconds": 0.4205204539,
+        "phpm_seconds": 0.001196759
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "own",
+      "repo": null,
+      "fixture": "wicketyaari",
+      "stars": null,
+      "os": "windows-latest",
+      "packages": 27,
+      "cold": {
+        "composer_seconds": 6.326179233333334,
+        "phpm_seconds": 11.904023700000002
+      },
+      "warm": {
+        "composer_seconds": 7.16092108,
+        "phpm_seconds": 3.89492372
+      },
+      "noop": {
+        "composer_seconds": 2.3025669399999997,
+        "phpm_seconds": 0.00710209
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "own",
+      "repo": null,
+      "fixture": "ytmate",
+      "stars": null,
+      "os": "macos-latest",
+      "packages": 42,
+      "cold": {
+        "composer_seconds": 7.655073874999999,
+        "phpm_seconds": 2.844194555666667
+      },
+      "warm": {
+        "composer_seconds": 4.5092963502000005,
+        "phpm_seconds": 0.153899317
+      },
+      "noop": {
+        "composer_seconds": 1.7339631459,
+        "phpm_seconds": 0.005120645900000001
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "own",
+      "repo": null,
+      "fixture": "ytmate",
+      "stars": null,
+      "os": "ubuntu-latest",
+      "packages": 42,
+      "cold": {
+        "composer_seconds": 3.167648962666666,
+        "phpm_seconds": 2.372414834
+      },
+      "warm": {
+        "composer_seconds": 1.2804623166,
+        "phpm_seconds": 0.1853577208
+      },
+      "noop": {
+        "composer_seconds": 0.5170906362000001,
+        "phpm_seconds": 0.0013049889
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    },
+    {
+      "group": "own",
+      "repo": null,
+      "fixture": "ytmate",
+      "stars": null,
+      "os": "windows-latest",
+      "packages": 42,
+      "cold": {
+        "composer_seconds": 17.015650866666665,
+        "phpm_seconds": 21.85106643333333
+      },
+      "warm": {
+        "composer_seconds": 16.402177939999998,
+        "phpm_seconds": 5.5116406
+      },
+      "noop": {
+        "composer_seconds": 3.73741477,
+        "phpm_seconds": 0.01073073
+      },
+      "identity": "identical",
+      "differences": 0,
+      "fallback": false,
+      "fallback_plugins": []
+    }
+  ],
+  "worktree": [
+    {
+      "os": "macos-latest",
+      "worktrees": 10,
+      "time_speedup": 11.4,
+      "disk_ratio": 5.761430119176598
+    },
+    {
+      "os": "ubuntu-latest",
+      "worktrees": 10,
+      "time_speedup": 6.0,
+      "disk_ratio": 4.933665951451542
+    },
+    {
+      "os": "windows-latest",
+      "worktrees": 10,
+      "time_speedup": 1.3838383838383839,
+      "disk_ratio": 3.818369952034659
+    }
+  ],
+  "ci_scenario": [
+    {
+      "os": "macos-latest",
+      "project": "filamentphp/demo",
+      "with_cache_speedup": 2.2857142857142856,
+      "without_cache_speedup": 1.7692307692307692
+    },
+    {
+      "os": "macos-latest",
+      "project": "kimai/kimai",
+      "with_cache_speedup": 1.2727272727272727,
+      "without_cache_speedup": 2.0
+    },
+    {
+      "os": "macos-latest",
+      "project": "laravelio/laravel.io",
+      "with_cache_speedup": 1.4090909090909092,
+      "without_cache_speedup": 1.2903225806451613
+    },
+    {
+      "os": "macos-latest",
+      "project": "symfony/demo",
+      "with_cache_speedup": 1.2916666666666667,
+      "without_cache_speedup": 1.3846153846153846
+    },
+    {
+      "os": "ubuntu-latest",
+      "project": "filamentphp/demo",
+      "with_cache_speedup": 1.25,
+      "without_cache_speedup": 1.2666666666666666
+    },
+    {
+      "os": "ubuntu-latest",
+      "project": "kimai/kimai",
+      "with_cache_speedup": 1.3333333333333333,
+      "without_cache_speedup": 1.4285714285714286
+    },
+    {
+      "os": "ubuntu-latest",
+      "project": "laravelio/laravel.io",
+      "with_cache_speedup": 1.25,
+      "without_cache_speedup": 1.3571428571428572
+    },
+    {
+      "os": "ubuntu-latest",
+      "project": "symfony/demo",
+      "with_cache_speedup": 1.2727272727272727,
+      "without_cache_speedup": 1.1538461538461537
+    },
+    {
+      "os": "windows-latest",
+      "project": "filamentphp/demo",
+      "with_cache_speedup": 1.2745098039215685,
+      "without_cache_speedup": 0.7159090909090909
+    },
+    {
+      "os": "windows-latest",
+      "project": "kimai/kimai",
+      "with_cache_speedup": 1.3548387096774193,
+      "without_cache_speedup": 1.0
+    },
+    {
+      "os": "windows-latest",
+      "project": "laravelio/laravel.io",
+      "with_cache_speedup": 1.186046511627907,
+      "without_cache_speedup": 0.7808219178082192
+    },
+    {
+      "os": "windows-latest",
+      "project": "symfony/demo",
+      "with_cache_speedup": 1.3333333333333333,
+      "without_cache_speedup": 0.9428571428571428
+    }
+  ]
+}

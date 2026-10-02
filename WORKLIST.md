@@ -2,7 +2,11 @@
 
 The one-screen view. Details live in [phases](phases/README.md).
 
-Current state: **Phase 02 and Phase 04 done; Phase 03 in progress.**
+Current state: **Phase 02, 04 and 05 done; Phase 03 in progress.**
+Phase 05 (2026-10-02): 40 real apps on GitHub's three runner OSes, median
+warm 9.6x (Linux), 18.3x (macOS), 1.6x (Windows), no-op 329-636x; whole CI
+jobs only 1.26x faster on Linux, so market-research kill criterion 2 (3x)
+is not met.
 Phase 04 (2026-10-02): Bedrock and a real Drupal site install fully
 natively, no Composer fallback for any step, 0 `vendor/`/`web/`/`recipes/`
 differences, warm 14.1x and 7.7x faster than Composer, no-op 256x and 233x
@@ -16,8 +20,9 @@ blocked package. Fuzzing runs weekly.
 1. **Phase 03: compatibility sweep.** The corpus runner and the nightly sweep
    page have started (#43, #45, #46, #49); next is the published number
    against the 95% gate.
-2. **Phase 05: real-world benchmarks.** Corpus pinned (#76) and the results
-   aggregator built (#78); next is running it and publishing the page.
+2. **Phase 05 follow-ups.** Re-run with #111 so the five `vendor-dir`
+   projects and PrestaShop are measured; profile Windows (warm 1.6x, one
+   project slower than Composer) before Phase 06 claims anything there.
 3. **Rename fixture lockfiles** so GitHub's dependency graph stops treating
    them as dependencies; then turn automated security-fix PRs back on.
 
@@ -78,6 +83,21 @@ blocked package. Fuzzing runs weekly.
 
 symfony/flex, cweagans/composer-patches and wikimedia/composer-merge-plugin
 stay on fallback by scope (decision 0004), not fidelity.
+
+## Phase 05 · Real-world benchmarks
+
+- [x] 40-project corpus from the sweep's pins, every scope group, 19 over
+  10k stars (#76)
+- [x] `phpm-bench-real` aggregator and README table generator (#78)
+- [x] `tools/bench-real/run`, `worktrees`, `ci-scenario` (#83, #85)
+- [x] `bench-real.yml`: weekly, three OSes, sharded, `/bench/` on Pages
+  alongside the sweep page (#84, #88)
+- [x] Windows: eight rounds of harness fixes, hyperfine's shell handling
+  replaced by plain-bash cleanup between iterations (#90-#110)
+- [x] `config.vendor-dir` and `diffvendor` errors handled (#111)
+- [x] **First full run published:
+  [progress](phases/phase-05-real-world-benchmarks/progress.md)**
+- [ ] Owner's Mac column, 3200x1800 chart export, per-run timeout
 
 ## Phase 03 and beyond
 

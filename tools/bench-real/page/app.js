@@ -40,7 +40,7 @@ function cards(results) {
   }).join("");
 }
 
-// Packagist's own monthly install count, cited in this project's README:
+// Packagist's own monthly install count, cited in docs/why-phpm.md:
 // ~3B/month in January 2026, over 5B/month by September. The per-install
 // seconds-saved figure is real (today's median warm delta); the share of
 // those installs that are warm, repeated ones phpm actually speeds up
@@ -68,7 +68,7 @@ function timeSaved(results) {
   const years = secondsPerYear / (365.25 * 24 * 3600);
   valueEl.textContent = `~${years.toFixed(1)} compute-years / year`;
   noteEl.innerHTML = `Packagist reports roughly ${(PACKAGIST_INSTALLS_PER_MONTH / 1e9).toFixed(0)} billion installs a month
-    (see the project README). <strong>Assumption, stated plainly:</strong> ${(ASSUMED_WARM_SHARE * 100).toFixed(0)}%
+    (cited in <a href="https://github.com/speedsharmaai/phpm/blob/main/docs/why-phpm.md">why phpm</a>). <strong>Assumption, stated plainly:</strong> ${(ASSUMED_WARM_SHARE * 100).toFixed(0)}%
     of those are warm, repeated installs like the ones measured here (CI caches, agent worktrees, local reinstalls) &mdash;
     a deliberately conservative guess, not a measured figure. At ${secs(perInstall)} saved per warm install
     (today's <code>ubuntu-latest</code> median), that is the number above. Change the assumption and recompute
