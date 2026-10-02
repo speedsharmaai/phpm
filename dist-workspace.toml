@@ -23,3 +23,5 @@ tag-namespace = "v"
 pr-run-mode = "skip"
 # Attest build provenance for every release artifact
 github-attestations = true
+# v-release.yml is hand-hardened (SHA pins, per-job permissions), so dist must not reject it as stale
+allow-dirty = ["ci"]
