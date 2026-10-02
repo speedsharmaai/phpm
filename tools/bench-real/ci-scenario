@@ -39,7 +39,7 @@ job_seconds() {
     tail -30 "$dir.log" >&2
     return 1
   fi
-  find "$dir/vendor" -name '*.php' >"$dir.files" 2>/dev/null || true
+  find "$(vendor_dir "$dir")" -name '*.php' >"$dir.files" 2>/dev/null || true
   while read -r f; do php -l "$f" >/dev/null 2>&1; done < <(head -200 "$dir.files")
   echo "$SECONDS"
 }

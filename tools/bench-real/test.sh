@@ -45,4 +45,13 @@ empty=$(mktemp)
 trap 'rm -f "$empty"' EXIT
 check "no decision lines means no plugin names" "" "$(fallback_plugin_names "$empty")"
 
+proj=$(mktemp -d)
+trap 'rm -rf "$proj"' EXIT
+echo '{}' >"$proj/composer.json"
+check "vendor_dir defaults to vendor" "$proj/vendor" "$(vendor_dir "$proj")"
+echo '{"config":{"vendor-dir":"lib/composer"}}' >"$proj/composer.json"
+check "vendor_dir honours config.vendor-dir" "$proj/lib/composer" "$(vendor_dir "$proj")"
+echo '{"config":{"vendor-dir":"upload/system/storage/vendor/"}}' >"$proj/composer.json"
+check "vendor_dir drops a trailing slash" "$proj/upload/system/storage/vendor" "$(vendor_dir "$proj")"
+
 [ "$failures" -eq 0 ] || { echo "$failures failed"; exit 1; }
