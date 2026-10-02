@@ -1,0 +1,90 @@
+name: install-smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to install, e.g. v0.1.0-rc.1
+        required: true
+      fixture:
+        description: Fixture to install and compare against Composer
+        default: laravel-skeleton
+        required: true
+
+permissions: {}
+
+env:
+  CARGO_TERM_COLOR: always
+  TAG: ${{ inputs.tag }}
+  FIXTURE: ${{ inputs.fixture }}
+
+jobs:
+  smoke:
+    name: ${{ matrix.installer }} (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, installer: shell }
+          - { os: ubuntu-24.04-arm, installer: shell }
+          - { os: macos-latest, installer: shell }
+          - { os: macos-15-intel, installer: shell }
+          - { os: windows-latest, installer: powershell }
+          - { os: ubuntu-latest, installer: npm }
+          - { os: macos-latest, installer: npm }
+          - { os: windows-latest, installer: npm }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check inputs
+        run: |
+          . tools/install-smoke/lib.sh
+          valid_tag "$TAG" || { echo "not a release tag: $TAG"; exit 1; }
+          [ -f "fixtures/$FIXTURE/fixture.lock" ] || { echo "no such fixture: $FIXTURE"; exit 1; }
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: "8.4"
+          tools: composer:2.10.3
+          extensions: zip
+          coverage: none
+      - name: Install with the shell installer
+        if: matrix.installer == 'shell'
+        run: |
+          . tools/install-smoke/lib.sh
+          curl --proto '=https' --tlsv1.2 -LsSf "$(asset_url "$TAG" phpm-installer.sh)" | sh
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+      - name: Install with the PowerShell installer
+        if: matrix.installer == 'powershell'
+        shell: pwsh
+        run: |
+          irm "https://github.com/speedsharmaai/phpm/releases/download/$env:TAG/phpm-installer.ps1" | iex
+          "$env:USERPROFILE\.cargo\bin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+      - name: Download the npm package from the release assets
+        if: matrix.installer == 'npm'
+        run: |
+          . tools/install-smoke/lib.sh
+          curl --proto '=https' --tlsv1.2 -LsSf -o "$RUNNER_TEMP/phpm-npm-package.tar.gz" "$(asset_url "$TAG" phpm-npm-package.tar.gz)"
+      - name: Install the npm package
+        if: matrix.installer == 'npm'
+        run: npm install -g "$RUNNER_TEMP/phpm-npm-package.tar.gz" # zizmor: ignore[adhoc-packages] the release asset is what this job tests
+      - name: Check the version
+        run: |
+          . tools/install-smoke/lib.sh
+          command -v phpm
+          out=$(phpm --version)
+          echo "$out"
+          version_matches "$TAG" "$out" || { echo "expected phpm $(tag_version "$TAG")"; exit 1; }
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          save-if: false
+      - run: cargo build --release --locked -p phpm-diffvendor
+      - name: Install the fixture and compare with Composer
+        run: tools/install-smoke/run "$FIXTURE" target/release/diffvendor phpm
