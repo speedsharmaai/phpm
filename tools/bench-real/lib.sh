@@ -141,13 +141,18 @@ run_project() {
       '{group: $group, repo: (if $repo == "null" then null else $repo end), os: $os, identity: "install-failed", error: $error}'
     return
   fi
-  scenario_timing "$work/composer" "${COMPOSER_BIN:-composer} install --no-scripts --no-plugins --ignore-platform-reqs --no-interaction --no-progress -q" "$work" composer
+  # A timed run failing mid-scenario (flaky network, a transient registry
+  # error) degrades that one project to whatever scenarios did complete,
+  # rather than losing every other project left in the batch.
+  scenario_timing "$work/composer" "${COMPOSER_BIN:-composer} install --no-scripts --no-plugins --ignore-platform-reqs --no-interaction --no-progress -q" "$work" composer \
+    || echo "$name: composer timing failed partway, see $work logs" >&2
 
   if ! (cd "$work/phpm" && HOME="$work/home" "${PHPM_BIN:-phpm}" install --no-scripts --no-plugins --ignore-platform-reqs --explain) \
     >"$work/phpm-install.log" 2>"$work/phpm-explain.log"; then
     cp "$work/phpm-explain.log" "$work/phpm.err"
   fi
-  scenario_timing "$work/phpm" "${PHPM_BIN:-phpm} install --no-scripts --no-plugins --ignore-platform-reqs" "$work" phpm
+  scenario_timing "$work/phpm" "${PHPM_BIN:-phpm} install --no-scripts --no-plugins --ignore-platform-reqs" "$work" phpm \
+    || echo "$name: phpm timing failed partway, see $work logs" >&2
 
   local identity=identical differences=0 diff_out
   if diff_out=$("${DIFFVENDOR_BIN:-diffvendor}" "$work/composer/vendor" "$work/phpm/vendor" 2>&1); then
