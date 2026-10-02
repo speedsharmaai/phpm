@@ -190,7 +190,7 @@ fn locations(
     let joined = format!("{root}/{web_root_rel}");
     let web_root = if verify_fs {
         std::fs::create_dir_all(&joined).map_err(|e| format!("{joined}: {e}"))?;
-        std::fs::canonicalize(&joined)
+        crate::fsutil::canonical(std::path::Path::new(&joined))
             .map(|p| phpm_lock::normalize_path(&p.to_string_lossy()))
             .map_err(|e| format!("{joined}: {e}"))?
     } else {
@@ -535,12 +535,7 @@ mod tests {
     #[test]
     fn matches_the_real_fixture_end_to_end() {
         let dir = tempfile::tempdir().unwrap();
-        let root = dir
-            .path()
-            .canonicalize()
-            .unwrap()
-            .to_string_lossy()
-            .replace('\\', "/");
+        let root = crate::fsutil::path_string(&crate::fsutil::canonical(dir.path()).unwrap());
         let vendor = format!("{root}/vendor");
         let entries = [
             obj(
@@ -558,12 +553,7 @@ mod tests {
     #[test]
     fn scaffolds_files_and_the_two_reference_files() {
         let dir = tempfile::tempdir().unwrap();
-        let root = dir
-            .path()
-            .canonicalize()
-            .unwrap()
-            .to_string_lossy()
-            .replace('\\', "/");
+        let root = crate::fsutil::path_string(&crate::fsutil::canonical(dir.path()).unwrap());
         let vendor = format!("{root}/vendor");
         let core = format!("{root}/web/core");
         write(
@@ -666,12 +656,7 @@ mod tests {
             .current_dir(dir.path())
             .status()
             .unwrap();
-        let root = dir
-            .path()
-            .canonicalize()
-            .unwrap()
-            .to_string_lossy()
-            .replace('\\', "/");
+        let root = crate::fsutil::path_string(&crate::fsutil::canonical(dir.path()).unwrap());
         let root_extra = obj(json!({"drupal-scaffold": {"allowed-packages": ["a/b"]}}));
         assert!(
             post_install(
