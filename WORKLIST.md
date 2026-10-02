@@ -2,7 +2,15 @@
 
 The one-screen view. Details live in [phases](phases/README.md).
 
-Current state: **Phase 02, 04 and 05 done; Phase 03 in progress.**
+Current state: **Phase 06 in progress: v0.1.0 released; launch posts
+pending.** Phases 01-05 done, Phase 03's sweep gate passed (98.1% identical
+on 312 projects).
+Phase 06 (2026-10-02): [v0.1.0](https://github.com/speedsharmaai/phpm/releases/tag/v0.1.0)
+released for macOS and Linux (five targets, attestations), installable with
+the curl installer or `brew install speedsharmaai/phpm/phpm`
+([tap](https://github.com/speedsharmaai/homebrew-phpm)). Windows is not
+supported yet (issues labelled `windows`). npm, Packagist and crates.io are
+not published.
 Phase 05 (2026-10-02): 40 real apps on GitHub's three runner OSes, median
 warm 9.4x (Linux), 18.6x (macOS), 1.6x (Windows), no-op 344-501x,
 `vendor/` identical on 39/40 (Linux, macOS) and 35/39 (Windows); whole CI
@@ -18,15 +26,15 @@ blocked package. Fuzzing runs weekly.
 
 ## Next three things
 
-1. **Phase 03: compatibility sweep.** The corpus runner and the nightly sweep
-   page have started (#43, #45, #46, #49); next is the published number
-   against the 95% gate.
-2. **Phase 05 follow-ups.** Profile Windows (warm 1.6x, three projects
-   slower than Composer, cold slower at the median) before Phase 06 claims
-   anything there; copy PrestaShop's tree on Windows; triage grav and the
-   three Windows-only differences.
-3. **Rename fixture lockfiles** so GitHub's dependency graph stops treating
-   them as dependencies; then turn automated security-fix PRs back on.
+1. **Launch, on the owner's go.** Composer maintainers note first, then
+   Show HN, then r/PHP and r/laravel. Drafts are ready and kept out of the
+   repo.
+2. **Windows.** Profile warm and cold (1.6x warm, three projects slower
+   than Composer), fix the Composer baseline in `install-smoke` (#118),
+   copy PrestaShop's tree; until then Windows stays unsupported.
+3. **Remaining distribution.** npm wrapper, Packagist wrapper for
+   setup-php, `setup-phpm` action and a Docker image: scaffolds exist, none
+   published.
 
 ## Owner actions
 
@@ -101,6 +109,17 @@ stay on fallback by scope (decision 0004), not fidelity.
 - [x] **First full run published:
   [progress](phases/phase-05-real-world-benchmarks/progress.md)**
 - [ ] Owner's Mac column, 3200x1800 chart export, per-run timeout
+
+## Phase 06 · Launch
+
+- [x] cargo-dist release workflow, SHA-pinned, with attestations (#98, #114, #117)
+- [x] Test pre-releases `v0.1.0-rc.1` and `v0.1.0-rc.2`; `install-smoke` workflow (#115)
+- [x] **`v0.1.0` released** (#125): five targets, shell and PowerShell installers, `phpm.rb`, checksums, attestations
+- [x] Homebrew tap: [speedsharmaai/homebrew-phpm](https://github.com/speedsharmaai/homebrew-phpm)
+- [x] README install section: curl installer, Homebrew, source
+- [x] Launch drafts (Show HN, Reddit, X, Laravel News, Composer note), kept out of the repo
+- [ ] npm, Packagist wrapper, `setup-phpm` action, Docker image
+- [ ] Composer maintainers note, Show HN, r/PHP, r/laravel (owner's go)
 
 ## Phase 03 and beyond
 

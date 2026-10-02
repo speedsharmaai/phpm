@@ -242,15 +242,18 @@
         <code>composer.json</code> and <code>composer.lock</code> unchanged and writes the same <code>vendor/</code>,
         byte for byte, in a fraction of the time on every install that is not bound by the network.</p>
       <div class="cta-row">
-        <a class="btn btn-primary" href="#install">Build from source</a>
+        <a class="btn btn-primary" href="#install">Install</a>
         <a class="btn btn-outline" href="https://github.com/speedsharmaai/phpm">View on GitHub</a>
         <a class="btn btn-outline" href="sweep/">See the live sweep</a>
       </div>
       <div class="notice">
-        <p><strong>Pre-release, built in the open.</strong> <code>phpm install</code> works today: it is
-          byte-identical to Composer on 96.8% of a 312-project nightly sweep, and faster everywhere it was
-          measured. There is no packaged release yet — build from source (see <a href="#install">Install</a>).
-          Every phase, decision and benchmark behind that number is public: start at
+        <p><strong>Early, built in the open.</strong> <code>phpm install</code> is byte-identical to Composer
+          on 98.1% of a 312-project nightly sweep, and its warm installs beat Composer's on every project
+          measured on Linux and macOS. Windows isn't supported yet
+          (<a href="https://github.com/speedsharmaai/phpm/issues?q=is%3Aissue+is%3Aopen+label%3Awindows">open issues</a>,
+          help welcome). It installs from a lockfile only: no
+          <code>update</code> or <code>require</code> yet.
+          Every phase, decision and benchmark behind those numbers is public: start at
           <a href="https://github.com/speedsharmaai/phpm/blob/main/phases/README.md">phases</a>.</p>
       </div>
     </div>
@@ -383,8 +386,8 @@
           <table>
             <thead><tr><th>Mode</th><th class="num">Identical</th><th class="num">Ratio</th><th class="num">Gate</th></tr></thead>
             <tbody>
-              <tr><td>Plugins and scripts off</td><td class="num">302 / 312</td><td class="num phpm-cell">96.8%</td><td class="num">95% — passed</td></tr>
-              <tr><td>Plugins and scripts on<br><span style="color:var(--ink-3); font-size:12px;">(Composer fallback included)</span></td><td class="num">263 / 281</td><td class="num phpm-cell">93.6%</td><td class="num">—</td></tr>
+              <tr><td>Plugins and scripts off</td><td class="num">306 / 312</td><td class="num phpm-cell">98.1%</td><td class="num">95% — passed</td></tr>
+              <tr><td>Plugins and scripts on<br><span style="color:var(--ink-3); font-size:12px;">(Composer fallback included)</span></td><td class="num">267 / 281</td><td class="num phpm-cell">95.0%</td><td class="num">—</td></tr>
             </tbody>
           </table>
         </div>
@@ -408,16 +411,23 @@
         <svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="35.88" fill="none" stroke="var(--ink-3)" stroke-width="20.24" stroke-dasharray="97.7 15 97.7 15" stroke-dashoffset="105.2" stroke-linecap="butt"/></svg>
         install
       </div>
-      <h2>Build from source</h2>
-      <p class="section-lede">There is no packaged release yet (that is Phase 06 — see
-        <a href="https://github.com/speedsharmaai/phpm/blob/main/phases/README.md">roadmap</a>).</p>
+      <h2>Install</h2>
+      <p class="section-lede">Prebuilt binaries for macOS and Linux are on every
+        <a href="https://github.com/speedsharmaai/phpm/releases">GitHub release</a>. Windows isn't supported
+        yet; the gaps are filed as
+        <a href="https://github.com/speedsharmaai/phpm/issues?q=is%3Aissue+is%3Aopen+label%3Awindows">issues</a>.</p>
 
       <div class="code-block">
-        <div class="code-head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">terminal</span></div>
+        <div class="code-head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">macOS and Linux</span></div>
         <div class="code-body"
-><div class="line"><span class="prompt">$</span> <span class="cmd">git clone https://github.com/speedsharmaai/phpm.git</span></div>
-<div class="line"><span class="prompt">$</span> <span class="cmd">cd phpm</span></div>
-<div class="line"><span class="prompt">$</span> <span class="cmd">cargo build --release -p phpm</span></div></div>
+><div class="line"><span class="prompt">$</span> <span class="cmd">curl -LsSf https://github.com/speedsharmaai/phpm/releases/latest/download/phpm-installer.sh | sh</span></div></div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">Homebrew or source</span></div>
+        <div class="code-body"
+><div class="line"><span class="prompt">$</span> <span class="cmd">brew install speedsharmaai/phpm/phpm</span></div>
+<div class="line"><span class="prompt">$</span> <span class="cmd">cargo install --locked --git https://github.com/speedsharmaai/phpm --tag v0.1.0 phpm</span></div></div>
       </div>
 
       <p>Then run it against a real project:</p>
@@ -426,7 +436,7 @@
         <div class="code-head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">terminal</span></div>
         <div class="code-body"
 ><div class="line"><span class="prompt">$</span> <span class="cmd">cd /path/to/your/php/project</span></div>
-<div class="line"><span class="prompt">$</span> <span class="cmd">/path/to/phpm/target/release/phpm install --explain</span></div>
+<div class="line"><span class="prompt">$</span> <span class="cmd">phpm install --explain</span></div>
 <div class="line out">Installing 109 packages...</div>
 <div class="line ok">109 native, 0 handed to Composer. vendor/ identical.</div></div>
       </div>
