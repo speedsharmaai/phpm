@@ -164,22 +164,99 @@ pub(crate) fn safe_relative(name: &str) -> Result<PathBuf, String> {
     if name.starts_with('/') || name.contains('\0') {
         return Err(format!("unsafe path {name:?}"));
     }
-    #[cfg(windows)]
-    if name.contains('\\') || name.contains(':') {
-        return Err(format!("unsafe path {name:?}"));
-    }
     let mut out = PathBuf::new();
     for part in name.split('/') {
-        match part {
+        let part = sanitize_component(part);
+        match part.as_ref() {
             "" | "." => {}
             ".." => return Err(format!("unsafe path {name:?}")),
-            _ => out.push(part),
+            part => out.push(part),
         }
     }
     if out.components().any(|c| !matches!(c, Component::Normal(_))) {
         return Err(format!("unsafe path {name:?}"));
     }
     Ok(out)
+}
+
+/// A path component as Windows can hold it. Composer's `ZipDownloader`
+/// extracts through 7-Zip there (`windows-latest` ships it), which
+/// substitutes characters a Windows path cannot hold rather than failing
+/// the archive; off Windows every byte here is legal, so this is a no-op.
+///
+/// 7-Zip: CPP/7zip/UI/Common/ExtractingFilePath.cpp `ReplaceIncorrectChars`,
+/// `Correct_PathPart`, `CorrectUnsupportedName`, `IsSupportedName`.
+fn sanitize_component(part: &str) -> std::borrow::Cow<'_, str> {
+    #[cfg(not(windows))]
+    {
+        std::borrow::Cow::Borrowed(part)
+    }
+    #[cfg(windows)]
+    {
+        if matches!(part, "" | "." | "..") {
+            return std::borrow::Cow::Borrowed(part);
+        }
+        let mut chars: Vec<char> = part
+            .chars()
+            .map(|c| {
+                if matches!(c, ':' | '*' | '?' | '<' | '>' | '|' | '"' | '\\') || (c as u32) < 0x20
+                {
+                    '_'
+                } else {
+                    c
+                }
+            })
+            .collect();
+        let mut i = chars.len();
+        while i > 0 && matches!(chars[i - 1], '.' | ' ') {
+            chars[i - 1] = '_';
+            i -= 1;
+        }
+        if is_reserved_device_name(&chars) {
+            chars.insert(0, '_');
+        }
+        std::borrow::Cow::Owned(if chars.is_empty() {
+            "_".to_owned()
+        } else {
+            chars.into_iter().collect()
+        })
+    }
+}
+
+/// `CON`, `PRN`, `AUX`, `NUL`, `COM1`-`COM9`, `LPT1`-`LPT9`, with or without
+/// an extension: Windows reserves these regardless of what follows the dot.
+#[cfg(windows)]
+fn is_reserved_device_name(chars: &[char]) -> bool {
+    const PLAIN: [&str; 4] = ["CON", "PRN", "AUX", "NUL"];
+    const NUMBERED: [&str; 2] = ["COM", "LPT"];
+    let name: String = chars.iter().collect();
+    let after_prefix = |prefix: &str, needs_digit: bool| -> Option<usize> {
+        if name.len() < prefix.len() || !name[..prefix.len()].eq_ignore_ascii_case(prefix) {
+            return None;
+        }
+        if !needs_digit {
+            return Some(prefix.len());
+        }
+        name[prefix.len()..]
+            .chars()
+            .next()
+            .filter(char::is_ascii_digit)
+            .map(|_| prefix.len() + 1)
+    };
+    let candidates = PLAIN
+        .iter()
+        .map(|p| (*p, false))
+        .chain(NUMBERED.iter().map(|p| (*p, true)));
+    for (prefix, needs_digit) in candidates {
+        let Some(rest_start) = after_prefix(prefix, needs_digit) else {
+            continue;
+        };
+        let rest = name[rest_start..].trim_start_matches(' ');
+        if rest.is_empty() || rest.starts_with('.') {
+            return true;
+        }
+    }
+    false
 }
 
 // Composer: ArchiveDownloader::install, getFolderContent() ignores .DS_Store.
@@ -558,5 +635,86 @@ mod tests {
         assert!(safe_relative("a/\0b").is_err());
         assert!(check_link(Path::new("a/b"), "../c").is_ok());
         assert!(check_link(Path::new("a/b"), "").is_err());
+    }
+
+    // invoiceninja/invoiceninja's real dist archive has an entry literally
+    // named "index.html?D=A", a query string some tool appended to a URL
+    // before it was zipped; `?` is not valid in a Windows filename.
+    #[cfg(windows)]
+    #[test]
+    fn sanitizes_windows_invalid_characters_like_7_zip() {
+        assert_eq!(
+            safe_relative("public/index.html?D=A").unwrap(),
+            Path::new("public/index.html_D=A")
+        );
+        assert_eq!(
+            safe_relative("a/weird<>:|\"*name.txt").unwrap(),
+            Path::new("a/weird______name.txt")
+        );
+        assert_eq!(
+            safe_relative("a/back\\slash").unwrap(),
+            Path::new("a/back_slash")
+        );
+        assert_eq!(
+            safe_relative("a/trailing. ").unwrap(),
+            Path::new("a/trailing__")
+        );
+        assert_eq!(safe_relative("a/???").unwrap(), Path::new("a/___"));
+        // "." and ".." stay exactly themselves (dropped/rejected upstream),
+        // never run through the trailing-dot sanitizer.
+        assert_eq!(safe_relative("a/./b").unwrap(), Path::new("a/b"));
+        assert!(safe_relative("a/../b").is_err());
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn prefixes_reserved_device_names_like_7_zip() {
+        for reserved in ["CON", "con", "NUL", "NUL.txt", "COM1", "LPT9.log"] {
+            assert_eq!(
+                safe_relative(&format!("a/{reserved}")).unwrap(),
+                Path::new("a").join(format!("_{reserved}"))
+            );
+        }
+        for not_reserved in ["CONSOLE", "COM10", "COMPANY.txt", "NULL"] {
+            assert_eq!(
+                safe_relative(&format!("a/{not_reserved}")).unwrap(),
+                Path::new("a").join(not_reserved)
+            );
+        }
+    }
+
+    #[test]
+    fn sibling_at_top_level_keeps_a_subdir_from_being_unwrapped() {
+        let tmp = TempDir::new("extract-no-unwrap-check");
+        let zip = ZipBuilder::new()
+            .dos_file("composer.json", b"{}")
+            .dos_file("public/index.html", b"<html></html>")
+            .finish();
+        let dest = tmp.path().join("pkg");
+        extract("a/b", &zip, &dest, Limits::default()).unwrap();
+        assert_eq!(
+            fs::read(dest.join("public/index.html")).unwrap(),
+            b"<html></html>"
+        );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn extracts_a_windows_invalid_name_instead_of_failing() {
+        let tmp = TempDir::new("extract-windows-names");
+        // A sibling at the top level keeps "public/" from being unwrapped
+        // as the archive's lone top-level directory (see
+        // `strips_the_single_top_level_directory`), matching a real
+        // invoiceninja-sized archive rather than this one entry alone.
+        let zip = ZipBuilder::new()
+            .dos_file("composer.json", b"{}")
+            .dos_file("public/index.html?D=A", b"<html></html>")
+            .finish();
+        let dest = tmp.path().join("pkg");
+        extract("a/b", &zip, &dest, Limits::default()).unwrap();
+        assert_eq!(
+            fs::read(dest.join("public/index.html_D=A")).unwrap(),
+            b"<html></html>"
+        );
     }
 }

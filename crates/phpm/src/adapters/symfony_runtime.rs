@@ -54,9 +54,11 @@ pub(crate) fn generate(
 
     let project_dir = match options.shift_remove(&PhpKey::from("project_dir")) {
         None => at.root.to_owned(),
-        Some(PhpValue::String(sub)) => std::fs::canonicalize(format!("{}/{sub}", at.root))
-            .map(|p| phpm_lock::normalize_path(&p.to_string_lossy()))
-            .map_err(|_| format!("extra.runtime.project_dir {sub} does not exist"))?,
+        Some(PhpValue::String(sub)) => {
+            crate::fsutil::canonical(std::path::Path::new(&format!("{}/{sub}", at.root)))
+                .map(|p| phpm_lock::normalize_path(&p.to_string_lossy()))
+                .map_err(|_| format!("extra.runtime.project_dir {sub} does not exist"))?
+        }
         Some(_) => return Err("extra.runtime.project_dir is not a string".into()),
     };
 
@@ -252,8 +254,7 @@ mod tests {
     #[test]
     fn project_dir_override_resolves_against_the_root() {
         let dir = tempfile::tempdir().unwrap();
-        let canon = dir.path().canonicalize().unwrap();
-        let root = canon.to_string_lossy().replace('\\', "/");
+        let root = crate::fsutil::path_string(&crate::fsutil::canonical(dir.path()).unwrap());
         std::fs::create_dir(dir.path().join("public")).unwrap();
         let extra = obj(json!({"runtime": {"project_dir": "public"}}));
         let vendor = format!("{root}/vendor");

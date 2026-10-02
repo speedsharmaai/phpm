@@ -688,12 +688,7 @@ mod tests {
     #[test]
     fn drupal_core_adapters_run_natively_together() {
         let dir = tempfile::tempdir().unwrap();
-        let root = dir
-            .path()
-            .canonicalize()
-            .unwrap()
-            .to_string_lossy()
-            .replace('\\', "/");
+        let root = crate::fsutil::path_string(&crate::fsutil::canonical(dir.path()).unwrap());
         let vendor = format!("{root}/vendor");
         let entries = [
             obj(json!({
