@@ -33,4 +33,14 @@ check "tag version drops the v" "0.1.0-rc.1" "$(tag_version v0.1.0-rc.1)"
 check "version output matches its tag" yes "$(yes_no version_matches v0.1.0-rc.1 'phpm 0.1.0-rc.1')"
 check "version output for another tag does not" no "$(yes_no version_matches v0.1.0 'phpm 0.1.0-rc.1')"
 
+check "composer phar url" "https://getcomposer.org/download/2.10.3/composer.phar" \
+  "$(composer_phar_url 2.10.3)"
+tmp="$(mktemp)"
+trap 'rm -f "$tmp"' EXIT
+printf abc >"$tmp"
+check "sha256 of a known file matches" yes \
+  "$(yes_no sha256_matches "$tmp" ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad)"
+check "a different sha256 does not" no \
+  "$(yes_no sha256_matches "$tmp" 0000000000000000000000000000000000000000000000000000000000000000)"
+
 [ "$failures" -eq 0 ] || { echo "$failures failed"; exit 1; }
