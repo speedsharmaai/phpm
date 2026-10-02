@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Installs a fixture with composer and with an installed phpm, then compares
+# the two vendor/ trees. usage: run <fixture> <diffvendor> [phpm]
+set -euo pipefail
+
+here="$(cd "$(dirname "$0")" && pwd)"
+fixture="$1"
+diffvendor="$2"
+phpm="${3:-phpm}"
+src="$here/../../fixtures/$fixture"
+work="$(mktemp -d)"
+trap 'rm -rf "$work"' EXIT
+
+for side in composer phpm; do
+  mkdir -p "$work/$side"
+  cp "$src/fixture.json" "$work/$side/composer.json"
+  cp "$src/fixture.lock" "$work/$side/composer.lock"
+done
+
+unset COMPOSER_ROOT_VERSION
+(cd "$work/composer" && composer install --no-scripts --no-plugins --no-interaction --no-progress -q)
+start=$(date +%s)
+(cd "$work/phpm" && "$phpm" install --no-scripts --no-plugins)
+echo "phpm install took $(($(date +%s) - start))s"
+"$diffvendor" "$work/composer/vendor" "$work/phpm/vendor"
+echo "vendor/ identical for $fixture"

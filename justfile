@@ -65,6 +65,10 @@ sweep-test:
 bench-real-test:
     tools/bench-real/test.sh
 
+# shellcheck and helper checks for tools/install-smoke
+install-smoke-test:
+    tools/install-smoke/test.sh
+
 # node --check and package.json shape checks for the npm wrapper scaffold
 npm-wrapper-test:
     dist/npm-wrapper/test.sh
@@ -77,7 +81,7 @@ packagist-wrapper-test:
 setup-phpm-action-test:
     dist/setup-phpm-action/test.sh
 
-ci: fmt-check lint docs test deny shear msrv typos md actions sweep-test bench-real-test npm-wrapper-test packagist-wrapper-test setup-phpm-action-test cov
+ci: fmt-check lint docs test deny shear msrv typos md actions sweep-test bench-real-test install-smoke-test npm-wrapper-test packagist-wrapper-test setup-phpm-action-test cov
 
 # warm placement time for a fixture; the first run fills the store
 place fixture="laravel-skeleton" *args="":
