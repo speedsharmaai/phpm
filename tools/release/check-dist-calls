@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Every `dist` call in a release workflow must name a subcommand; hand edits
+# to the generated workflow have dropped one before. usage: check-dist-calls <workflow>...
+set -euo pipefail
+
+status=0
+for wf in "$@"; do
+  while IFS=: read -r line text; do
+    sub=$(sed -E 's/^[[:space:]]*dist[[:space:]]+([^[:space:]]+).*/\1/' <<<"$text")
+    case "$sub" in
+      plan | host | build | print-upload-files-from-manifest | \$DIST_PLAN_CMD) ;;
+      *)
+        echo "$wf:$line: dist called without a subcommand: ${text#"${text%%[![:space:]]*}"}"
+        status=1
+        ;;
+    esac
+  done < <(grep -nE '^[[:space:]]*dist[[:space:]]' "$wf" || true)
+done
+exit "$status"

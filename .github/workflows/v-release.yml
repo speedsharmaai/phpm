@@ -231,7 +231,7 @@ jobs:
           DIST_TAG_FLAG: ${{ needs.plan.outputs.tag-flag }}
         run: |
           # shellcheck disable=SC2086,SC2129
-          dist $DIST_TAG_FLAG --output-format=json "--artifacts=global" > dist-manifest.json
+          dist build $DIST_TAG_FLAG --output-format=json "--artifacts=global" > dist-manifest.json
           echo "dist ran successfully"
 
           # Parse out what we just built and upload it to scratch storage
