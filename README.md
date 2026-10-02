@@ -273,7 +273,7 @@ tools/bench/      hyperfine harness: Composer vs phpm vs other installers
 | 03 | Compatibility sweep: nightly diff against Composer across 330 projects | **passed** — 98.1% identical, gate 95% |
 | 04 | Plugin adapters: composer/installers, Drupal scaffold, symfony/runtime, phpstan installer, PHPCS installer, php-http/discovery | **done** |
 | 05 | Real-world benchmarks: Composer vs phpm on the largest open-source PHP apps | **done** — warm 9.4x Linux, 18.6x macOS, 1.6x Windows ([page](https://speedsharmaai.github.io/phpm/bench/)) |
-| 06 | Launch: release, Homebrew, setup-php, Docker, GitHub Action | |
+| 06 | Launch: release, Homebrew, setup-php, Docker, GitHub Action | in progress: test pre-release [v0.1.0-rc.2](https://github.com/speedsharmaai/phpm/releases/tag/v0.1.0-rc.2) built and its installers checked |
 | 07 | Resolver: `update` and `require` | |
 
 Full plan and the gate each phase had to pass: [phases](phases/README.md) ·
