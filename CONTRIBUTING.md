@@ -1,5 +1,20 @@
 # Contributing
 
+## Your first contribution
+
+Issues labelled [`good first issue`](https://github.com/speedsharmaai/phpm/labels/good%20first%20issue) are scoped to a few hours and name the files to touch. Comment on one to have it assigned, then:
+
+```sh
+git clone https://github.com/<you>/phpm && cd phpm
+cargo test -p <crate>      # the crate named in the issue
+cargo fmt --all
+cargo clippy --workspace --all-targets -- -D warnings
+```
+
+That is all you need for most issues; rustup installs the pinned toolchain on first build. The full tool list below is for running everything CI runs locally.
+
+CI on a first-time contributor's PR waits for a maintainer to approve the run. Every change lands through a squash-merged pull request with one approving review and a green `ci-ok`.
+
 ## Setup
 
 ```sh
