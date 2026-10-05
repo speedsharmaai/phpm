@@ -244,6 +244,36 @@ to Composer and why. Plain `phpm install` otherwise behaves like
 `composer install`: `--no-dev`, `--no-scripts`, `--no-plugins`,
 `--optimize-autoloader` / `-o`, `--classmap-authoritative` / `-a` all work.
 
+### Environment variables
+
+phpm's own:
+
+- `PHPM_CACHE_DIR`: directory for the package store and phpm's other caches. Defaults to `~/Library/Caches/phpm` on macOS, `$XDG_CACHE_HOME/phpm` or `~/.cache/phpm` on Linux, and `%LOCALAPPDATA%\phpm` on Windows.
+- `PHPM_COMPOSER`: path to the Composer that phpm hands steps to and that `composer` script commands run. Defaults to `composer` on `PATH`; if the path set here is not executable, phpm treats Composer as missing.
+- `PHP_BINARY`: the PHP that `@php` and `composer` script commands run with, as a path or a name looked up on `PATH`. Defaults to `php` on `PATH`. The platform check always uses `php` on `PATH`.
+
+Composer's own, honoured for compatibility with the same meaning. The boolean ones take `1`, `true` or `on` and `0`, `false` or `off`; any other value is an error.
+
+- `COMPOSER`: file name of `composer.json` in the project directory; the lock file name follows it (`composer-other.json` reads `composer-other.lock`).
+- `COMPOSER_HOME`: Composer's home directory, read for `config.json`, `auth.json` and globally installed plugins. Defaults to `$XDG_CONFIG_HOME/composer` (`~/.config/composer`) or `~/.composer`, picked as Composer picks it, and `%APPDATA%\Composer` on Windows.
+- `COMPOSER_AUTH`: credentials as JSON in `auth.json` format; they win over those in `COMPOSER_HOME`, `composer.json` and the project's `auth.json`.
+- `COMPOSER_VENDOR_DIR`: overrides `config.vendor-dir` (default `vendor`).
+- `COMPOSER_BIN_DIR`: overrides `config.bin-dir` (default `vendor/bin`).
+- `COMPOSER_BIN_COMPAT`: overrides `config.bin-compat`: `auto`, `full` or `proxy`.
+- `COMPOSER_ROOT_VERSION`: version of the root package when `composer.json` has no `version`; with neither, phpm guesses it from git.
+- `COMPOSER_POLICY`: boolean; turns Composer's dependency policy (malware blocking and the lists `--audit` reports on) off or on, over `config.policy`.
+- `COMPOSER_POLICY_MALWARE_BLOCK`: boolean; whether a package on the malware list blocks the install, over `config.policy.malware.block`.
+- `COMPOSER_NO_BLOCKING`: boolean; when true, the same as `--no-blocking`: malware matches no longer block the install.
+- `COMPOSER_NO_SECURITY_BLOCKING`: boolean; the same as `COMPOSER_NO_BLOCKING`.
+- `COMPOSER_AUDIT_ABANDONED`: `ignore`, `report` or `fail`; how `--audit` treats abandoned packages, over the config.
+- `COMPOSER_MIRROR_PATH_REPOS`: any value but `0` copies `path` repository packages instead of symlinking them, unless the repository sets `options.symlink`.
+- `COMPOSER_PROCESS_TIMEOUT`: seconds a script command may run before it is killed, over `config.process-timeout`. Defaults to 300; `0` means no limit.
+- `COMPOSER_MEMORY_LIMIT`: PHP `memory_limit` for `@php` and `composer` script commands. Without it, phpm raises PHP's own limit to 1536M when it is lower, as Composer does.
+- `COMPOSER_SKIP_SCRIPTS`: comma-separated script events not to run, such as `post-install-cmd`.
+- `COMPOSER_DISABLE_NETWORK`: any value but `0` turns off the download notifications (`notify-on-install`) sent after an install. phpm still downloads packages.
+
+phpm also reads `HOME`, `PATH`, `XDG_CACHE_HOME`, `XDG_CONFIG_HOME`, `APPDATA` and `LOCALAPPDATA` to find the default directories and programs above, and includes `PHPRC` and `PHP_INI_SCAN_DIR` in the check that decides an install has nothing to do.
+
 ## How it works
 
 composer.json and composer.lock are parsed unchanged. Packages are fetched
