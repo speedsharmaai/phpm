@@ -25,7 +25,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
-      - uses: taiki-e/install-action@83ac0ad63c0167e6f06796fab0fce28db1bf3db0 # v2.87.22
+      - uses: taiki-e/install-action@f7e5d7c961414b23f5b25b2da9294395d08513ad # v2.87.26
         with:
           tool: cargo-nextest@0.9.146,cargo-llvm-cov@0.9.1
       - run: cargo llvm-cov nextest --workspace --locked --lcov --output-path lcov.info
